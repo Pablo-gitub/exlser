@@ -1,31 +1,27 @@
 import 'package:exel_category/view/home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_translate/flutter_translate.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 Future<void> main() async {
-  var delegate = await LocalizationDelegate.create(
-    fallbackLocale: 'en',
-    supportedLocales: [
-      'en',
-      'it',
-    ],
-  );
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
 
   runApp(
-    LocalizedApp(delegate, const ProviderScope(child: MyApp())),
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('it')],
+      path: 'assets/i18n', // translate folder
+      fallbackLocale: const Locale('en'),
+      child: const ProviderScope(child: MyApp()),
+    ),
   );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    var localizationDelegate = LocalizedApp.of(context).delegate;
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
@@ -33,14 +29,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate, 
-        localizationDelegate
-      ],
-      supportedLocales: localizationDelegate.supportedLocales,
-      locale: localizationDelegate.currentLocale,
+      locale: context.locale,
+      supportedLocales: context.supportedLocales,
+      localizationsDelegates: context.localizationDelegates,
       home: const HomePage(),
     );
   }

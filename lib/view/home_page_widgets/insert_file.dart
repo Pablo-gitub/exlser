@@ -1,11 +1,11 @@
 // Import for mobile file handling
+import 'package:easy_localization/easy_localization.dart';
 import 'package:excel/excel.dart';
 import 'package:exel_category/control/file_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:exel_category/model/excel_element.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_translate/flutter_translate.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class InsertFile extends StatefulWidget {
@@ -36,7 +36,7 @@ class _InsertFileState extends State<InsertFile> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    translate('Insert File Here:'),
+                    'Insert File Here:'.tr(),
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
@@ -46,7 +46,7 @@ class _InsertFileState extends State<InsertFile> {
                     children: [
                       Flexible(
                         child: Text(
-                          fileName ?? translate('No file selected'),
+                          fileName ?? 'No file selected'.tr(),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           style: const TextStyle(fontSize: 16),
@@ -75,7 +75,7 @@ class _InsertFileState extends State<InsertFile> {
                             }
                           }
                         },
-                        child: Text(translate('Select File')),
+                        child: Text('Select File'.tr()),
                       ),
                     ],
                   ),
@@ -95,14 +95,14 @@ class _InsertFileState extends State<InsertFile> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(translate('Invalid File')),
-          content: Text(translate('Invalid File Selection')),
+          title: Text('Invalid File'.tr()),
+          content: Text('Invalid File Selection'.tr()),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
-              child: Text(translate('OK')),
+              child: Text('OK'.tr()),
             ),
           ],
         );

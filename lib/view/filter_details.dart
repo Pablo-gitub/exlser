@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:exel_category/control/excel_export_controller.dart';
 import 'package:exel_category/provider/column_titles_provider.dart';
 import 'package:exel_category/provider/row_filters_height_provider.dart';
@@ -5,7 +6,6 @@ import 'package:exel_category/view/filter_details_widgets/details_element.dart';
 import 'package:exel_category/view/filter_details_widgets/row_filters.dart';
 import 'package:flutter/material.dart';
 import 'package:exel_category/model/excel_element.dart';
-import 'package:flutter_translate/flutter_translate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:exel_category/provider/filters_provider.dart';
 
@@ -25,7 +25,7 @@ class FilterDetails extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(translate('Filtered Elements')),
+        title: Text('Filtered Elements'.tr()),
         actions: [
           IconButton(
             icon: const Icon(Icons.download),
@@ -80,8 +80,8 @@ class FilterDetails extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title:  Text(translate('FormatSelection')),
-          content:  Text(translate('HowDownload')),
+          title:  Text('FormatSelection'.tr()),
+          content:  Text('HowDownload'.tr()),
           actions: [
             TextButton(
               onPressed: () async {
@@ -89,7 +89,7 @@ class FilterDetails extends ConsumerWidget {
                 await excelExportController.exportToExcel(
                     titlesProvider, ref);
               },
-              child: Text(translate('ExcelExport')),
+              child: Text('ExcelExport'.tr()),
             ),
             TextButton(
               onPressed: () async {
@@ -97,13 +97,13 @@ class FilterDetails extends ConsumerWidget {
                 await excelExportController.exportToPdf(
                     titlesProvider, ref);
               },
-              child: Text(translate('ExportPDF')),
+              child: Text('ExportPDF'.tr()),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); //  Close dialog
               },
-              child: Text(translate('cancel')),
+              child: Text('cancel'.tr()),
             ),
           ],
         );

@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:exel_category/view/home_page_widgets/column_filter_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_translate/flutter_translate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:exel_category/view/home_page_widgets/insert_file.dart';
 import 'package:exel_category/model/excel_element.dart';
@@ -29,10 +29,10 @@ class HomePage extends ConsumerWidget {
               width: 30,
               height: 20,
               fit: BoxFit.cover,
-              semanticLabel: translate('en'),
+              semanticLabel: 'en'.tr(),
             ),
-            onPressed: () => changeLocale(context, 'en'),
-            tooltip: translate('en'),
+            onPressed: () => context.setLocale(const Locale('en')),
+            tooltip: 'en'.tr(),
           ),
           // IconButton for Italian language
           IconButton(
@@ -41,10 +41,10 @@ class HomePage extends ConsumerWidget {
               width: 30,
               height: 20,
               fit: BoxFit.cover,
-              semanticLabel: translate('it'),
+              semanticLabel: 'it'.tr(),
             ),
-            onPressed: () => changeLocale(context, 'it'),
-            tooltip: translate('it'),
+            onPressed: () => context.setLocale(const Locale('it')),
+            tooltip: 'it'.tr(),
           ),
           if (filtersProvider.filters.elements.isNotEmpty &&
               filtersProvider.filters.selectedFilters.isNotEmpty)
@@ -102,7 +102,7 @@ class HomePage extends ConsumerWidget {
                     // Button to reset all filters
                     TextButton(
                       onPressed: filtersProvider.resetFilters,
-                      child: Text(translate('Reset All')),
+                      child: Text('Reset All'.tr()),
                     ),
                   ],
                 ),
@@ -166,8 +166,8 @@ class HomePage extends ConsumerWidget {
                     // Show a message if no results are found
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(translate(
-                            'No results match the selected filters.')),
+                        content:
+                            Text('No results match the selected filters.'.tr()),
                       ),
                     );
                   }
@@ -184,7 +184,7 @@ class HomePage extends ConsumerWidget {
                   ),
                 ),
                 child: Text(
-                  translate('Apply Filters'),
+                  'Apply Filters'.tr(),
                   style: const TextStyle(fontSize: 22),
                 ),
               ),

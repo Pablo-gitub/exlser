@@ -1,11 +1,11 @@
 import 'dart:math';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:exel_category/model/excel_element.dart';
 import 'package:exel_category/provider/elements_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:exel_category/provider/filters_provider.dart';
-import 'package:flutter_translate/flutter_translate.dart';
 
 class ColumnFilterCard extends ConsumerStatefulWidget {
   final String columnName;
@@ -79,7 +79,7 @@ class _ColumnFilterCardState extends ConsumerState<ColumnFilterCard> {
                       }
                     },
                     subtitle: Text(
-                      '${_countMatchingElements(elementsProvider.filteredElements, uniqueItems[i])} ${translate('items match')}',
+                      '${_countMatchingElements(elementsProvider.filteredElements, uniqueItems[i])} ${'items match'.tr()}',
                       style: TextStyle(
                           color: colors[i]), // Apply color here
                     ),
