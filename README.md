@@ -1,4 +1,5 @@
 # ExcelCategory
+[Refactoring Plan](REFACTORING_PLAN.md)
 
 Welcome to ExcelCategory! This application allows you to easily view and filter Excel files across multiple platforms. It has been realized with Flutter.
 
