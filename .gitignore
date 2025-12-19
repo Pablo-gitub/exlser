@@ -46,3 +46,11 @@ app.*.map.json
 
 #Apikey
 /assets/api_key/
+
+# iOS / macOS
+macos/Podfile.lock
+ios/Podfile.lock
+
+# Gradle (Android / embedded)
+.gradle/
+**/.gradle/
