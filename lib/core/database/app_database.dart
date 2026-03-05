@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:exel_category/core/database/connection/connection.dart';
+import 'package:exel_category/core/database/daos/dataset_columns_dao.dart';
 import 'package:exel_category/core/database/daos/dataset_tables_dao.dart';
 import 'package:exel_category/core/database/daos/datasets_dao.dart';
 
@@ -18,6 +19,7 @@ part 'app_database.g.dart';
   daos: [
     DatasetsDao,
     DatasetTablesDao,
+    DatasetColumnsDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {

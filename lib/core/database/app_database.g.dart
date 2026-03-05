@@ -1237,6 +1237,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final DatasetsDao datasetsDao = DatasetsDao(this as AppDatabase);
   late final DatasetTablesDao datasetTablesDao =
       DatasetTablesDao(this as AppDatabase);
+  late final DatasetColumnsDao datasetColumnsDao =
+      DatasetColumnsDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
