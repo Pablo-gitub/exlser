@@ -1,3 +1,4 @@
+//lib/domain/repositories/query_repository.dart
 import 'package:exel_category/domain/entities/dataset_column.dart';
 
 /// Repository responsible for querying dataset data.
