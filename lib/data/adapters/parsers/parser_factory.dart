@@ -6,7 +6,6 @@
 /// - CSV (.csv)
 class ParserFactory {
 
-  /// TODO:
   /// Return correct parser instance based on file extension.
   dynamic createParser(String fileExtension) {
     throw UnimplementedError();
