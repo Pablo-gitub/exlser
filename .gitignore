@@ -54,3 +54,6 @@ ios/Podfile.lock
 # Gradle (Android / embedded)
 .gradle/
 **/.gradle/
+
+
+scripts/
