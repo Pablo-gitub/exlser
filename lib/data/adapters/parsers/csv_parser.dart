@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:csv/csv.dart';
+import 'package:exel_category/data/adapters/table_normalizers/header_detector.dart';
 
 /// Parser responsible for reading CSV files and converting them
 /// into a normalized row structure.
@@ -45,11 +46,12 @@ class CsvParser {
       throw Exception('CSV file contains no data');
     }
 
+    final normalizedRows = HeaderDetector.detect(rows);
     /// Extract header row
-    final headers = rows.first.map((e) => e.toString()).toList();
+    final headers = normalizedRows.first.map((e) => e.toString()).toList();
 
     /// Extract data rows
-    final dataRows = rows.skip(1);
+    final dataRows = normalizedRows.skip(1);
 
     final result = dataRows.map((row) {
 
