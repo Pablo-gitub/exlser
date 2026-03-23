@@ -1228,12 +1228,428 @@ class DatasetColumnsCompanion extends UpdateCompanion<DatasetColumn> {
   }
 }
 
+class $DatasetFilesTable extends DatasetFiles
+    with TableInfo<$DatasetFilesTable, DatasetFile> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DatasetFilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _datasetIdMeta =
+      const VerificationMeta('datasetId');
+  @override
+  late final GeneratedColumn<int> datasetId = GeneratedColumn<int>(
+      'dataset_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'UNIQUE REFERENCES datasets (id)'));
+  static const VerificationMeta _storageModeMeta =
+      const VerificationMeta('storageMode');
+  @override
+  late final GeneratedColumn<String> storageMode = GeneratedColumn<String>(
+      'storage_mode', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _originalPathMeta =
+      const VerificationMeta('originalPath');
+  @override
+  late final GeneratedColumn<String> originalPath = GeneratedColumn<String>(
+      'original_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _storedPathMeta =
+      const VerificationMeta('storedPath');
+  @override
+  late final GeneratedColumn<String> storedPath = GeneratedColumn<String>(
+      'stored_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _importedAtMeta =
+      const VerificationMeta('importedAt');
+  @override
+  late final GeneratedColumn<DateTime> importedAt = GeneratedColumn<DateTime>(
+      'imported_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _fileSizeMeta =
+      const VerificationMeta('fileSize');
+  @override
+  late final GeneratedColumn<int> fileSize = GeneratedColumn<int>(
+      'file_size', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        datasetId,
+        storageMode,
+        originalPath,
+        storedPath,
+        importedAt,
+        fileSize
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'dataset_files';
+  @override
+  VerificationContext validateIntegrity(Insertable<DatasetFile> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('dataset_id')) {
+      context.handle(_datasetIdMeta,
+          datasetId.isAcceptableOrUnknown(data['dataset_id']!, _datasetIdMeta));
+    } else if (isInserting) {
+      context.missing(_datasetIdMeta);
+    }
+    if (data.containsKey('storage_mode')) {
+      context.handle(
+          _storageModeMeta,
+          storageMode.isAcceptableOrUnknown(
+              data['storage_mode']!, _storageModeMeta));
+    } else if (isInserting) {
+      context.missing(_storageModeMeta);
+    }
+    if (data.containsKey('original_path')) {
+      context.handle(
+          _originalPathMeta,
+          originalPath.isAcceptableOrUnknown(
+              data['original_path']!, _originalPathMeta));
+    }
+    if (data.containsKey('stored_path')) {
+      context.handle(
+          _storedPathMeta,
+          storedPath.isAcceptableOrUnknown(
+              data['stored_path']!, _storedPathMeta));
+    }
+    if (data.containsKey('imported_at')) {
+      context.handle(
+          _importedAtMeta,
+          importedAt.isAcceptableOrUnknown(
+              data['imported_at']!, _importedAtMeta));
+    } else if (isInserting) {
+      context.missing(_importedAtMeta);
+    }
+    if (data.containsKey('file_size')) {
+      context.handle(_fileSizeMeta,
+          fileSize.isAcceptableOrUnknown(data['file_size']!, _fileSizeMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DatasetFile map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DatasetFile(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      datasetId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}dataset_id'])!,
+      storageMode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}storage_mode'])!,
+      originalPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}original_path']),
+      storedPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}stored_path']),
+      importedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}imported_at'])!,
+      fileSize: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}file_size']),
+    );
+  }
+
+  @override
+  $DatasetFilesTable createAlias(String alias) {
+    return $DatasetFilesTable(attachedDatabase, alias);
+  }
+}
+
+class DatasetFile extends DataClass implements Insertable<DatasetFile> {
+  /// Primary key
+  final int id;
+
+  /// Foreign key to datasets
+  final int datasetId;
+
+  /// Storage mode:
+  /// path, pathAndCopy, webTemporary, webPersisted
+  final String storageMode;
+
+  /// Original file path (nullable if not available, e.g. web)
+  final String? originalPath;
+
+  /// Stored file path inside app storage (nullable if not copied)
+  final String? storedPath;
+
+  /// Timestamp of last import
+  final DateTime importedAt;
+
+  /// File size in bytes (optional)
+  final int? fileSize;
+  const DatasetFile(
+      {required this.id,
+      required this.datasetId,
+      required this.storageMode,
+      this.originalPath,
+      this.storedPath,
+      required this.importedAt,
+      this.fileSize});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['dataset_id'] = Variable<int>(datasetId);
+    map['storage_mode'] = Variable<String>(storageMode);
+    if (!nullToAbsent || originalPath != null) {
+      map['original_path'] = Variable<String>(originalPath);
+    }
+    if (!nullToAbsent || storedPath != null) {
+      map['stored_path'] = Variable<String>(storedPath);
+    }
+    map['imported_at'] = Variable<DateTime>(importedAt);
+    if (!nullToAbsent || fileSize != null) {
+      map['file_size'] = Variable<int>(fileSize);
+    }
+    return map;
+  }
+
+  DatasetFilesCompanion toCompanion(bool nullToAbsent) {
+    return DatasetFilesCompanion(
+      id: Value(id),
+      datasetId: Value(datasetId),
+      storageMode: Value(storageMode),
+      originalPath: originalPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalPath),
+      storedPath: storedPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storedPath),
+      importedAt: Value(importedAt),
+      fileSize: fileSize == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fileSize),
+    );
+  }
+
+  factory DatasetFile.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DatasetFile(
+      id: serializer.fromJson<int>(json['id']),
+      datasetId: serializer.fromJson<int>(json['datasetId']),
+      storageMode: serializer.fromJson<String>(json['storageMode']),
+      originalPath: serializer.fromJson<String?>(json['originalPath']),
+      storedPath: serializer.fromJson<String?>(json['storedPath']),
+      importedAt: serializer.fromJson<DateTime>(json['importedAt']),
+      fileSize: serializer.fromJson<int?>(json['fileSize']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'datasetId': serializer.toJson<int>(datasetId),
+      'storageMode': serializer.toJson<String>(storageMode),
+      'originalPath': serializer.toJson<String?>(originalPath),
+      'storedPath': serializer.toJson<String?>(storedPath),
+      'importedAt': serializer.toJson<DateTime>(importedAt),
+      'fileSize': serializer.toJson<int?>(fileSize),
+    };
+  }
+
+  DatasetFile copyWith(
+          {int? id,
+          int? datasetId,
+          String? storageMode,
+          Value<String?> originalPath = const Value.absent(),
+          Value<String?> storedPath = const Value.absent(),
+          DateTime? importedAt,
+          Value<int?> fileSize = const Value.absent()}) =>
+      DatasetFile(
+        id: id ?? this.id,
+        datasetId: datasetId ?? this.datasetId,
+        storageMode: storageMode ?? this.storageMode,
+        originalPath:
+            originalPath.present ? originalPath.value : this.originalPath,
+        storedPath: storedPath.present ? storedPath.value : this.storedPath,
+        importedAt: importedAt ?? this.importedAt,
+        fileSize: fileSize.present ? fileSize.value : this.fileSize,
+      );
+  DatasetFile copyWithCompanion(DatasetFilesCompanion data) {
+    return DatasetFile(
+      id: data.id.present ? data.id.value : this.id,
+      datasetId: data.datasetId.present ? data.datasetId.value : this.datasetId,
+      storageMode:
+          data.storageMode.present ? data.storageMode.value : this.storageMode,
+      originalPath: data.originalPath.present
+          ? data.originalPath.value
+          : this.originalPath,
+      storedPath:
+          data.storedPath.present ? data.storedPath.value : this.storedPath,
+      importedAt:
+          data.importedAt.present ? data.importedAt.value : this.importedAt,
+      fileSize: data.fileSize.present ? data.fileSize.value : this.fileSize,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DatasetFile(')
+          ..write('id: $id, ')
+          ..write('datasetId: $datasetId, ')
+          ..write('storageMode: $storageMode, ')
+          ..write('originalPath: $originalPath, ')
+          ..write('storedPath: $storedPath, ')
+          ..write('importedAt: $importedAt, ')
+          ..write('fileSize: $fileSize')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, datasetId, storageMode, originalPath,
+      storedPath, importedAt, fileSize);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DatasetFile &&
+          other.id == this.id &&
+          other.datasetId == this.datasetId &&
+          other.storageMode == this.storageMode &&
+          other.originalPath == this.originalPath &&
+          other.storedPath == this.storedPath &&
+          other.importedAt == this.importedAt &&
+          other.fileSize == this.fileSize);
+}
+
+class DatasetFilesCompanion extends UpdateCompanion<DatasetFile> {
+  final Value<int> id;
+  final Value<int> datasetId;
+  final Value<String> storageMode;
+  final Value<String?> originalPath;
+  final Value<String?> storedPath;
+  final Value<DateTime> importedAt;
+  final Value<int?> fileSize;
+  const DatasetFilesCompanion({
+    this.id = const Value.absent(),
+    this.datasetId = const Value.absent(),
+    this.storageMode = const Value.absent(),
+    this.originalPath = const Value.absent(),
+    this.storedPath = const Value.absent(),
+    this.importedAt = const Value.absent(),
+    this.fileSize = const Value.absent(),
+  });
+  DatasetFilesCompanion.insert({
+    this.id = const Value.absent(),
+    required int datasetId,
+    required String storageMode,
+    this.originalPath = const Value.absent(),
+    this.storedPath = const Value.absent(),
+    required DateTime importedAt,
+    this.fileSize = const Value.absent(),
+  })  : datasetId = Value(datasetId),
+        storageMode = Value(storageMode),
+        importedAt = Value(importedAt);
+  static Insertable<DatasetFile> custom({
+    Expression<int>? id,
+    Expression<int>? datasetId,
+    Expression<String>? storageMode,
+    Expression<String>? originalPath,
+    Expression<String>? storedPath,
+    Expression<DateTime>? importedAt,
+    Expression<int>? fileSize,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (datasetId != null) 'dataset_id': datasetId,
+      if (storageMode != null) 'storage_mode': storageMode,
+      if (originalPath != null) 'original_path': originalPath,
+      if (storedPath != null) 'stored_path': storedPath,
+      if (importedAt != null) 'imported_at': importedAt,
+      if (fileSize != null) 'file_size': fileSize,
+    });
+  }
+
+  DatasetFilesCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? datasetId,
+      Value<String>? storageMode,
+      Value<String?>? originalPath,
+      Value<String?>? storedPath,
+      Value<DateTime>? importedAt,
+      Value<int?>? fileSize}) {
+    return DatasetFilesCompanion(
+      id: id ?? this.id,
+      datasetId: datasetId ?? this.datasetId,
+      storageMode: storageMode ?? this.storageMode,
+      originalPath: originalPath ?? this.originalPath,
+      storedPath: storedPath ?? this.storedPath,
+      importedAt: importedAt ?? this.importedAt,
+      fileSize: fileSize ?? this.fileSize,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (datasetId.present) {
+      map['dataset_id'] = Variable<int>(datasetId.value);
+    }
+    if (storageMode.present) {
+      map['storage_mode'] = Variable<String>(storageMode.value);
+    }
+    if (originalPath.present) {
+      map['original_path'] = Variable<String>(originalPath.value);
+    }
+    if (storedPath.present) {
+      map['stored_path'] = Variable<String>(storedPath.value);
+    }
+    if (importedAt.present) {
+      map['imported_at'] = Variable<DateTime>(importedAt.value);
+    }
+    if (fileSize.present) {
+      map['file_size'] = Variable<int>(fileSize.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DatasetFilesCompanion(')
+          ..write('id: $id, ')
+          ..write('datasetId: $datasetId, ')
+          ..write('storageMode: $storageMode, ')
+          ..write('originalPath: $originalPath, ')
+          ..write('storedPath: $storedPath, ')
+          ..write('importedAt: $importedAt, ')
+          ..write('fileSize: $fileSize')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $DatasetsTable datasets = $DatasetsTable(this);
   late final $DatasetTablesTable datasetTables = $DatasetTablesTable(this);
   late final $DatasetColumnsTable datasetColumns = $DatasetColumnsTable(this);
+  late final $DatasetFilesTable datasetFiles = $DatasetFilesTable(this);
   late final DatasetsDao datasetsDao = DatasetsDao(this as AppDatabase);
   late final DatasetTablesDao datasetTablesDao =
       DatasetTablesDao(this as AppDatabase);
@@ -1244,7 +1660,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [datasets, datasetTables, datasetColumns];
+      [datasets, datasetTables, datasetColumns, datasetFiles];
 }
 
 typedef $$DatasetsTableCreateCompanionBuilder = DatasetsCompanion Function({
@@ -1281,6 +1697,21 @@ final class $$DatasetsTableReferences
         .filter((f) => f.datasetId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_datasetTablesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$DatasetFilesTable, List<DatasetFile>>
+      _datasetFilesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.datasetFiles,
+          aliasName:
+              $_aliasNameGenerator(db.datasets.id, db.datasetFiles.datasetId));
+
+  $$DatasetFilesTableProcessedTableManager get datasetFilesRefs {
+    final manager = $$DatasetFilesTableTableManager($_db, $_db.datasetFiles)
+        .filter((f) => f.datasetId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_datasetFilesRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -1331,6 +1762,27 @@ class $$DatasetsTableFilterComposer
             $$DatasetTablesTableFilterComposer(
               $db: $db,
               $table: $db.datasetTables,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> datasetFilesRefs(
+      Expression<bool> Function($$DatasetFilesTableFilterComposer f) f) {
+    final $$DatasetFilesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.datasetFiles,
+        getReferencedColumn: (t) => t.datasetId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DatasetFilesTableFilterComposer(
+              $db: $db,
+              $table: $db.datasetFiles,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -1424,6 +1876,27 @@ class $$DatasetsTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> datasetFilesRefs<T extends Object>(
+      Expression<T> Function($$DatasetFilesTableAnnotationComposer a) f) {
+    final $$DatasetFilesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.datasetFiles,
+        getReferencedColumn: (t) => t.datasetId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DatasetFilesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.datasetFiles,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$DatasetsTableTableManager extends RootTableManager<
@@ -1437,7 +1910,7 @@ class $$DatasetsTableTableManager extends RootTableManager<
     $$DatasetsTableUpdateCompanionBuilder,
     (Dataset, $$DatasetsTableReferences),
     Dataset,
-    PrefetchHooks Function({bool datasetTablesRefs})> {
+    PrefetchHooks Function({bool datasetTablesRefs, bool datasetFilesRefs})> {
   $$DatasetsTableTableManager(_$AppDatabase db, $DatasetsTable table)
       : super(TableManagerState(
           db: db,
@@ -1488,11 +1961,13 @@ class $$DatasetsTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$DatasetsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({datasetTablesRefs = false}) {
+          prefetchHooksCallback: (
+              {datasetTablesRefs = false, datasetFilesRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (datasetTablesRefs) db.datasetTables
+                if (datasetTablesRefs) db.datasetTables,
+                if (datasetFilesRefs) db.datasetFiles
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -1506,6 +1981,19 @@ class $$DatasetsTableTableManager extends RootTableManager<
                         managerFromTypedResult: (p0) =>
                             $$DatasetsTableReferences(db, table, p0)
                                 .datasetTablesRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.datasetId == item.id),
+                        typedResults: items),
+                  if (datasetFilesRefs)
+                    await $_getPrefetchedData<Dataset, $DatasetsTable,
+                            DatasetFile>(
+                        currentTable: table,
+                        referencedTable: $$DatasetsTableReferences
+                            ._datasetFilesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$DatasetsTableReferences(db, table, p0)
+                                .datasetFilesRefs,
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.datasetId == item.id),
@@ -1528,7 +2016,7 @@ typedef $$DatasetsTableProcessedTableManager = ProcessedTableManager<
     $$DatasetsTableUpdateCompanionBuilder,
     (Dataset, $$DatasetsTableReferences),
     Dataset,
-    PrefetchHooks Function({bool datasetTablesRefs})>;
+    PrefetchHooks Function({bool datasetTablesRefs, bool datasetFilesRefs})>;
 typedef $$DatasetTablesTableCreateCompanionBuilder = DatasetTablesCompanion
     Function({
   Value<int> id,
@@ -2211,6 +2699,306 @@ typedef $$DatasetColumnsTableProcessedTableManager = ProcessedTableManager<
     (DatasetColumn, $$DatasetColumnsTableReferences),
     DatasetColumn,
     PrefetchHooks Function({bool datasetTableId})>;
+typedef $$DatasetFilesTableCreateCompanionBuilder = DatasetFilesCompanion
+    Function({
+  Value<int> id,
+  required int datasetId,
+  required String storageMode,
+  Value<String?> originalPath,
+  Value<String?> storedPath,
+  required DateTime importedAt,
+  Value<int?> fileSize,
+});
+typedef $$DatasetFilesTableUpdateCompanionBuilder = DatasetFilesCompanion
+    Function({
+  Value<int> id,
+  Value<int> datasetId,
+  Value<String> storageMode,
+  Value<String?> originalPath,
+  Value<String?> storedPath,
+  Value<DateTime> importedAt,
+  Value<int?> fileSize,
+});
+
+final class $$DatasetFilesTableReferences
+    extends BaseReferences<_$AppDatabase, $DatasetFilesTable, DatasetFile> {
+  $$DatasetFilesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DatasetsTable _datasetIdTable(_$AppDatabase db) =>
+      db.datasets.createAlias(
+          $_aliasNameGenerator(db.datasetFiles.datasetId, db.datasets.id));
+
+  $$DatasetsTableProcessedTableManager get datasetId {
+    final $_column = $_itemColumn<int>('dataset_id')!;
+
+    final manager = $$DatasetsTableTableManager($_db, $_db.datasets)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_datasetIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$DatasetFilesTableFilterComposer
+    extends Composer<_$AppDatabase, $DatasetFilesTable> {
+  $$DatasetFilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get storageMode => $composableBuilder(
+      column: $table.storageMode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get originalPath => $composableBuilder(
+      column: $table.originalPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get storedPath => $composableBuilder(
+      column: $table.storedPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get importedAt => $composableBuilder(
+      column: $table.importedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get fileSize => $composableBuilder(
+      column: $table.fileSize, builder: (column) => ColumnFilters(column));
+
+  $$DatasetsTableFilterComposer get datasetId {
+    final $$DatasetsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.datasetId,
+        referencedTable: $db.datasets,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DatasetsTableFilterComposer(
+              $db: $db,
+              $table: $db.datasets,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DatasetFilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DatasetFilesTable> {
+  $$DatasetFilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get storageMode => $composableBuilder(
+      column: $table.storageMode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get originalPath => $composableBuilder(
+      column: $table.originalPath,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get storedPath => $composableBuilder(
+      column: $table.storedPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get importedAt => $composableBuilder(
+      column: $table.importedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get fileSize => $composableBuilder(
+      column: $table.fileSize, builder: (column) => ColumnOrderings(column));
+
+  $$DatasetsTableOrderingComposer get datasetId {
+    final $$DatasetsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.datasetId,
+        referencedTable: $db.datasets,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DatasetsTableOrderingComposer(
+              $db: $db,
+              $table: $db.datasets,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DatasetFilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DatasetFilesTable> {
+  $$DatasetFilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get storageMode => $composableBuilder(
+      column: $table.storageMode, builder: (column) => column);
+
+  GeneratedColumn<String> get originalPath => $composableBuilder(
+      column: $table.originalPath, builder: (column) => column);
+
+  GeneratedColumn<String> get storedPath => $composableBuilder(
+      column: $table.storedPath, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get importedAt => $composableBuilder(
+      column: $table.importedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get fileSize =>
+      $composableBuilder(column: $table.fileSize, builder: (column) => column);
+
+  $$DatasetsTableAnnotationComposer get datasetId {
+    final $$DatasetsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.datasetId,
+        referencedTable: $db.datasets,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DatasetsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.datasets,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DatasetFilesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DatasetFilesTable,
+    DatasetFile,
+    $$DatasetFilesTableFilterComposer,
+    $$DatasetFilesTableOrderingComposer,
+    $$DatasetFilesTableAnnotationComposer,
+    $$DatasetFilesTableCreateCompanionBuilder,
+    $$DatasetFilesTableUpdateCompanionBuilder,
+    (DatasetFile, $$DatasetFilesTableReferences),
+    DatasetFile,
+    PrefetchHooks Function({bool datasetId})> {
+  $$DatasetFilesTableTableManager(_$AppDatabase db, $DatasetFilesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DatasetFilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DatasetFilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DatasetFilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> datasetId = const Value.absent(),
+            Value<String> storageMode = const Value.absent(),
+            Value<String?> originalPath = const Value.absent(),
+            Value<String?> storedPath = const Value.absent(),
+            Value<DateTime> importedAt = const Value.absent(),
+            Value<int?> fileSize = const Value.absent(),
+          }) =>
+              DatasetFilesCompanion(
+            id: id,
+            datasetId: datasetId,
+            storageMode: storageMode,
+            originalPath: originalPath,
+            storedPath: storedPath,
+            importedAt: importedAt,
+            fileSize: fileSize,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int datasetId,
+            required String storageMode,
+            Value<String?> originalPath = const Value.absent(),
+            Value<String?> storedPath = const Value.absent(),
+            required DateTime importedAt,
+            Value<int?> fileSize = const Value.absent(),
+          }) =>
+              DatasetFilesCompanion.insert(
+            id: id,
+            datasetId: datasetId,
+            storageMode: storageMode,
+            originalPath: originalPath,
+            storedPath: storedPath,
+            importedAt: importedAt,
+            fileSize: fileSize,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$DatasetFilesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({datasetId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (datasetId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.datasetId,
+                    referencedTable:
+                        $$DatasetFilesTableReferences._datasetIdTable(db),
+                    referencedColumn:
+                        $$DatasetFilesTableReferences._datasetIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$DatasetFilesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DatasetFilesTable,
+    DatasetFile,
+    $$DatasetFilesTableFilterComposer,
+    $$DatasetFilesTableOrderingComposer,
+    $$DatasetFilesTableAnnotationComposer,
+    $$DatasetFilesTableCreateCompanionBuilder,
+    $$DatasetFilesTableUpdateCompanionBuilder,
+    (DatasetFile, $$DatasetFilesTableReferences),
+    DatasetFile,
+    PrefetchHooks Function({bool datasetId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2221,4 +3009,6 @@ class $AppDatabaseManager {
       $$DatasetTablesTableTableManager(_db, _db.datasetTables);
   $$DatasetColumnsTableTableManager get datasetColumns =>
       $$DatasetColumnsTableTableManager(_db, _db.datasetColumns);
+  $$DatasetFilesTableTableManager get datasetFiles =>
+      $$DatasetFilesTableTableManager(_db, _db.datasetFiles);
 }

@@ -3,6 +3,7 @@ import 'package:exel_category/core/database/connection/connection.dart';
 import 'package:exel_category/core/database/daos/dataset_columns_dao.dart';
 import 'package:exel_category/core/database/daos/dataset_tables_dao.dart';
 import 'package:exel_category/core/database/daos/datasets_dao.dart';
+import 'package:exel_category/core/database/tables/dataset_files.dart';
 
 import 'tables/datasets.dart';
 import 'tables/dataset_tables.dart';
@@ -15,6 +16,7 @@ part 'app_database.g.dart';
     Datasets,
     DatasetTables,
     DatasetColumns,
+    DatasetFiles,
   ],
   daos: [
     DatasetsDao,
