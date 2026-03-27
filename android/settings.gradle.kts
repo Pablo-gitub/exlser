@@ -1,3 +1,5 @@
+rootProject.name = "exlser"
+
 pluginManagement {
     val flutterSdkPath =
         run {

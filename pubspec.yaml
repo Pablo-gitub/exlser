@@ -70,14 +70,19 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   drift_dev: ^2.32.0
   build_runner: ^2.12.1
+  rename: ^3.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo.png"
-
+  remove_alpha_ios: true
+  image_path: "assets/images/logo.png" 
+  adaptive_icon_background: "#FFFFFF" 
+  adaptive_icon_foreground: "assets/images/logo.png" 
+  adaptive_icon_foreground_inset: 0
+  
 
 # The following section is specific to Flutter packages.
 flutter:
@@ -122,5 +127,15 @@ flutter:
 flutter_native_splash:
   color: "#ffffff"
   image: assets/images/logo.png
+
   android: true
   ios: true
+
+  android_gravity: center
+  ios_content_mode: scaleAspectFit
+
+  # --- Configurazione Android 12+ (FONDAMENTALE) ---
+  android_12:
+    # Qui DEVI usare l'immagine con molto spazio vuoto attorno!
+    image: assets/images/logo_splash.png
+    icon_background_color: "#ffffff"
