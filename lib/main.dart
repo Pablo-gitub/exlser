@@ -1,38 +1,49 @@
-import 'package:exel_category/view/home_page.dart';
+import 'package:exel_category/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import 'presentation/router/app_router.dart';
+import 'presentation/router/router_notifier.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await EasyLocalization.ensureInitialized();
 
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('it')],
-      path: 'assets/i18n', // translate folder
+      supportedLocales: const [
+        Locale('en'),
+        Locale('it'),
+      ],
+      path: 'assets/i18n',
       fallbackLocale: const Locale('en'),
-      child: const ProviderScope(child: MyApp()),
+      child: const ProviderScope(
+        child: MyApp(),
+      ),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final routerNotifier = ref.watch(routerNotifierProvider);
+
+    final router = AppRouter.create(routerNotifier);
+
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      title: 'ExlSer',
+      theme: AppTheme.lightTheme,
       locale: context.locale,
       supportedLocales: context.supportedLocales,
       localizationsDelegates: context.localizationDelegates,
-      home: const HomePage(),
+
+      routerConfig: router,
     );
   }
 }

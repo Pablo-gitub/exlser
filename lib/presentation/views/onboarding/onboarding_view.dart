@@ -1,51 +1,110 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:exel_category/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'onboarding_viewmodel.dart';
 
-/// Onboarding view displayed when the app is opened for the first time.
-///
-/// This view introduces the main features of the application through
-/// a sequence of slides.
-///
-/// Planned slides:
-/// 1. Import Excel/CSV file
-/// 2. Confirm schema and column types
-/// 3. Apply filters and analyze data
-/// 4. Export results
-///
-/// This onboarding should be shown only once and skipped on
-/// subsequent launches.
-class OnboardingView extends StatefulWidget {
+class OnboardingView extends ConsumerStatefulWidget {
   const OnboardingView({super.key});
 
   @override
-  State<OnboardingView> createState() => _OnboardingViewState();
+  ConsumerState<OnboardingView> createState() =>
+      _OnboardingViewState();
 }
 
-class _OnboardingViewState extends State<OnboardingView> {
-
-  late OnboardingViewModel viewModel;
+class _OnboardingViewState
+    extends ConsumerState<OnboardingView> {
+  late final OnboardingViewModel viewModel;
 
   @override
   void initState() {
     super.initState();
 
-    /// TODO:
-    /// Initialize onboarding view model.
-    viewModel = OnboardingViewModel();
+    viewModel = ref.read(onboardingViewModelProvider);
+  }
+
+  @override
+  void dispose() {
+    viewModel.dispose();
+
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool isLastPage = viewModel.isLastPage;
 
-    /// TODO:
-    /// Implement PageView with onboarding slides.
-    ///
-    /// Each slide will show:
-    /// - image or gif
-    /// - short explanation text
+    return Scaffold(
+      appBar: AppBar(
+        actions: [
+          TextButton(
+            onPressed: viewModel.completeOnboarding,
+            child: Text(
+              AppStrings.skip.tr(),
+            ),
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                controller: viewModel.pageController,
+                itemCount: viewModel.pages.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    viewModel.onPageChanged(index);
+                  });
+                },
+                itemBuilder: (context, index) {
+                  return Center(
+                    child: Text(
+                      viewModel.pages[index],
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                },
+              ),
+            ),
+            Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: viewModel.canGoBack
+                      ? () async {
+                          await viewModel.previousPage();
 
-    return const Scaffold(
-      body: Placeholder(),
+                          setState(() {});
+                        }
+                      : null,
+                  child: Text(
+                    AppStrings.previous.tr(),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    await viewModel.nextPage();
+
+                    setState(() {});
+                  },
+                  child: Text(
+                    isLastPage
+                        ? AppStrings.start.tr()
+                        : AppStrings.next.tr(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

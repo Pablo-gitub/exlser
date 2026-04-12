@@ -1,32 +1,70 @@
-/// ViewModel responsible for onboarding state.
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../router/router_notifier.dart';
+
+final onboardingViewModelProvider =
+    Provider.autoDispose<OnboardingViewModel>(
+  (ref) => OnboardingViewModel(ref),
+);
+
+/// ViewModel responsible for onboarding flow.
 ///
 /// Responsibilities:
-/// - track current onboarding page
-/// - persist onboarding completion flag
-/// - allow skipping onboarding
+/// - manage onboarding page navigation
+/// - expose current page state
+/// - notify router when onboarding completes
 class OnboardingViewModel {
+  final Ref ref;
 
-  /// Index of the current onboarding page.
+  late final PageController pageController;
+
+  final List<String> pages = [
+    'Here I will create first onboarding',
+    'Here I will create second onboarding',
+    'Here I will create third onboarding',
+    'Here I will create fourth onboarding',
+  ];
+
   int currentPage = 0;
 
-  /// TODO:
-  /// Mark onboarding as completed.
-  ///
-  /// This should persist a flag so onboarding
-  /// is not shown again on next app launches.
-  Future<void> completeOnboarding() async {
-    throw UnimplementedError();
+  OnboardingViewModel(this.ref) {
+    pageController = PageController();
   }
 
-  /// TODO:
-  /// Move to next onboarding page.
-  void nextPage() {
-    currentPage++;
+  bool get isLastPage => currentPage == pages.length - 1;
+
+  bool get canGoBack => currentPage > 0;
+
+  void onPageChanged(int index) {
+    currentPage = index;
   }
 
-  /// TODO:
-  /// Skip onboarding entirely.
-  Future<void> skipOnboarding() async {
-    throw UnimplementedError();
+  Future<void> nextPage() async {
+    if (!isLastPage) {
+      await pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      completeOnboarding();
+    }
+  }
+
+  Future<void> previousPage() async {
+    if (!canGoBack) return;
+
+    await pageController.previousPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void completeOnboarding() {
+    ref.read(routerNotifierProvider).completeOnboarding();
+  }
+
+  void dispose() {
+    pageController.dispose();
   }
 }
