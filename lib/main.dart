@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-import 'presentation/router/app_router.dart';
-import 'presentation/router/router_notifier.dart';
+import 'presentation/router/router_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,18 +30,16 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final routerNotifier = ref.watch(routerNotifierProvider);
-
-    final router = AppRouter.create(routerNotifier);
+    final router = ref.watch(goRouterProvider);
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'ExlSer',
+      title: 'Exlser',
       theme: AppTheme.lightTheme,
       locale: context.locale,
       supportedLocales: context.supportedLocales,
-      localizationsDelegates: context.localizationDelegates,
-
+      localizationsDelegates:
+          context.localizationDelegates,
       routerConfig: router,
     );
   }
