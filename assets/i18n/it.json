@@ -1,17 +1,19 @@
 {
-    "Reset All":"Restta tutto",
-    "Insert File Here:":"Inserisci il file:",
-    "Filtred Elements":"Elementi Filtrati",
-    "Select File":"Seleziona File",
-    "No results match the selected filters.":"Non sono stati trovati file per i filtri selezionati.",
-    "Apply Filters":"Applica Filtri",
-    "No file selected":"Nessun File selezionato",
-    "Invalid File":"File Non Valido",
-    "Invalid File Selection":"Il file selezionato non è un valido file Excel. Per favore seleziona un file con estensione .xls o .xlsx",
-    "items match":" elementi trovati",
-    "FormatSelection":"Seleziona Formato Di Esportazione",
-    "HowDownload":"Come vuoi scaricare il file?",
-    "ExcelExport":"Esporta in Excel",
-    "ExportPDF":"Esport in PDF",
-    "cancel":"Cancel"
+    "app": {
+        "name": "ExlSer"
+    },
+    "home": {
+        "select_file": "Seleziona un file Excel o CSV",
+        "process_file": "Elabora file"
+    },
+    "onboarding": {
+        "title": "Benvenuto su ExlSer",
+        "button": "Inizia"
+    },
+    "common": {
+        "skip": "Salta",
+        "previous": "Indietro",
+        "next": "Avanti",
+        "start": "Inizia"
+    }
 }
