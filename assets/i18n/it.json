@@ -1,6 +1,6 @@
 {
     "app": {
-        "name": "ExlSer"
+        "name": "Exlser"
     },
     "home": {
         "select_file": "Seleziona un file Excel o CSV",
@@ -15,5 +15,19 @@
         "previous": "Indietro",
         "next": "Avanti",
         "start": "Inizia"
+    },
+    "menu": {
+        "home": "Home",
+        "works": "Lavori",
+        "settings": "Impostazioni"
+    },
+    "works": {
+        "empty": "Qui verrà mostrata la tua lista lavori",
+        "go_home": "Vai alla Home"
+    },
+    "settings": {
+        "language": "Lingua",
+        "language_english": "Inglese",
+        "language_italian": "Italiano"
     }
 }

@@ -1,6 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:exel_category/core/constants/app_strings.dart';
+import 'package:exel_category/presentation/router/routes.dart';
+import 'package:exel_category/presentation/widgets/layout/app_scaffold.dart';
 import 'package:flutter/material.dart';
-
-import 'datasets_list_viewmodel.dart';
+import 'package:go_router/go_router.dart';
 
 /// View displaying all saved datasets (workspaces).
 ///
@@ -12,40 +15,33 @@ import 'datasets_list_viewmodel.dart';
 ///
 /// The HomeView remains dedicated to importing a new file,
 /// while this page is used only for reopening existing workspaces.
-class DatasetsListView extends StatefulWidget {
+
+class DatasetsListView extends StatelessWidget {
   const DatasetsListView({super.key});
 
   @override
-  State<DatasetsListView> createState() => _DatasetsListViewState();
-}
-
-class _DatasetsListViewState extends State<DatasetsListView> {
-  late DatasetsListViewModel viewModel;
-
-  @override
-  void initState() {
-    super.initState();
-
-    /// TODO:
-    /// Initialize the view model and load saved datasets.
-    viewModel = DatasetsListViewModel();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    /// TODO:
-    /// Build datasets list page layout.
-    ///
-    /// UI elements:
-    /// - shared app bar with navigation menu
-    /// - list of saved datasets
-    /// - optional delete button for each dataset
-    ///
-    /// Interactions:
-    /// - tap on dataset item -> open selected dataset
-    /// - tap on delete icon -> delete dataset
-    return const Scaffold(
-      body: Placeholder(),
+    return AppScaffold(
+      title: AppStrings.works.tr(),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              AppStrings.noWorksYet.tr(),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                context.go(AppRoutes.homePath);
+              },
+              child: Text(
+                AppStrings.goHome.tr(),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
