@@ -4,7 +4,9 @@
     },
     "home": {
         "select_file": "Seleziona un file Excel o CSV",
-        "process_file": "Elabora file"
+        "drop_file": "Trascina qui un file Excel o CSV",
+        "process_file": "Elabora file",
+        "browse_file": "Sfoglia file"
     },
     "onboarding": {
         "title": "Benvenuto su ExlSer",

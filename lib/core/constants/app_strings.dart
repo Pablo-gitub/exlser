@@ -22,4 +22,7 @@ class AppStrings {
   static const String languageEnglish = 'settings.language_english';
   static const String languageItalian = 'settings.language_italian';
   static const String languageLabel = 'settings.language';
+
+  static const String homeDropFile = 'home.drop_file';
+  static const String browseFile = 'home.browse_file';
 }

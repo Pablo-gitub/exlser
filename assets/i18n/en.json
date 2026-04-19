@@ -4,7 +4,9 @@
     },
     "home": {
         "select_file": "Select an Excel or CSV file",
-        "process_file": "Process File"
+        "drop_file": "Drag and drop an Excel or CSV file here",
+        "process_file": "Process File",
+        "browse_file": "Browse file"
     },
     "onboarding": {
         "title": "Welcome to ExlSer",
