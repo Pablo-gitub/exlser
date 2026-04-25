@@ -60,7 +60,9 @@ class HomeView extends ConsumerWidget {
                   child: ElevatedButton(
                     onPressed: viewModel.hasFile
                         ? () {
-                            ref.read(homeViewModelProvider).processFile();
+                            ref
+                                .read(homeViewModelProvider)
+                                .processFile(context);
                           }
                         : null,
                     child: Padding(

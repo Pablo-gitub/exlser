@@ -25,4 +25,10 @@ class AppStrings {
 
   static const String homeDropFile = 'home.drop_file';
   static const String browseFile = 'home.browse_file';
+
+  /// Import dialog
+  static const String importTitle = 'import.title';
+  static const String importDatasetName = 'import.dataset_name';
+  static const String importSaveLocally = 'import.save_locally';
+  static const String importNext = 'import.next';
 }

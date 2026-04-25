@@ -31,5 +31,11 @@
         "language": "Language",
         "language_english": "English",
         "language_italian": "Italian"
+    },
+    "import": {
+        "title": "Create new dataset",
+        "dataset_name": "Dataset name",
+        "save_locally": "Save file locally",
+        "next": "Next"
     }
 }

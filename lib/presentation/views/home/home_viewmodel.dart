@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:exel_category/presentation/views/home/widget/import_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -21,8 +22,7 @@ class HomeViewModel extends ChangeNotifier {
   bool isLoading = false;
 
   /// True if a file is selected (web or mobile)
-  bool get hasFile =>
-    selectedFilePath != null || selectedFileBytes != null;
+  bool get hasFile => selectedFilePath != null || selectedFileBytes != null;
 
   /// Unified setter for file selection.
   void setSelectedFile({
@@ -77,7 +77,12 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   /// Placeholder for future process logic.
-  void processFile() {
-    // TODO: integrate ImportDataService
+  void processFile(BuildContext context) {
+    if (!hasFile) return;
+
+    showDialog(
+      context: context,
+      builder: (_) => const ImportDialog(),
+    );
   }
 }
