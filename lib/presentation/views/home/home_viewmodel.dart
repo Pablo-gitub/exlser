@@ -78,11 +78,17 @@ class HomeViewModel extends ChangeNotifier {
 
   /// Placeholder for future process logic.
   void processFile(BuildContext context) {
-    if (!hasFile) return;
+  if (!hasFile) return;
 
-    showDialog(
-      context: context,
-      builder: (_) => const ImportDialog(),
-    );
-  }
+  final initialDatasetName =
+      selectedFileName?.split('.').first ?? 'dataset';
+
+  showDialog(
+    context: context,
+    builder: (_) => ImportDialog(
+      initialDatasetName: initialDatasetName,
+      onImportCompleted: clearSelection,
+    ),
+  );
+}
 }

@@ -36,6 +36,7 @@
         "title": "Crea nuovo dataset",
         "dataset_name": "Nome dataset",
         "save_locally": "Salva file localmente",
-        "next": "Avanti"
+        "next": "Avanti",
+        "finish": "Completa"
     }
 }

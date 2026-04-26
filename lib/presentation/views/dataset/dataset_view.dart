@@ -1,3 +1,4 @@
+import 'package:exel_category/presentation/widgets/layout/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'dataset_viewmodel.dart';
 
@@ -55,10 +56,10 @@ class _DatasetViewState extends State<DatasetView> {
     /// TODO
     /// Listen to ViewModel state changes (Riverpod / BLoC / notifier)
 
-    return Scaffold(
+    return AppScaffold(
 
-      appBar: AppBar(
-        title: const Text("Dataset Workspace"),
+      //appBar: AppBar(
+        //title: const Text("Dataset Workspace"),
 
         /// TODO
         /// Export menu button
@@ -66,38 +67,41 @@ class _DatasetViewState extends State<DatasetView> {
         /// - filtered data
         /// - charts
         /// - combined report
-      ),
+      //),
+      title: 'Dataset Workspace',
 
-      body: Column(
-        children: [
-
-          /// Dataset metadata section
-          /// Rename dataset, file path, delete
-          /// TODO: implement DatasetInfoSection
-          const Placeholder(),
-
-          /// Sheet selector dropdown
-          /// Allows choosing Excel sheet
-          /// TODO: implement SheetSelectorSection
-          const Placeholder(),
-
-          /// Filters section
-          /// Column-based filters
-          /// TODO: implement FiltersSection
-          const Placeholder(),
-
-          /// Filtered results section
-          /// Table / card toggle
-          /// TODO: implement ResultsSection
-          const Placeholder(),
-
-          /// Analytics section
-          /// Charts based on filtered data
-          /// TODO: implement AnalyticsSection
-          const Placeholder(),
-
-        ],
-      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+        
+            /// Dataset metadata section
+            /// Rename dataset, file path, delete
+            /// TODO: implement DatasetInfoSection
+            const Placeholder(),
+        
+            /// Sheet selector dropdown
+            /// Allows choosing Excel sheet
+            /// TODO: implement SheetSelectorSection
+            const Placeholder(),
+        
+            /// Filters section
+            /// Column-based filters
+            /// TODO: implement FiltersSection
+            const Placeholder(),
+        
+            /// Filtered results section
+            /// Table / card toggle
+            /// TODO: implement ResultsSection
+            const Placeholder(),
+        
+            /// Analytics section
+            /// Charts based on filtered data
+            /// TODO: implement AnalyticsSection
+            const Placeholder(),
+        
+          ],
+        ),
+      ), 
     );
   }
 }

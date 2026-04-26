@@ -31,4 +31,5 @@ class AppStrings {
   static const String importDatasetName = 'import.dataset_name';
   static const String importSaveLocally = 'import.save_locally';
   static const String importNext = 'import.next';
+  static const String importFinish = 'import.finish';
 }
