@@ -29,10 +29,10 @@ packages:
     dependency: transitive
     description:
       name: archive
-      sha256: cb6a278ef2dbb298455e1a713bda08524a175630ec643a242c399c932a0a1f7d
+      sha256: a96e8b390886ee8abb49b7bd3ac8df6f451c621619f52a26e815fdcf568959ff
       url: "https://pub.dev"
     source: hosted
-    version: "3.6.1"
+    version: "4.0.9"
   args:
     dependency: transitive
     description:
@@ -221,18 +221,10 @@ packages:
     dependency: "direct main"
     description:
       name: csv
-      sha256: e122a402b966b93a4e98925da241ecb3d58d2e62c0aa6486b0c8de4bd405dad5
+      sha256: "2e0a52fb729f2faacd19c9c0c954ff450bba37aa8ab999410309e2342e7013a2"
       url: "https://pub.dev"
     source: hosted
-    version: "7.2.0"
-  cupertino_icons:
-    dependency: "direct main"
-    description:
-      name: cupertino_icons
-      sha256: ba631d1c7f7bef6b729a622b7b752645a2d076dba9976925b8f25725a30e1ee6
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.8"
+    version: "8.0.0"
   dart_style:
     dependency: transitive
     description:
@@ -241,6 +233,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.6"
+  dependency_validator:
+    dependency: "direct dev"
+    description:
+      name: dependency_validator
+      sha256: d6084f8df7677843c8fd0e08b66c11d9c2ce9bae1bb1f18cc574bcb28ebe71b0
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.5"
   dio:
     dependency: transitive
     description:
@@ -301,18 +301,18 @@ packages:
     dependency: transitive
     description:
       name: equatable
-      sha256: "567c64b3cb4cf82397aac55f4f0cbd3ca20d77c6c03bedbc4ceaddc08904aef7"
+      sha256: "3e0141505477fd8ad55d6eb4e7776d3fe8430be8e497ccb1521370c3f21a3e2b"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.7"
-  excel:
+    version: "2.0.8"
+  excel_community:
     dependency: "direct main"
     description:
-      name: excel
-      sha256: "1a15327dcad260d5db21d1f6e04f04838109b39a2f6a84ea486ceda36e468780"
+      name: excel_community
+      sha256: b22e1819c05d5c55b8ee2138ca3b51cf0f599e160ef1fde64e07de1f4444fc89
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.6"
+    version: "1.0.9"
   fake_async:
     dependency: transitive
     description:
@@ -398,16 +398,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.2.0"
-  flutter_excel:
-    dependency: "direct main"
-    description:
-      name: flutter_excel
-      sha256: "2e0daa4e8f8d318306e87e9758e0a2d153f21c9989df0ca36a801d566a3bfd31"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.1"
   flutter_launcher_icons:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: flutter_launcher_icons
       sha256: "10f13781741a2e3972126fae08393d3c4e01fa4cd7473326b94b72cf594195e7"
@@ -422,21 +414,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.0"
-  flutter_localization:
-    dependency: "direct main"
-    description:
-      name: flutter_localization
-      sha256: "987faf0a6c13a267202b28d3ed680647e234245ead1a1c1f95f87e86c6f12490"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.2"
   flutter_localizations:
     dependency: transitive
     description: flutter
     source: sdk
     version: "0.0.0"
   flutter_native_splash:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: flutter_native_splash
       sha256: "7062602e0dbd29141fb8eb19220b5871ca650be5197ab9c1f193a28b17537bc7"
@@ -529,10 +513,10 @@ packages:
     dependency: transitive
     description:
       name: image
-      sha256: f31d52537dc417fdcde36088fdf11d191026fd5e4fae742491ebd40e5a8bea7d
+      sha256: "4e973fcf4caae1a4be2fa0a13157aa38a8f9cb049db6529aa00b4d71abc4d928"
       url: "https://pub.dev"
     source: hosted
-    version: "4.3.0"
+    version: "4.5.4"
   intl:
     dependency: transitive
     description:
@@ -653,14 +637,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.17.4"
-  nested:
-    dependency: transitive
-    description:
-      name: nested
-      sha256: "03bac4c528c64c95c722ec99280375a6f2fc708eec17c7b3f07253b626cd2a20"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   package_config:
     dependency: transitive
     description:
@@ -745,10 +721,10 @@ packages:
     dependency: transitive
     description:
       name: petitparser
-      sha256: c15605cd28af66339f8eb6fbe0e541bfe2d1b72d5825efc6598f3e0a31b9ad27
+      sha256: "91bd59303e9f769f108f8df05e371341b15d59e995e6806aefab827b58336675"
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.2"
+    version: "7.0.2"
   platform:
     dependency: transitive
     description:
@@ -773,14 +749,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.2"
-  provider:
-    dependency: "direct main"
+  posix:
+    dependency: transitive
     description:
-      name: provider
-      sha256: "4abbd070a04e9ddc287673bf5a030c7ca8b685ff70218720abab8b092f53dd84"
+      name: posix
+      sha256: "185ef7606574f789b40f289c233efa52e96dead518aed988e040a10737febb07"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.5"
+    version: "6.5.0"
   pub_semver:
     dependency: transitive
     description:
@@ -1166,10 +1142,10 @@ packages:
     dependency: transitive
     description:
       name: xml
-      sha256: b015a8ad1c488f66851d762d3090a21c600e479dc75e68328c52774040cf9226
+      sha256: "971043b3a0d3da28727e40ed3e0b5d18b742fa5a68665cca88e74b7876d5e025"
       url: "https://pub.dev"
     source: hosted
-    version: "6.5.0"
+    version: "6.6.1"
   yaml:
     dependency: transitive
     description:

@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   file_saver
-  flutter_localization
   url_launcher_linux
 )
 
