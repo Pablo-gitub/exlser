@@ -58,3 +58,7 @@ ios/Podfile.lock
 
 scripts/
 .vscode/
+
+# Excel temporary files
+~$*.xlsx
+~$*.xls

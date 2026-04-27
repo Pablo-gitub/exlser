@@ -6,33 +6,27 @@ import 'package:exel_category/data/adapters/parsers/spreadsheet_parser.dart';
 import 'package:exel_category/data/adapters/table_normalizers/header_detector.dart';
 import 'package:exel_category/domain/entities/parsed_sheet.dart';
 
-/// Parser responsible for reading CSV files and converting them
-/// into a normalized row structure.
+/// Parser responsible for reading CSV files.
 ///
-/// Output format:
+/// Responsibilities:
+/// - read CSV file contents
+/// - normalize headers
+/// - convert tabular rows into ParsedSheet structures
 ///
-/// List<Map<String, dynamic>>
+/// This parser does NOT:
+/// - infer schema
+/// - normalize data types
+/// - persist datasets
 ///
-/// Example:
+/// Output:
+/// List<ParsedSheet>
 ///
-/// product,price,quantity
-/// book,10,20
+/// Each ParsedSheet contains:
+/// - sheet name
+/// - parsed rows as key-value maps
 ///
-/// Result:
-///
-/// [
-///   {
-///     "product": "book",
-///     "price": "10",
-///     "quantity": "20"
-///   }
-/// ]
-///
-/// This parser does not interpret data types.
-/// Values remain raw strings and will be normalized later.
-/// 
-/// Parser responsible for reading CSV files and converting them
-/// into normalized sheet structures.
+/// Values remain raw strings and will be normalized later
+/// by the schema inference pipeline.
 class CsvParser implements SpreadsheetParser {
 
   @override
