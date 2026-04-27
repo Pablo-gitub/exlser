@@ -1,7 +1,10 @@
 import 'dart:io';
 
 import 'package:csv/csv.dart';
+import 'package:exel_category/data/adapters/mappers/table_row_mapper.dart';
+import 'package:exel_category/data/adapters/parsers/spreadsheet_parser.dart';
 import 'package:exel_category/data/adapters/table_normalizers/header_detector.dart';
+import 'package:exel_category/domain/entities/parsed_sheet.dart';
 
 /// Parser responsible for reading CSV files and converting them
 /// into a normalized row structure.
@@ -27,9 +30,13 @@ import 'package:exel_category/data/adapters/table_normalizers/header_detector.da
 ///
 /// This parser does not interpret data types.
 /// Values remain raw strings and will be normalized later.
-class CsvParser {
+/// 
+/// Parser responsible for reading CSV files and converting them
+/// into normalized sheet structures.
+class CsvParser implements SpreadsheetParser {
 
-  Future<List<Map<String, dynamic>>> parse(String filePath) async {
+  @override
+  Future<List<ParsedSheet>> parse(String filePath) async {
 
     final file = File(filePath);
 
@@ -39,39 +46,28 @@ class CsvParser {
       throw Exception('CSV file is empty');
     }
 
-    /// Decode CSV using the csv package
+    /// Decode CSV content.
     final rows = csv.decode(content);
 
     if (rows.isEmpty) {
       throw Exception('CSV file contains no data');
     }
 
+    /// Normalize headers.
     final normalizedRows = HeaderDetector.detect(rows);
-    /// Extract header row
-    final headers = normalizedRows.first.map((e) => e.toString()).toList();
 
-    /// Extract data rows
-    final dataRows = normalizedRows.skip(1);
+    /// Convert rows into key-value maps.
+    final parsedRows = TableRowMapper.map(normalizedRows);
 
-    final result = dataRows.map((row) {
+    if (parsedRows.isEmpty) {
+      throw Exception('CSV file contains no valid rows');
+    }
 
-      final Map<String, dynamic> rowMap = {};
-
-      for (int i = 0; i < headers.length; i++) {
-
-        final key = headers[i];
-
-        final value = i < row.length
-            ? row[i]?.toString()
-            : null;
-
-        rowMap[key] = value;
-      }
-
-      return rowMap;
-
-    }).toList();
-
-    return result;
+    return [
+      ParsedSheet(
+        name: 'Sheet1',
+        rows: parsedRows,
+      ),
+    ];
   }
 }

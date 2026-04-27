@@ -1,7 +1,9 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:exel_category/data/adapters/parsers/csv_parser.dart';
+import 'package:exel_category/domain/entities/parsed_sheet.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+
   group('CsvParser', () {
 
     late CsvParser parser;
@@ -14,22 +16,34 @@ void main() {
       'should correctly parse a valid csv file',
       () async {
 
-        final rows = await parser.parse(
+        final sheets = await parser.parse(
           'test/fixtures/csv/simple.csv',
         );
 
-        /// verify rows count
-        expect(rows.length, 6);
+        /// Verify sheet count.
+        expect(sheets.length, 1);
 
-        /// verify first row
-        expect(rows.first['product'], 'book');
-        expect(rows.first['price'], '10');
-        expect(rows.first['quantity'], '20');
-        expect(rows.first['date'], '2024-01-14');
+        final sheet = sheets.first;
 
-        /// verify structure
-        expect(rows.first, isA<Map<String, dynamic>>());
+        /// Verify ParsedSheet type.
+        expect(sheet, isA<ParsedSheet>());
 
+        /// Verify sheet name.
+        expect(sheet.name, 'Sheet1');
+
+        /// Verify rows count.
+        expect(sheet.rows.length, 6);
+
+        /// Verify first row values.
+        final firstRow = sheet.rows.first;
+
+        expect(firstRow['product'], 'book');
+        expect(firstRow['price'], '10');
+        expect(firstRow['quantity'], '20');
+        expect(firstRow['date'], '2024-01-14');
+
+        /// Verify structure.
+        expect(firstRow, isA<Map<String, dynamic>>());
       },
     );
 
@@ -37,17 +51,16 @@ void main() {
       'should correctly map column names',
       () async {
 
-        final rows = await parser.parse(
+        final sheets = await parser.parse(
           'test/fixtures/csv/simple.csv',
         );
 
-        final firstRow = rows.first;
+        final firstRow = sheets.first.rows.first;
 
         expect(firstRow.keys.contains('product'), true);
         expect(firstRow.keys.contains('price'), true);
         expect(firstRow.keys.contains('quantity'), true);
         expect(firstRow.keys.contains('date'), true);
-
       },
     );
 
@@ -61,7 +74,6 @@ void main() {
           ),
           throwsException,
         );
-
       },
     );
   });
