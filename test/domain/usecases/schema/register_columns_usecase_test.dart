@@ -182,5 +182,13 @@ void main() {
         );
       },
     );
+
+    /// TODO:
+    /// Add edge case tests:
+    /// - empty column list
+    /// - duplicated db column names
+    /// - invalid db column names
+    /// - nullable/non-nullable conflicts
+    /// - unsupported inferred types
   });
 }

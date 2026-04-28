@@ -137,5 +137,14 @@ void main() {
         ).called(1);
       },
     );
+
+    /// TODO:
+    /// Add edge case tests:
+    /// - empty dataset name
+    /// - whitespace-only dataset name
+    /// - empty source file name
+    /// - unicode dataset names
+    /// - very long dataset names
+    /// - duplicated dataset names
   });
 }

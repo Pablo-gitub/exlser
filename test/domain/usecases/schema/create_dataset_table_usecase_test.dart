@@ -138,5 +138,13 @@ void main() {
         ).called(1);
       },
     );
+
+    /// TODO:
+    /// Add edge case tests:
+    /// - invalid SQL characters in sheet name
+    /// - SQL reserved keywords
+    /// - duplicated sheet names
+    /// - very long sheet names
+    /// - unicode sheet names
   });
 }
