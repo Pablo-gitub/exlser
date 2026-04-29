@@ -108,24 +108,28 @@ class SchemaRepositoryImpl implements SchemaRepository {
     String tableName,
     List<DatasetColumn> columns,
   ) async {
-    /// TODO:
-    /// Delegate table creation to DynamicTableBuilder.
-    ///
-    /// Steps:
-    /// 1. Validate column metadata
-    /// 2. Generate SQL schema
-    /// 3. Execute CREATE TABLE
-    await tableBuilder.createTable();
+    /// Prevent invalid table creation.
+    if (columns.isEmpty) {
+      throw Exception(
+        'Cannot create dynamic table without columns',
+      );
+    }
+
+    /// Generate SQL using builder.
+    final sql = tableBuilder.buildCreateTableSql(
+      tableName: tableName,
+      columns: columns,
+    );
+
+    /// Execute CREATE TABLE statement.
+    await datasource.execute(sql);
   }
 
   @override
   Future<void> dropDynamicTable(String tableName) async {
-    /// TODO:
-    /// Drop SQL table from database.
-    ///
-    /// Steps:
-    /// 1. Build DROP TABLE statement
-    /// 2. Execute via datasource
-    throw UnimplementedError();
+    /// DROP TABLE safely (avoids crash if table does not exist).
+    final sql = 'DROP TABLE IF EXISTS $tableName';
+
+    await datasource.execute(sql);
   }
 }
