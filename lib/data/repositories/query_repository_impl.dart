@@ -43,9 +43,7 @@ class QueryRepositoryImpl implements QueryRepository {
     int? limit,
     int? offset,
   }) async {
-    /// ----------------------------
-    /// 1. Validate input
-    /// ----------------------------
+
     final trimmedTable = tableName.trim();
 
     if (trimmedTable.isEmpty) {
@@ -60,33 +58,21 @@ class QueryRepositoryImpl implements QueryRepository {
       throw Exception('Offset cannot be negative');
     }
 
-    /// ----------------------------
-    /// 2. Build SQL query
-    /// ----------------------------
     final buffer = StringBuffer('SELECT * FROM $trimmedTable');
 
-    /// Apply LIMIT if present
+    // Apply LIMIT if present
     if (limit != null) {
       buffer.write(' LIMIT $limit');
     }
 
-    /// Apply OFFSET if present
-    /// SQLite allows OFFSET without LIMIT, but:
-    /// - safer to always append after LIMIT if both exist
     if (offset != null) {
       buffer.write(' OFFSET $offset');
     }
 
     final sql = buffer.toString();
 
-    /// ----------------------------
-    /// 3. Execute query
-    /// ----------------------------
     final result = await datasource.query(sql);
 
-    /// ----------------------------
-    /// 4. Return result
-    /// ----------------------------
     return result;
   }
 
@@ -127,9 +113,6 @@ class QueryRepositoryImpl implements QueryRepository {
     int? limit,
     int? offset,
   }) async {
-    /// ----------------------------
-    /// 1. Validate input
-    /// ----------------------------
 
     final trimmedTable = tableName.trim();
     final trimmedWhere = whereClause.trim();
@@ -150,38 +133,26 @@ class QueryRepositoryImpl implements QueryRepository {
       throw Exception('Offset cannot be negative');
     }
 
-    /// ----------------------------
-    /// 2. Build SQL query
-    /// ----------------------------
-
     final buffer = StringBuffer()
       ..write('SELECT * FROM $trimmedTable')
       ..write(' WHERE $trimmedWhere');
 
-    /// Apply LIMIT if present
+    // Apply LIMIT if present
     if (limit != null) {
       buffer.write(' LIMIT $limit');
     }
 
-    /// Apply OFFSET if present
+    // Apply OFFSET if present
     if (offset != null) {
       buffer.write(' OFFSET $offset');
     }
 
     final sql = buffer.toString();
 
-    /// ----------------------------
-    /// 3. Execute query
-    /// ----------------------------
-
     final result = await datasource.query(
       sql,
       arguments: arguments,
     );
-
-    /// ----------------------------
-    /// 4. Return result
-    /// ----------------------------
 
     return result;
   }
@@ -204,9 +175,6 @@ class QueryRepositoryImpl implements QueryRepository {
   /// - Uses alias "count" to standardize result parsing
   @override
   Future<int> countRows(String tableName) async {
-    /// ----------------------------
-    /// 1. Validate input
-    /// ----------------------------
 
     final trimmedTable = tableName.trim();
 
@@ -214,24 +182,12 @@ class QueryRepositoryImpl implements QueryRepository {
       throw Exception('Table name cannot be empty');
     }
 
-    /// ----------------------------
-    /// 2. Build SQL query
-    /// ----------------------------
-
     final sql = 'SELECT COUNT(*) as count FROM $trimmedTable';
-
-    /// ----------------------------
-    /// 3. Execute query
-    /// ----------------------------
 
     final result = await datasource.query(
       sql,
       arguments: null,
     );
-
-    /// ----------------------------
-    /// 4. Extract result
-    /// ----------------------------
 
     if (result.isEmpty) {
       return 0;
@@ -243,12 +199,12 @@ class QueryRepositoryImpl implements QueryRepository {
       return value;
     }
 
-    /// Safety fallback (SQLite can return num)
+    // Safety fallback (SQLite can return num)
     if (value is num) {
       return value.toInt();
     }
 
-    /// Unexpected case
+    // Unexpected case
     throw Exception('Invalid count result');
   }
 
@@ -277,9 +233,6 @@ class QueryRepositoryImpl implements QueryRepository {
     required String tableName,
     required DatasetColumn column,
   }) async {
-    /// ----------------------------
-    /// 1. Validate input
-    /// ----------------------------
 
     final trimmedTable = tableName.trim();
     final trimmedColumn = column.dbName.trim();
@@ -292,33 +245,21 @@ class QueryRepositoryImpl implements QueryRepository {
       throw Exception('Column name cannot be empty');
     }
 
-    /// ----------------------------
-    /// 2. Build SQL query
-    /// ----------------------------
-
     final sql = 'SELECT DISTINCT $trimmedColumn FROM $trimmedTable';
-
-    /// ----------------------------
-    /// 3. Execute query
-    /// ----------------------------
 
     final result = await datasource.query(
       sql,
       arguments: null,
     );
 
-    /// ----------------------------
-    /// 4. Map result
-    /// ----------------------------
-
     if (result.isEmpty) {
       return [];
     }
 
-    /// Each row contains:
-    /// { 'columnName': value }
-    ///
-    /// We extract only the value
+    // Each row contains:
+    // { 'columnName': value }
+    //
+    // We extract only the value
     return result.map((row) => row[trimmedColumn]).toList();
   }
 
@@ -349,9 +290,6 @@ class QueryRepositoryImpl implements QueryRepository {
     required DatasetColumn column,
     required String function,
   }) async {
-    /// ----------------------------
-    /// 1. Validate input
-    /// ----------------------------
 
     final trimmedTable = tableName.trim();
     final trimmedColumn = column.dbName.trim();
@@ -369,31 +307,19 @@ class QueryRepositoryImpl implements QueryRepository {
       throw Exception('Function cannot be empty');
     }
 
-    /// Optional: whitelist functions (recommended)
+    // Optional: whitelist functions (recommended)
     const allowedFunctions = {'COUNT', 'SUM', 'AVG', 'MIN', 'MAX'};
     if (!allowedFunctions.contains(trimmedFunction)) {
       throw Exception('Unsupported aggregate function: $trimmedFunction');
     }
 
-    /// ----------------------------
-    /// 2. Build SQL query
-    /// ----------------------------
-
     final sql =
         'SELECT $trimmedFunction($trimmedColumn) as result FROM $trimmedTable';
-
-    /// ----------------------------
-    /// 3. Execute query
-    /// ----------------------------
 
     final result = await datasource.query(
       sql,
       arguments: null,
     );
-
-    /// ----------------------------
-    /// 4. Extract result
-    /// ----------------------------
 
     if (result.isEmpty) {
       return null;
@@ -401,7 +327,7 @@ class QueryRepositoryImpl implements QueryRepository {
 
     final value = result.first['result'];
 
-    /// SQLite can return int, double, or null
+    // SQLite can return int, double, or null
     return value;
   }
 
@@ -439,9 +365,6 @@ class QueryRepositoryImpl implements QueryRepository {
     int? limit,
     int? offset,
   }) async {
-    /// ----------------------------
-    /// 1. Validate input
-    /// ----------------------------
 
     final trimmedTable = tableName.trim();
     final trimmedWhere = whereClause.trim();
@@ -467,10 +390,6 @@ class QueryRepositoryImpl implements QueryRepository {
       throw Exception('Offset cannot be negative');
     }
 
-    /// ----------------------------
-    /// 2. Build SQL query
-    /// ----------------------------
-
     final buffer = StringBuffer()
       ..write('SELECT * FROM $trimmedTable')
       ..write(' WHERE $trimmedWhere')
@@ -486,18 +405,10 @@ class QueryRepositoryImpl implements QueryRepository {
 
     final sql = buffer.toString();
 
-    /// ----------------------------
-    /// 3. Execute query
-    /// ----------------------------
-
     final result = await datasource.query(
       sql,
       arguments: arguments,
     );
-
-    /// ----------------------------
-    /// 4. Return result
-    /// ----------------------------
 
     return result;
   }
@@ -527,9 +438,6 @@ class QueryRepositoryImpl implements QueryRepository {
     String sql,
     List<dynamic>? arguments,
   ) async {
-    /// ----------------------------
-    /// 1. Validate input
-    /// ----------------------------
 
     final trimmedSql = sql.trim();
 
@@ -537,37 +445,46 @@ class QueryRepositoryImpl implements QueryRepository {
       throw Exception('SQL query cannot be empty');
     }
 
-    /// ----------------------------
-    /// 2. Execute query
-    /// ----------------------------
-
     final result = await datasource.query(
       trimmedSql,
       arguments: arguments,
     );
 
-    /// ----------------------------
-    /// 3. Return result
-    /// ----------------------------
-
     return result;
   }
 
+  /// Inserts multiple rows into a dynamically generated dataset table.
+  ///
+  /// This method is optimized for bulk import operations:
+  /// - validates table name and row structure
+  /// - builds the INSERT SQL statement once
+  /// - executes all inserts inside a transaction
+  /// - processes rows in chunks to reduce memory pressure
+  ///
+  /// Requirements:
+  /// - [tableName] must be a valid sanitized SQL table name
+  /// - [rows] must all share the same keys
+  /// - row keys must match existing SQL column names
+  ///
+  /// Notes:
+  /// - Empty row lists are ignored
+  /// - Values are bound through SQL parameters to prevent injection
+  /// - This method is mainly used by InsertRowsUseCase during dataset creation
   @override
   Future<void> insertBatch({
     required String tableName,
     required List<Map<String, dynamic>> rows,
   }) async {
-    /// Validate input
+    // Validate input
     if (tableName.trim().isEmpty) {
       throw Exception('Table name cannot be empty');
     }
 
-    /// Nothing to insert → early exit
+    // Nothing to insert → early exit
     if (rows.isEmpty) return;
 
-    /// Extract column names from first row
-    /// Assumption: all rows share the same structure
+    // Extract column names from first row
+    // Assumption: all rows share the same structure
     final columns = rows.first.keys.toList();
 
     for (final row in rows) {
@@ -577,38 +494,38 @@ class QueryRepositoryImpl implements QueryRepository {
       }
     }
 
-    /// Build SQL structure once (reused for all inserts)
-    ///
-    /// Example:
-    /// INSERT INTO my_table (col1, col2) VALUES (?, ?)
+    // Build SQL structure once (reused for all inserts)
+    //
+    // Example:
+    // INSERT INTO my_table (col1, col2) VALUES (?, ?)
     final columnNames = columns.join(', ');
     final placeholders = List.filled(columns.length, '?').join(', ');
     final sql = 'INSERT INTO $tableName ($columnNames) VALUES ($placeholders)';
 
-    /// Execute all inserts inside a single transaction
-    /// → improves performance significantly
-    /// → ensures atomicity (all or nothing)
+    // Execute all inserts inside a single transaction
+    // → improves performance significantly
+    // → ensures atomicity (all or nothing)
     await datasource.runInTransaction(() async {
-      /// Process rows in chunks to:
-      /// - avoid memory spikes
-      /// - prevent UI freezes on large datasets
+      // Process rows in chunks to:
+      // - avoid memory spikes
+      // - prevent UI freezes on large datasets
       for (int i = 0; i < rows.length; i += _batchSize) {
-        /// Extract current chunk
+        // Extract current chunk
         final chunk = rows.sublist(
           i,
           i + _batchSize > rows.length ? rows.length : i + _batchSize,
         );
 
-        /// Insert each row in the current chunk
+        // Insert each row in the current chunk
         for (final row in chunk) {
-          /// Map row values to ordered column list
+          // Map row values to ordered column list
           final values = List.generate(
             columns.length,
             (index) => row[columns[index]],
           );
 
-          /// Execute insert statement with bound parameters
-          /// → prevents SQL injection
+          // Execute insert statement with bound parameters
+          // → prevents SQL injection
           await datasource.executeWithArgs(sql, values);
         }
       }
