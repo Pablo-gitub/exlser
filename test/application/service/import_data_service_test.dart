@@ -1,3 +1,4 @@
+import 'package:exel_category/application/exceptions/import_exceptions.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -12,7 +13,9 @@ import 'package:exel_category/domain/value_objects/column_type.dart';
 /// ---------------- MOCKS ----------------
 
 class MockParserFactory extends Mock implements ParserFactory {}
+
 class MockSpreadsheetParser extends Mock implements SpreadsheetParser {}
+
 class MockInferSchemaUseCase extends Mock implements InferSchemaUseCase {}
 
 class FakeDatasetColumn extends Fake implements DatasetColumn {}
@@ -73,14 +76,11 @@ void main() {
       ),
     ];
 
-    when(() => parserFactory.createParser('xlsx'))
-        .thenReturn(parser);
+    when(() => parserFactory.createParser('xlsx')).thenReturn(parser);
 
-    when(() => parser.parse(filePath))
-        .thenAnswer((_) async => parsedSheets);
+    when(() => parser.parse(filePath)).thenAnswer((_) async => parsedSheets);
 
-    when(() => inferSchemaUseCase.call(any(), any()))
-        .thenReturn(columns);
+    when(() => inferSchemaUseCase.call(any(), any())).thenReturn(columns);
 
     /// ---------------- ACT ----------------
 
@@ -99,32 +99,23 @@ void main() {
     expect(result.first.columns, columns);
   });
 
-  test('should handle csv files correctly', () async {
+  test('should throw when file contains no readable sheets', () async {
     /// ---------------- ARRANGE ----------------
+    ///
+    /// Simulate a parser returning no sheets
 
     final filePath = 'data.csv';
 
-    when(() => parserFactory.createParser('csv'))
-        .thenReturn(parser);
+    when(() => parserFactory.createParser('csv')).thenReturn(parser);
 
-    when(() => parser.parse(filePath))
-        .thenAnswer((_) async => []);
+    when(() => parser.parse(filePath)).thenAnswer((_) async => []);
 
-    /// Anche senza righe, inferSchema non viene chiamato
-    /// perché non ci sono sheet
+    /// ---------------- ACT & ASSERT ----------------
 
-    /// ---------------- ACT ----------------
-
-    final result = await service.prepareImport(
-      filePath: filePath,
+    expect(
+      () => service.prepareImport(filePath: filePath),
+      throwsA(isA<ParsingException>()),
     );
-
-    /// ---------------- ASSERT ----------------
-
-    verify(() => parserFactory.createParser('csv')).called(1);
-    verify(() => parser.parse(filePath)).called(1);
-
-    expect(result, isEmpty);
   });
 
   test('should throw if file has no extension', () async {
@@ -136,7 +127,7 @@ void main() {
 
     expect(
       () => service.prepareImport(filePath: filePath),
-      throwsException,
+      throwsA(isA<InvalidFileExtensionException>()),
     );
   });
 }
