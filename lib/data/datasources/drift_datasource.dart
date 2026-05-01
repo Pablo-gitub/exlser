@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 /// Data source responsible for interacting with the Drift database.
 ///
 /// This component exposes low-level database operations used by
@@ -14,8 +16,19 @@ class DriftDatasource {
   DriftDatasource(this.db);
 
   /// Execute a raw SQL query and return result rows.
-  Future<List<Map<String, dynamic>>> query(String sql) async {
-    final result = await db.customSelect(sql).get();
+  Future<List<Map<String, dynamic>>> query(
+    String sql, {
+    List<dynamic>? arguments,
+  }) async {
+    final variables = arguments?.map((e) => Variable(e)).toList();
+
+    final result = await db
+        .customSelect(
+          sql,
+          variables: variables,
+        )
+        .get();
+
     return result.map((row) => row.data).toList();
   }
 

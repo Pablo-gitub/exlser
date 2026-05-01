@@ -16,7 +16,6 @@ void main() {
   });
 
   group('insertBatch', () {
-
     test('should insert rows correctly', () async {
       final rows = [
         {'a': 1, 'b': 2},
@@ -25,7 +24,8 @@ void main() {
 
       when(() => datasource.runInTransaction(any()))
           .thenAnswer((invocation) async {
-        final callback = invocation.positionalArguments.first as Future<void> Function();
+        final callback =
+            invocation.positionalArguments.first as Future<void> Function();
         await callback();
       });
 
@@ -81,85 +81,204 @@ void main() {
   });
 
   group('fetchRows', () {
+    test('should fetch rows without pagination', () async {
+      final expectedRows = [
+        {'id': 1, 'name': 'book'},
+        {'id': 2, 'name': 'pen'},
+      ];
 
-  test('should fetch rows without pagination', () async {
-    final expectedRows = [
-      {'id': 1, 'name': 'book'},
-      {'id': 2, 'name': 'pen'},
-    ];
+      when(() => datasource.query(any())).thenAnswer((_) async => expectedRows);
 
-    when(() => datasource.query(any()))
-        .thenAnswer((_) async => expectedRows);
+      final result = await repository.fetchRows(
+        tableName: 'products',
+      );
 
-    final result = await repository.fetchRows(
-      tableName: 'products',
-    );
+      expect(result, expectedRows);
 
-    expect(result, expectedRows);
+      verify(() => datasource.query(
+            'SELECT * FROM products',
+          )).called(1);
+    });
 
-    verify(() => datasource.query(
-      'SELECT * FROM products',
-    )).called(1);
+    test('should apply limit correctly', () async {
+      when(() => datasource.query(any())).thenAnswer((_) async => []);
+
+      await repository.fetchRows(
+        tableName: 'products',
+        limit: 10,
+      );
+
+      verify(() => datasource.query(
+            'SELECT * FROM products LIMIT 10',
+          )).called(1);
+    });
+
+    test('should apply offset correctly', () async {
+      when(() => datasource.query(any())).thenAnswer((_) async => []);
+
+      await repository.fetchRows(
+        tableName: 'products',
+        offset: 5,
+      );
+
+      verify(() => datasource.query(
+            'SELECT * FROM products OFFSET 5',
+          )).called(1);
+    });
+
+    test('should apply limit and offset together', () async {
+      when(() => datasource.query(any())).thenAnswer((_) async => []);
+
+      await repository.fetchRows(
+        tableName: 'products',
+        limit: 10,
+        offset: 5,
+      );
+
+      verify(() => datasource.query(
+            'SELECT * FROM products LIMIT 10 OFFSET 5',
+          )).called(1);
+    });
+
+    test('should throw when table name is empty', () async {
+      expect(
+        () => repository.fetchRows(tableName: ''),
+        throwsException,
+      );
+    });
+
+    test('should propagate datasource errors', () async {
+      when(() => datasource.query(any())).thenThrow(Exception('DB error'));
+
+      expect(
+        () => repository.fetchRows(tableName: 'products'),
+        throwsException,
+      );
+    });
   });
 
-  test('should apply limit correctly', () async {
-    when(() => datasource.query(any()))
-        .thenAnswer((_) async => []);
+  group('queryWithFilter', () {
+    test('should fetch rows with where clause', () async {
+      /// ARRANGE
 
-    await repository.fetchRows(
-      tableName: 'products',
-      limit: 10,
-    );
+      final expectedRows = [
+        {'id': 1, 'price': 10},
+      ];
 
-    verify(() => datasource.query(
-      'SELECT * FROM products LIMIT 10',
-    )).called(1);
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => expectedRows);
+
+      /// ACT
+
+      final result = await repository.queryWithFilter(
+        tableName: 'products',
+        whereClause: 'price > ?',
+        arguments: [5],
+      );
+
+      /// ASSERT
+
+      expect(result, expectedRows);
+
+      verify(() => datasource.query(
+            'SELECT * FROM products WHERE price > ?',
+            arguments: [5],
+          )).called(1);
+    });
+
+    test('should apply limit correctly', () async {
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => []);
+
+      await repository.queryWithFilter(
+        tableName: 'products',
+        whereClause: 'price > ?',
+        arguments: [5],
+        limit: 10,
+      );
+
+      verify(() => datasource.query(
+            'SELECT * FROM products WHERE price > ? LIMIT 10',
+            arguments: [5],
+          )).called(1);
+    });
+
+    test('should apply offset correctly', () async {
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => []);
+
+      await repository.queryWithFilter(
+        tableName: 'products',
+        whereClause: 'price > ?',
+        arguments: [5],
+        offset: 5,
+      );
+
+      verify(() => datasource.query(
+            'SELECT * FROM products WHERE price > ? OFFSET 5',
+            arguments: [5],
+          )).called(1);
+    });
+
+    test('should apply limit and offset together', () async {
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => []);
+
+      await repository.queryWithFilter(
+        tableName: 'products',
+        whereClause: 'price > ?',
+        arguments: [5],
+        limit: 10,
+        offset: 5,
+      );
+
+      verify(() => datasource.query(
+            'SELECT * FROM products WHERE price > ? LIMIT 10 OFFSET 5',
+            arguments: [5],
+          )).called(1);
+    });
+
+    test('should throw when table name is empty', () async {
+      expect(
+        () => repository.queryWithFilter(
+          tableName: '',
+          whereClause: 'price > ?',
+        ),
+        throwsException,
+      );
+    });
+
+    test('should throw when where clause is empty', () async {
+      expect(
+        () => repository.queryWithFilter(
+          tableName: 'products',
+          whereClause: '',
+        ),
+        throwsException,
+      );
+    });
+
+    test('should propagate datasource errors', () async {
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenThrow(Exception('DB error'));
+
+      expect(
+        () => repository.queryWithFilter(
+          tableName: 'products',
+          whereClause: 'price > ?',
+        ),
+        throwsException,
+      );
+    });
   });
-
-  test('should apply offset correctly', () async {
-    when(() => datasource.query(any()))
-        .thenAnswer((_) async => []);
-
-    await repository.fetchRows(
-      tableName: 'products',
-      offset: 5,
-    );
-
-    verify(() => datasource.query(
-      'SELECT * FROM products OFFSET 5',
-    )).called(1);
-  });
-
-  test('should apply limit and offset together', () async {
-    when(() => datasource.query(any()))
-        .thenAnswer((_) async => []);
-
-    await repository.fetchRows(
-      tableName: 'products',
-      limit: 10,
-      offset: 5,
-    );
-
-    verify(() => datasource.query(
-      'SELECT * FROM products LIMIT 10 OFFSET 5',
-    )).called(1);
-  });
-
-  test('should throw when table name is empty', () async {
-    expect(
-      () => repository.fetchRows(tableName: ''),
-      throwsException,
-    );
-  });
-
-  test('should propagate datasource errors', () async {
-    when(() => datasource.query(any()))
-        .thenThrow(Exception('DB error'));
-
-    expect(
-      () => repository.fetchRows(tableName: 'products'),
-      throwsException,
-    );
-  });
-});
 }

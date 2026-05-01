@@ -90,6 +90,35 @@ class QueryRepositoryImpl implements QueryRepository {
     return result;
   }
 
+  /// Executes a filtered query on a dataset table.
+  ///
+  /// This method builds a dynamic SQL query using a WHERE clause
+  /// and optional pagination (LIMIT / OFFSET).
+  ///
+  /// Example:
+  /// SELECT * FROM products WHERE price > ?
+  /// SELECT * FROM products WHERE name = ? LIMIT 10 OFFSET 5
+  ///
+  /// Parameters:
+  /// - [tableName]: target SQL table (must be a valid sanitized name)
+  /// - [whereClause]: SQL WHERE condition (without the 'WHERE' keyword)
+  /// - [arguments]: values bound to placeholders (?) in the WHERE clause
+  /// - [limit]: maximum number of rows to return (optional)
+  /// - [offset]: number of rows to skip (optional)
+  ///
+  /// Returns:
+  /// - List of rows as Map<String, dynamic>
+  ///
+  /// Throws:
+  /// - Exception if tableName is empty
+  /// - Exception if whereClause is empty
+  /// - Exception if limit <= 0
+  /// - Exception if offset < 0
+  ///
+  /// Notes:
+  /// - Uses parameterized queries to prevent SQL injection.
+  /// - WHERE clause must use '?' placeholders for arguments.
+  /// - Designed to be extended with ORDER BY in future methods.
   @override
   Future<List<Map<String, dynamic>>> queryWithFilter({
     required String tableName,
@@ -98,12 +127,63 @@ class QueryRepositoryImpl implements QueryRepository {
     int? limit,
     int? offset,
   }) async {
-    /// TODO:
-    /// Execute filtered query.
-    ///
-    /// Example:
-    /// SELECT * FROM table WHERE price > ?
-    throw UnimplementedError();
+    /// ----------------------------
+    /// 1. Validate input
+    /// ----------------------------
+
+    final trimmedTable = tableName.trim();
+    final trimmedWhere = whereClause.trim();
+
+    if (trimmedTable.isEmpty) {
+      throw Exception('Table name cannot be empty');
+    }
+
+    if (trimmedWhere.isEmpty) {
+      throw Exception('Where clause cannot be empty');
+    }
+
+    if (limit != null && limit <= 0) {
+      throw Exception('Limit must be greater than 0');
+    }
+
+    if (offset != null && offset < 0) {
+      throw Exception('Offset cannot be negative');
+    }
+
+    /// ----------------------------
+    /// 2. Build SQL query
+    /// ----------------------------
+
+    final buffer = StringBuffer()
+      ..write('SELECT * FROM $trimmedTable')
+      ..write(' WHERE $trimmedWhere');
+
+    /// Apply LIMIT if present
+    if (limit != null) {
+      buffer.write(' LIMIT $limit');
+    }
+
+    /// Apply OFFSET if present
+    if (offset != null) {
+      buffer.write(' OFFSET $offset');
+    }
+
+    final sql = buffer.toString();
+
+    /// ----------------------------
+    /// 3. Execute query
+    /// ----------------------------
+
+    final result = await datasource.query(
+      sql,
+      arguments: arguments,
+    );
+
+    /// ----------------------------
+    /// 4. Return result
+    /// ----------------------------
+
+    return result;
   }
 
   @override
