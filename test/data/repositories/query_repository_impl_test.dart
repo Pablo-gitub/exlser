@@ -79,4 +79,87 @@ void main() {
       );
     });
   });
+
+  group('fetchRows', () {
+
+  test('should fetch rows without pagination', () async {
+    final expectedRows = [
+      {'id': 1, 'name': 'book'},
+      {'id': 2, 'name': 'pen'},
+    ];
+
+    when(() => datasource.query(any()))
+        .thenAnswer((_) async => expectedRows);
+
+    final result = await repository.fetchRows(
+      tableName: 'products',
+    );
+
+    expect(result, expectedRows);
+
+    verify(() => datasource.query(
+      'SELECT * FROM products',
+    )).called(1);
+  });
+
+  test('should apply limit correctly', () async {
+    when(() => datasource.query(any()))
+        .thenAnswer((_) async => []);
+
+    await repository.fetchRows(
+      tableName: 'products',
+      limit: 10,
+    );
+
+    verify(() => datasource.query(
+      'SELECT * FROM products LIMIT 10',
+    )).called(1);
+  });
+
+  test('should apply offset correctly', () async {
+    when(() => datasource.query(any()))
+        .thenAnswer((_) async => []);
+
+    await repository.fetchRows(
+      tableName: 'products',
+      offset: 5,
+    );
+
+    verify(() => datasource.query(
+      'SELECT * FROM products OFFSET 5',
+    )).called(1);
+  });
+
+  test('should apply limit and offset together', () async {
+    when(() => datasource.query(any()))
+        .thenAnswer((_) async => []);
+
+    await repository.fetchRows(
+      tableName: 'products',
+      limit: 10,
+      offset: 5,
+    );
+
+    verify(() => datasource.query(
+      'SELECT * FROM products LIMIT 10 OFFSET 5',
+    )).called(1);
+  });
+
+  test('should throw when table name is empty', () async {
+    expect(
+      () => repository.fetchRows(tableName: ''),
+      throwsException,
+    );
+  });
+
+  test('should propagate datasource errors', () async {
+    when(() => datasource.query(any()))
+        .thenThrow(Exception('DB error'));
+
+    expect(
+      () => repository.fetchRows(tableName: 'products'),
+      throwsException,
+    );
+  });
+});
 }

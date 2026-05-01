@@ -13,18 +13,81 @@ class QueryRepositoryImpl implements QueryRepository {
 
   QueryRepositoryImpl(this.datasource);
 
+  /// Retrieves rows from a dataset table with optional pagination.
+  ///
+  /// This method builds a dynamic SQL query to fetch all rows from the
+  /// specified table. It supports LIMIT and OFFSET for pagination.
+  ///
+  /// Example:
+  /// SELECT * FROM products LIMIT 10 OFFSET 20
+  ///
+  /// Parameters:
+  /// - [tableName]: target SQL table (must be a valid sanitized name)
+  /// - [limit]: maximum number of rows to return (optional)
+  /// - [offset]: number of rows to skip (optional)
+  ///
+  /// Returns:
+  /// - List of rows as Map<String, dynamic>
+  ///
+  /// Throws:
+  /// - Exception if tableName is empty
+  /// - Exception if limit <= 0
+  /// - Exception if offset < 0
+  ///
+  /// Notes:
+  /// - This method does not perform filtering or ordering.
+  /// - Intended as a base query for higher-level operations.
   @override
   Future<List<Map<String, dynamic>>> fetchRows({
     required String tableName,
     int? limit,
     int? offset,
   }) async {
-    /// TODO:
-    /// Retrieve rows with optional pagination.
-    ///
-    /// Example:
-    /// SELECT * FROM table LIMIT ? OFFSET ?
-    throw UnimplementedError();
+    /// ----------------------------
+    /// 1. Validate input
+    /// ----------------------------
+    final trimmedTable = tableName.trim();
+
+    if (trimmedTable.isEmpty) {
+      throw Exception('Table name cannot be empty');
+    }
+
+    if (limit != null && limit <= 0) {
+      throw Exception('Limit must be greater than 0');
+    }
+
+    if (offset != null && offset < 0) {
+      throw Exception('Offset cannot be negative');
+    }
+
+    /// ----------------------------
+    /// 2. Build SQL query
+    /// ----------------------------
+    final buffer = StringBuffer('SELECT * FROM $trimmedTable');
+
+    /// Apply LIMIT if present
+    if (limit != null) {
+      buffer.write(' LIMIT $limit');
+    }
+
+    /// Apply OFFSET if present
+    /// SQLite allows OFFSET without LIMIT, but:
+    /// - safer to always append after LIMIT if both exist
+    if (offset != null) {
+      buffer.write(' OFFSET $offset');
+    }
+
+    final sql = buffer.toString();
+
+    /// ----------------------------
+    /// 3. Execute query
+    /// ----------------------------
+    final result = await datasource.query(sql);
+
+    /// ----------------------------
+    /// 4. Return result
+    /// ----------------------------
+    return result;
   }
 
   @override
