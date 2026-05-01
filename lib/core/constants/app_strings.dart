@@ -32,4 +32,11 @@ class AppStrings {
   static const String importSaveLocally = 'import.save_locally';
   static const String importNext = 'import.next';
   static const String importFinish = 'import.finish';
+
+  /// Import errors
+  static const String importNoExtension = 'import.error.no_extension';
+  static const String importParserNotFound = 'import.error.parser_not_found';
+  static const String importParsingFailed = 'import.error.parsing_failed';
+  static const String importEmptySheets = 'import.error.no_sheets';
+  static const String importSchemaFailed = 'import.error.schema_failed';
 }

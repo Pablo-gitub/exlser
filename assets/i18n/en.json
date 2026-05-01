@@ -37,6 +37,13 @@
         "dataset_name": "Dataset name",
         "save_locally": "Save file locally",
         "next": "Next",
-        "finish": "Finish"
+        "finish": "Finish",
+        "error": {
+            "no_extension": "File has no extension",
+            "parser_not_found": "Unsupported file format",
+            "parsing_failed": "Error while reading file",
+            "no_sheets": "File contains no readable sheets",
+            "schema_failed": "Error during sheet analysis"
+        }
     }
 }
