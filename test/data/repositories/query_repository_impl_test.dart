@@ -537,4 +537,192 @@ void main() {
       );
     });
   });
+
+  group('aggregate', () {
+    test('should return correct SUM value', () async {
+      /// ---------------- ARRANGE ----------------
+
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: 'price',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => [
+            {'result': 30},
+          ]);
+
+      /// ---------------- ACT ----------------
+
+      final result = await repository.aggregate(
+        tableName: 'products',
+        column: column,
+        function: 'SUM',
+      );
+
+      /// ---------------- ASSERT ----------------
+
+      expect(result, 30);
+
+      verify(() => datasource.query(
+            'SELECT SUM(price) as result FROM products',
+            arguments: null,
+          )).called(1);
+    });
+
+    test('should return correct AVG value', () async {
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: 'price',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => [
+            {'result': 15.5},
+          ]);
+
+      final result = await repository.aggregate(
+        tableName: 'products',
+        column: column,
+        function: 'AVG',
+      );
+
+      expect(result, 15.5);
+    });
+
+    test('should return null when no rows found', () async {
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: 'price',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => []);
+
+      final result = await repository.aggregate(
+        tableName: 'products',
+        column: column,
+        function: 'SUM',
+      );
+
+      expect(result, null);
+    });
+
+    test('should throw when table name is empty', () async {
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: 'price',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      expect(
+        () => repository.aggregate(
+          tableName: '',
+          column: column,
+          function: 'SUM',
+        ),
+        throwsException,
+      );
+    });
+
+    test('should throw when column dbName is empty', () async {
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: '',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      expect(
+        () => repository.aggregate(
+          tableName: 'products',
+          column: column,
+          function: 'SUM',
+        ),
+        throwsException,
+      );
+    });
+
+    test('should throw when function is empty', () async {
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: 'price',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      expect(
+        () => repository.aggregate(
+          tableName: 'products',
+          column: column,
+          function: '',
+        ),
+        throwsException,
+      );
+    });
+
+    test('should propagate datasource errors', () async {
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: 'price',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenThrow(Exception('DB error'));
+
+      expect(
+        () => repository.aggregate(
+          tableName: 'products',
+          column: column,
+          function: 'SUM',
+        ),
+        throwsException,
+      );
+    });
+  });
 }

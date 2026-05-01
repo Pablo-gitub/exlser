@@ -322,18 +322,87 @@ class QueryRepositoryImpl implements QueryRepository {
     return result.map((row) => row[trimmedColumn]).toList();
   }
 
+  /// Executes an aggregation query on a dataset table.
+  ///
+  /// Example:
+  /// SELECT SUM(price) as result FROM products
+  /// SELECT AVG(quantity) as result FROM orders
+  ///
+  /// Parameters:
+  /// - [tableName]: target SQL table
+  /// - [column]: DatasetColumn metadata (uses dbName)
+  /// - [function]: SQL aggregate function (e.g. COUNT, SUM, AVG, MIN, MAX)
+  ///
+  /// Returns:
+  /// - Aggregated value (dynamic)
+  /// - Returns null if no result is available
+  ///
+  /// Throws:
+  /// - Exception if inputs are invalid
+  ///
+  /// Notes:
+  /// - Uses alias "result" for consistent parsing
+  /// - Function is normalized to uppercase
   @override
   Future<dynamic> aggregate({
     required String tableName,
     required DatasetColumn column,
     required String function,
   }) async {
-    /// TODO:
-    /// Execute aggregate function.
-    ///
-    /// Example:
-    /// SELECT AVG(price) FROM table
-    throw UnimplementedError();
+    /// ----------------------------
+    /// 1. Validate input
+    /// ----------------------------
+
+    final trimmedTable = tableName.trim();
+    final trimmedColumn = column.dbName.trim();
+    final trimmedFunction = function.trim().toUpperCase();
+
+    if (trimmedTable.isEmpty) {
+      throw Exception('Table name cannot be empty');
+    }
+
+    if (trimmedColumn.isEmpty) {
+      throw Exception('Column name cannot be empty');
+    }
+
+    if (trimmedFunction.isEmpty) {
+      throw Exception('Function cannot be empty');
+    }
+
+    /// Optional: whitelist functions (recommended)
+    const allowedFunctions = {'COUNT', 'SUM', 'AVG', 'MIN', 'MAX'};
+    if (!allowedFunctions.contains(trimmedFunction)) {
+      throw Exception('Unsupported aggregate function: $trimmedFunction');
+    }
+
+    /// ----------------------------
+    /// 2. Build SQL query
+    /// ----------------------------
+
+    final sql =
+        'SELECT $trimmedFunction($trimmedColumn) as result FROM $trimmedTable';
+
+    /// ----------------------------
+    /// 3. Execute query
+    /// ----------------------------
+
+    final result = await datasource.query(
+      sql,
+      arguments: null,
+    );
+
+    /// ----------------------------
+    /// 4. Extract result
+    /// ----------------------------
+
+    if (result.isEmpty) {
+      return null;
+    }
+
+    final value = result.first['result'];
+
+    /// SQLite can return int, double, or null
+    return value;
   }
 
   /// Executes a filtered and ordered query on a dataset table.
