@@ -186,14 +186,70 @@ class QueryRepositoryImpl implements QueryRepository {
     return result;
   }
 
+  /// Returns the number of rows inside a dataset table.
+  ///
+  /// Example:
+  /// SELECT COUNT(*) as count FROM products
+  ///
+  /// Parameters:
+  /// - [tableName]: target SQL table
+  ///
+  /// Returns:
+  /// - total number of rows as integer
+  ///
+  /// Throws:
+  /// - Exception if table name is empty
+  ///
+  /// Notes:
+  /// - Uses alias "count" to standardize result parsing
   @override
   Future<int> countRows(String tableName) async {
-    /// TODO:
-    /// Return number of rows in table.
-    ///
-    /// Example:
-    /// SELECT COUNT(*) FROM table
-    throw UnimplementedError();
+    /// ----------------------------
+    /// 1. Validate input
+    /// ----------------------------
+
+    final trimmedTable = tableName.trim();
+
+    if (trimmedTable.isEmpty) {
+      throw Exception('Table name cannot be empty');
+    }
+
+    /// ----------------------------
+    /// 2. Build SQL query
+    /// ----------------------------
+
+    final sql = 'SELECT COUNT(*) as count FROM $trimmedTable';
+
+    /// ----------------------------
+    /// 3. Execute query
+    /// ----------------------------
+
+    final result = await datasource.query(
+      sql,
+      arguments: null,
+    );
+
+    /// ----------------------------
+    /// 4. Extract result
+    /// ----------------------------
+
+    if (result.isEmpty) {
+      return 0;
+    }
+
+    final value = result.first['count'];
+
+    if (value is int) {
+      return value;
+    }
+
+    /// Safety fallback (SQLite can return num)
+    if (value is num) {
+      return value.toInt();
+    }
+
+    /// Unexpected case
+    throw Exception('Invalid count result');
   }
 
   @override

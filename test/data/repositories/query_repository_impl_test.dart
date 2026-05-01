@@ -283,64 +283,120 @@ void main() {
   });
 
   group('queryWithFilterAndOrder', () {
+    test('should fetch rows with filter and order', () async {
+      final expectedRows = [
+        {'price': 20},
+        {'price': 10},
+      ];
 
-  test('should fetch rows with filter and order', () async {
-    final expectedRows = [
-      {'price': 20},
-      {'price': 10},
-    ];
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => expectedRows);
 
-    when(() => datasource.query(
-      any(),
-      arguments: any(named: 'arguments'),
-    )).thenAnswer((_) async => expectedRows);
-
-    final result = await repository.queryWithFilterAndOrder(
-      tableName: 'products',
-      whereClause: 'price > ?',
-      orderBy: 'price DESC',
-      arguments: [5],
-    );
-
-    expect(result, expectedRows);
-
-    verify(() => datasource.query(
-      'SELECT * FROM products WHERE price > ? ORDER BY price DESC',
-      arguments: [5],
-    )).called(1);
-  });
-
-  test('should apply limit and offset', () async {
-    when(() => datasource.query(
-      any(),
-      arguments: any(named: 'arguments'),
-    )).thenAnswer((_) async => []);
-
-    await repository.queryWithFilterAndOrder(
-      tableName: 'products',
-      whereClause: 'price > ?',
-      orderBy: 'price ASC',
-      arguments: [5],
-      limit: 10,
-      offset: 5,
-    );
-
-    verify(() => datasource.query(
-      'SELECT * FROM products WHERE price > ? ORDER BY price ASC LIMIT 10 OFFSET 5',
-      arguments: [5],
-    )).called(1);
-  });
-
-  test('should throw when orderBy is empty', () async {
-    expect(
-      () => repository.queryWithFilterAndOrder(
+      final result = await repository.queryWithFilterAndOrder(
         tableName: 'products',
         whereClause: 'price > ?',
-        orderBy: '',
-      ),
-      throwsException,
-    );
+        orderBy: 'price DESC',
+        arguments: [5],
+      );
+
+      expect(result, expectedRows);
+
+      verify(() => datasource.query(
+            'SELECT * FROM products WHERE price > ? ORDER BY price DESC',
+            arguments: [5],
+          )).called(1);
+    });
+
+    test('should apply limit and offset', () async {
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => []);
+
+      await repository.queryWithFilterAndOrder(
+        tableName: 'products',
+        whereClause: 'price > ?',
+        orderBy: 'price ASC',
+        arguments: [5],
+        limit: 10,
+        offset: 5,
+      );
+
+      verify(() => datasource.query(
+            'SELECT * FROM products WHERE price > ? ORDER BY price ASC LIMIT 10 OFFSET 5',
+            arguments: [5],
+          )).called(1);
+    });
+
+    test('should throw when orderBy is empty', () async {
+      expect(
+        () => repository.queryWithFilterAndOrder(
+          tableName: 'products',
+          whereClause: 'price > ?',
+          orderBy: '',
+        ),
+        throwsException,
+      );
+    });
   });
 
-});
+  group('countRows', () {
+    test('should return correct row count', () async {
+      /// ---------------- ARRANGE ----------------
+      ///
+      /// Simulate database returning COUNT(*) result
+
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => [
+            {'count': 5},
+          ]);
+
+      /// ---------------- ACT ----------------
+
+      final result = await repository.countRows('products');
+
+      /// ---------------- ASSERT ----------------
+
+      expect(result, 5);
+
+      verify(() => datasource.query(
+            'SELECT COUNT(*) as count FROM products',
+            arguments: null,
+          )).called(1);
+    });
+
+    test('should throw when table name is empty', () async {
+      expect(
+        () => repository.countRows(''),
+        throwsException,
+      );
+    });
+
+    test('should return 0 when no rows found', () async {
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => []);
+
+      final result = await repository.countRows('products');
+
+      expect(result, 0);
+    });
+
+    test('should propagate datasource errors', () async {
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenThrow(Exception('DB error'));
+
+      expect(
+        () => repository.countRows('products'),
+        throwsException,
+      );
+    });
+  });
 }
