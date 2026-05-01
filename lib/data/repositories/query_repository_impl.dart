@@ -6,8 +6,10 @@ import 'package:exel_category/data/datasources/drift_datasource.dart';
 ///
 /// Responsible for executing SQL queries against dynamically
 /// generated dataset tables.
+
 class QueryRepositoryImpl implements QueryRepository {
   final DriftDatasource datasource;
+  static const int _batchSize = 200;
 
   QueryRepositoryImpl(this.datasource);
 
@@ -107,5 +109,67 @@ class QueryRepositoryImpl implements QueryRepository {
     ///
     /// Used for advanced analytics queries.
     throw UnimplementedError();
+  }
+
+  @override
+  Future<void> insertBatch({
+    required String tableName,
+    required List<Map<String, dynamic>> rows,
+  }) async {
+    /// Validate input
+    if (tableName.trim().isEmpty) {
+      throw Exception('Table name cannot be empty');
+    }
+
+    /// Nothing to insert → early exit
+    if (rows.isEmpty) return;
+
+    /// Extract column names from first row
+    /// Assumption: all rows share the same structure
+    final columns = rows.first.keys.toList();
+
+    for (final row in rows) {
+      if (row.keys.length != columns.length ||
+          !row.keys.every(columns.contains)) {
+        throw Exception('All rows must have the same structure');
+      }
+    }
+
+    /// Build SQL structure once (reused for all inserts)
+    ///
+    /// Example:
+    /// INSERT INTO my_table (col1, col2) VALUES (?, ?)
+    final columnNames = columns.join(', ');
+    final placeholders = List.filled(columns.length, '?').join(', ');
+    final sql = 'INSERT INTO $tableName ($columnNames) VALUES ($placeholders)';
+
+    /// Execute all inserts inside a single transaction
+    /// → improves performance significantly
+    /// → ensures atomicity (all or nothing)
+    await datasource.runInTransaction(() async {
+      /// Process rows in chunks to:
+      /// - avoid memory spikes
+      /// - prevent UI freezes on large datasets
+      for (int i = 0; i < rows.length; i += _batchSize) {
+        /// Extract current chunk
+        final chunk = rows.sublist(
+          i,
+          i + _batchSize > rows.length ? rows.length : i + _batchSize,
+        );
+
+        /// Insert each row in the current chunk
+        for (final row in chunk) {
+          /// Map row values to ordered column list
+          final values = List.generate(
+            columns.length,
+            (index) => row[columns[index]],
+          );
+
+          /// Execute insert statement with bound parameters
+          /// → prevents SQL injection
+          await datasource.executeWithArgs(sql, values);
+        }
+      }
+    });
   }
 }

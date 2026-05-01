@@ -9,17 +9,49 @@
 /// - Execute updates
 /// - Execute dynamic schema operations
 class DriftDatasource {
+  final dynamic db; // Your Drift database instance
 
-  /// TODO:
+  DriftDatasource(this.db);
+
   /// Execute a raw SQL query and return result rows.
   Future<List<Map<String, dynamic>>> query(String sql) async {
-    throw UnimplementedError();
+    final result = await db.customSelect(sql).get();
+    return result.map((row) => row.data).toList();
   }
 
-  /// TODO:
   /// Execute a raw SQL command (INSERT/UPDATE/DELETE).
   Future<void> execute(String sql) async {
-    throw UnimplementedError();
+    await db.customStatement(sql);
   }
 
+  /// Executes operations inside a database transaction.
+  ///
+  /// If any operation fails, the entire transaction is rolled back.
+  Future<void> runInTransaction(
+    Future<void> Function() action,
+  ) async {
+    await db.transaction(() async {
+      await action();
+    });
+  }
+
+  /// Executes a raw SQL command with bound parameters.
+  ///
+  /// Used for parameterized DML operations (INSERT, UPDATE, DELETE)
+  /// to prevent SQL injection.
+  ///
+  /// [sql] → SQL statement with placeholders (?)
+  /// [args] → values bound to placeholders
+  ///
+  /// Example:
+  /// await datasource.executeWithArgs(
+  ///   'UPDATE my_table SET col1 = ? WHERE id = ?',
+  ///   ['new value', 123],
+  /// );
+  Future<void> executeWithArgs(
+    String sql,
+    List<dynamic> args,
+  ) async {
+    await db.customStatement(sql, args);
+  }
 }

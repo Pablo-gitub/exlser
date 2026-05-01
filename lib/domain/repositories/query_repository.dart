@@ -76,4 +76,28 @@ abstract class QueryRepository {
     String sql,
     List<dynamic>? arguments,
   );
+
+  /// Inserts a batch of rows into a dataset table.
+  ///
+  /// This method is optimized for bulk insert operations and
+  /// should be executed inside a database transaction.
+  ///
+  /// [tableName] → target SQL table
+  /// [rows] → list of key-value maps where:
+  ///   - keys represent column names
+  ///   - values represent cell values
+  ///
+  /// Requirements:
+  /// - All rows must share the same structure (same keys)
+  /// - Keys must match existing SQL columns
+  ///
+  /// Notes:
+  /// - Implementations should use batch/transaction inserts
+  ///   for performance
+  /// - Should handle large datasets efficiently
+  /// - Should throw in case of constraint violations
+  Future<void> insertBatch({
+    required String tableName,
+    required List<Map<String, dynamic>> rows,
+  });
 }
