@@ -223,6 +223,31 @@ class QueryRepositoryImpl implements QueryRepository {
     throw UnimplementedError();
   }
 
+  /// Executes a filtered and ordered query on a dataset table.
+  ///
+  /// This method extends queryWithFilter by adding ORDER BY support.
+  ///
+  /// Example:
+  /// SELECT * FROM products WHERE price > ? ORDER BY price DESC
+  /// SELECT * FROM products WHERE name = ? ORDER BY name ASC LIMIT 10 OFFSET 5
+  ///
+  /// Parameters:
+  /// - [tableName]: target SQL table (must be sanitized)
+  /// - [whereClause]: SQL WHERE condition (without 'WHERE')
+  /// - [orderBy]: SQL ORDER BY clause (e.g. "price DESC")
+  /// - [arguments]: values bound to placeholders (?)
+  /// - [limit]: max rows to return (optional)
+  /// - [offset]: rows to skip (optional)
+  ///
+  /// Returns:
+  /// - List of rows as Map<String, dynamic>
+  ///
+  /// Throws:
+  /// - Exception if tableName, whereClause or orderBy are invalid
+  ///
+  /// Notes:
+  /// - Uses parameterized queries for safety
+  /// - Designed for UI sorting (tables, filters, analytics)
   @override
   Future<List<Map<String, dynamic>>> queryWithFilterAndOrder({
     required String tableName,
@@ -232,14 +257,67 @@ class QueryRepositoryImpl implements QueryRepository {
     int? limit,
     int? offset,
   }) async {
-    /// TODO:
-    /// Execute filtered + ordered query.
-    ///
-    /// Example:
-    /// SELECT * FROM table
-    /// WHERE price > ?
-    /// ORDER BY price DESC
-    throw UnimplementedError();
+    /// ----------------------------
+    /// 1. Validate input
+    /// ----------------------------
+
+    final trimmedTable = tableName.trim();
+    final trimmedWhere = whereClause.trim();
+    final trimmedOrder = orderBy.trim();
+
+    if (trimmedTable.isEmpty) {
+      throw Exception('Table name cannot be empty');
+    }
+
+    if (trimmedWhere.isEmpty) {
+      throw Exception('Where clause cannot be empty');
+    }
+
+    if (trimmedOrder.isEmpty) {
+      throw Exception('OrderBy cannot be empty');
+    }
+
+    if (limit != null && limit <= 0) {
+      throw Exception('Limit must be greater than 0');
+    }
+
+    if (offset != null && offset < 0) {
+      throw Exception('Offset cannot be negative');
+    }
+
+    /// ----------------------------
+    /// 2. Build SQL query
+    /// ----------------------------
+
+    final buffer = StringBuffer()
+      ..write('SELECT * FROM $trimmedTable')
+      ..write(' WHERE $trimmedWhere')
+      ..write(' ORDER BY $trimmedOrder');
+
+    if (limit != null) {
+      buffer.write(' LIMIT $limit');
+    }
+
+    if (offset != null) {
+      buffer.write(' OFFSET $offset');
+    }
+
+    final sql = buffer.toString();
+
+    /// ----------------------------
+    /// 3. Execute query
+    /// ----------------------------
+
+    final result = await datasource.query(
+      sql,
+      arguments: arguments,
+    );
+
+    /// ----------------------------
+    /// 4. Return result
+    /// ----------------------------
+
+    return result;
   }
 
   @override
