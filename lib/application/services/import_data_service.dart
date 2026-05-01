@@ -47,21 +47,20 @@ class ImportDataService {
       rethrow;
     } catch (e) {
       /// Unexpected failure → wrap
-      throw ParsingException('Unexpected error during import: $e');
+      throw const ParsingException(
+        code: 'no_sheets',
+        message: 'File contains no readable sheets',
+      );
     }
   }
 
   /// ---------------- INTERNAL STEPS ----------------
 
   String _getFileExtension(String filePath) {
-    final extension = p.extension(filePath)
-        .replaceFirst('.', '')
-        .toLowerCase();
+    final extension = p.extension(filePath).replaceFirst('.', '').toLowerCase();
 
     if (extension.isEmpty) {
-      throw const InvalidFileExtensionException(
-        'File has no extension',
-      );
+      throw const InvalidFileExtensionException();
     }
 
     return extension;
@@ -71,9 +70,7 @@ class ImportDataService {
     try {
       return parserFactory.createParser(extension);
     } catch (_) {
-      throw ParserNotFoundException(
-        'No parser available for .$extension files',
-      );
+      throw const InvalidFileExtensionException();
     }
   }
 
@@ -86,13 +83,17 @@ class ImportDataService {
 
       if (sheets.isEmpty) {
         throw const ParsingException(
-          'File contains no readable sheets',
+          code: 'no_sheets',
+          message: 'File contains no readable sheets',
         );
       }
 
       return sheets;
     } catch (e) {
-      throw ParsingException('Failed to parse file: $e');
+      throw const ParsingException(
+        code: 'no_sheets',
+        message: 'File contains no readable sheets',
+      );
     }
   }
 
@@ -123,7 +124,8 @@ class ImportDataService {
         );
       } catch (e) {
         throw SchemaInferenceException(
-          'Failed schema inference for sheet "${sheet.name}": $e',
+          sheetName: sheet.name,
+          details: e.toString(),
         );
       }
     }
@@ -151,3 +153,25 @@ class ImportDataService {
     return matrix;
   }
 }
+/// Handles the pre-commit import flow:
+/// 1. Save or reference uploaded file
+/// 2. Detect file type
+/// 3. Resolve parser
+/// 4. Parse raw rows / sheets
+/// 5. Infer schema for each parsed sheet
+///
+/// This service must NOT create persistent datasets/tables/rows.
+/// That responsibility belongs to CreateDatasetService after user confirmation.
+//class ImportDataService {
+  //const ImportDataService();
+
+  //Future<void> prepareImport() async {
+    // TODO:
+    // 1. Save or reference uploaded file
+    // 2. Detect file type
+    // 3. Get parser from ParserFactory
+    // 4. Parse raw rows / sheets
+    // 5. Infer schema for each parsed sheet
+    //throw UnimplementedError();
+  //}
+//}

@@ -114,7 +114,9 @@ void main() {
 
     expect(
       () => service.prepareImport(filePath: filePath),
-      throwsA(isA<ParsingException>()),
+      throwsA(
+        isA<ParsingException>().having((e) => e.code, 'code', 'no_sheets'),
+      ),
     );
   });
 
