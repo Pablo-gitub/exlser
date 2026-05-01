@@ -502,16 +502,55 @@ class QueryRepositoryImpl implements QueryRepository {
     return result;
   }
 
+  /// Executes a raw SQL query against the dataset database.
+  ///
+  /// This method is intended for advanced use cases:
+  /// - analytics queries
+  /// - debugging
+  /// - complex SQL not covered by repository methods
+  ///
+  /// Parameters:
+  /// - [sql]: raw SQL query
+  /// - [arguments]: optional bound parameters
+  ///
+  /// Returns:
+  /// - List of rows as Map<String, dynamic>
+  ///
+  /// Throws:
+  /// - Exception if SQL is empty
+  ///
+  /// Notes:
+  /// - Use carefully (bypasses abstraction safety)
+  /// - Prefer structured methods when possible
   @override
   Future<List<Map<String, dynamic>>> executeRawQuery(
     String sql,
     List<dynamic>? arguments,
   ) async {
-    /// TODO:
-    /// Execute arbitrary SQL query.
-    ///
-    /// Used for advanced analytics queries.
-    throw UnimplementedError();
+    /// ----------------------------
+    /// 1. Validate input
+    /// ----------------------------
+
+    final trimmedSql = sql.trim();
+
+    if (trimmedSql.isEmpty) {
+      throw Exception('SQL query cannot be empty');
+    }
+
+    /// ----------------------------
+    /// 2. Execute query
+    /// ----------------------------
+
+    final result = await datasource.query(
+      trimmedSql,
+      arguments: arguments,
+    );
+
+    /// ----------------------------
+    /// 3. Return result
+    /// ----------------------------
+
+    return result;
   }
 
   @override
