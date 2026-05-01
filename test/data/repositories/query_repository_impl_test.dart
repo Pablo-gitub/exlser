@@ -1,3 +1,5 @@
+import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/value_objects/column_type.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -395,6 +397,142 @@ void main() {
 
       expect(
         () => repository.countRows('products'),
+        throwsException,
+      );
+    });
+  });
+
+  group('getDistinctValues', () {
+    test('should return distinct values for a column', () async {
+      /// ---------------- ARRANGE ----------------
+      ///
+      /// Simulate DB returning distinct values
+
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: 'price',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => [
+            {'price': 10},
+            {'price': 20},
+          ]);
+
+      /// ---------------- ACT ----------------
+
+      final result = await repository.getDistinctValues(
+        tableName: 'products',
+        column: column,
+      );
+
+      /// ---------------- ASSERT ----------------
+
+      expect(result, [10, 20]);
+
+      verify(() => datasource.query(
+            'SELECT DISTINCT price FROM products',
+            arguments: null,
+          )).called(1);
+    });
+
+    test('should return empty list when no values found', () async {
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: 'price',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => []);
+
+      final result = await repository.getDistinctValues(
+        tableName: 'products',
+        column: column,
+      );
+
+      expect(result, isEmpty);
+    });
+
+    test('should throw when table name is empty', () async {
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: 'price',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      expect(
+        () => repository.getDistinctValues(
+          tableName: '',
+          column: column,
+        ),
+        throwsException,
+      );
+    });
+
+    test('should throw when column dbName is empty', () async {
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: '',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      expect(
+        () => repository.getDistinctValues(
+          tableName: 'products',
+          column: column,
+        ),
+        throwsException,
+      );
+    });
+
+    test('should propagate datasource errors', () async {
+      final column = DatasetColumn(
+        id: 1,
+        datasetTableId: 10,
+        originalName: 'price',
+        dbName: 'price',
+        declaredType: ColumnType.real,
+        inferredType: ColumnType.real,
+        nullable: false,
+        statsJson: null,
+      );
+
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenThrow(Exception('DB error'));
+
+      expect(
+        () => repository.getDistinctValues(
+          tableName: 'products',
+          column: column,
+        ),
         throwsException,
       );
     });

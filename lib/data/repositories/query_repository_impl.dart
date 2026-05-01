@@ -252,17 +252,74 @@ class QueryRepositoryImpl implements QueryRepository {
     throw Exception('Invalid count result');
   }
 
+  /// Returns distinct values for a specific column in a dataset table.
+  ///
+  /// Example:
+  /// SELECT DISTINCT price FROM products
+  ///
+  /// Parameters:
+  /// - [tableName]: target SQL table
+  /// - [column]: DatasetColumn metadata (uses dbName)
+  ///
+  /// Returns:
+  /// - List of distinct values (dynamic type)
+  ///
+  /// Throws:
+  /// - Exception if table name is empty
+  /// - Exception if column dbName is empty
+  ///
+  /// Notes:
+  /// - Uses column.dbName (NOT originalName)
+  /// - Safe for dynamic schema usage
+  /// - Order is not guaranteed (SQLite default behavior)
   @override
   Future<List<dynamic>> getDistinctValues({
     required String tableName,
     required DatasetColumn column,
   }) async {
-    /// TODO:
-    /// Retrieve distinct values for a column.
+    /// ----------------------------
+    /// 1. Validate input
+    /// ----------------------------
+
+    final trimmedTable = tableName.trim();
+    final trimmedColumn = column.dbName.trim();
+
+    if (trimmedTable.isEmpty) {
+      throw Exception('Table name cannot be empty');
+    }
+
+    if (trimmedColumn.isEmpty) {
+      throw Exception('Column name cannot be empty');
+    }
+
+    /// ----------------------------
+    /// 2. Build SQL query
+    /// ----------------------------
+
+    final sql = 'SELECT DISTINCT $trimmedColumn FROM $trimmedTable';
+
+    /// ----------------------------
+    /// 3. Execute query
+    /// ----------------------------
+
+    final result = await datasource.query(
+      sql,
+      arguments: null,
+    );
+
+    /// ----------------------------
+    /// 4. Map result
+    /// ----------------------------
+
+    if (result.isEmpty) {
+      return [];
+    }
+
+    /// Each row contains:
+    /// { 'columnName': value }
     ///
-    /// Example:
-    /// SELECT DISTINCT column FROM table
-    throw UnimplementedError();
+    /// We extract only the value
+    return result.map((row) => row[trimmedColumn]).toList();
   }
 
   @override
