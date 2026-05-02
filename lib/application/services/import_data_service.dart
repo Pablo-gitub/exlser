@@ -1,3 +1,4 @@
+import 'package:exel_category/application/dto/prepared_import_result.dart';
 import 'package:exel_category/application/dto/prepared_sheet.dart';
 import 'package:exel_category/application/exceptions/import_exceptions.dart';
 import 'package:path/path.dart' as p;
@@ -21,7 +22,7 @@ class ImportDataService {
     required this.inferSchemaUseCase,
   });
 
-  Future<List<PreparedSheet>> prepareImport({
+  Future<PreparedImportResult> prepareImport({
     required String filePath,
   }) async {
     try {
@@ -36,11 +37,15 @@ class ImportDataService {
       if (prepared.isEmpty) {
         throw const ParsingException(
           code: 'no_valid_sheets',
-          message: 'No valid sheets found after processing',
+          message: 'All sheets were empty or invalid',
         );
       }
 
-      return prepared;
+      return PreparedImportResult(
+        fileName: p.basename(filePath),
+        fileExtension: extension,
+        sheets: prepared,
+      );
     } on ImportException {
       rethrow;
     } catch (e) {

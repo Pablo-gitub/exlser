@@ -94,9 +94,11 @@ void main() {
     verify(() => parser.parse(filePath)).called(1);
     verify(() => inferSchemaUseCase.call(any(), 0)).called(1);
 
-    expect(result.length, 1);
-    expect(result.first.sheet, parsedSheets.first);
-    expect(result.first.inferredColumns, columns);
+    expect(result.fileName, 'test.xlsx');
+    expect(result.fileExtension, 'xlsx');
+    expect(result.sheetCount, 1);
+    expect(result.sheets.first.sheet, parsedSheets.first);
+    expect(result.sheets.first.inferredColumns, columns);
   });
 
   test('should throw when file contains no readable sheets', () async {
