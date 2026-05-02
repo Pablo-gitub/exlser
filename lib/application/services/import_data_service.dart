@@ -1,20 +1,10 @@
+import 'package:exel_category/application/dto/prepared_sheet.dart';
 import 'package:exel_category/application/exceptions/import_exceptions.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:exel_category/data/adapters/parsers/parser_factory.dart';
 import 'package:exel_category/domain/entities/parsed_sheet.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/usecases/schema/infer_schema_usecase.dart';
-
-class PreparedSheet {
-  final ParsedSheet sheet;
-  final List<DatasetColumn> columns;
-
-  PreparedSheet({
-    required this.sheet,
-    required this.columns,
-  });
-}
 
 /// Robust import preparation service.
 ///
@@ -41,15 +31,22 @@ class ImportDataService {
 
       final parsedSheets = await _parseFile(parser, filePath);
 
-      return _processSheets(parsedSheets);
+      final prepared = _processSheets(parsedSheets);
+
+      if (prepared.isEmpty) {
+        throw const ParsingException(
+          code: 'no_valid_sheets',
+          message: 'No valid sheets found after processing',
+        );
+      }
+
+      return prepared;
     } on ImportException {
-      /// Already structured → rethrow
       rethrow;
     } catch (e) {
-      /// Unexpected failure → wrap
-      throw const ParsingException(
-        code: 'no_sheets',
-        message: 'File contains no readable sheets',
+      throw ParsingException(
+        code: 'unexpected_error',
+        message: 'Unexpected import error: $e',
       );
     }
   }
@@ -70,7 +67,9 @@ class ImportDataService {
     try {
       return parserFactory.createParser(extension);
     } catch (_) {
-      throw const InvalidFileExtensionException();
+      throw UnsupportedFormatException(
+        extension: extension,
+      );
     }
   }
 
@@ -89,10 +88,12 @@ class ImportDataService {
       }
 
       return sheets;
+    } on ImportException {
+      rethrow;
     } catch (e) {
-      throw const ParsingException(
-        code: 'no_sheets',
-        message: 'File contains no readable sheets',
+      throw ParsingException(
+        code: 'parsing_failed',
+        message: 'Failed to parse file: $e',
       );
     }
   }
@@ -119,7 +120,7 @@ class ImportDataService {
         result.add(
           PreparedSheet(
             sheet: sheet,
-            columns: columns,
+            inferredColumns: columns,
           ),
         );
       } catch (e) {

@@ -96,7 +96,7 @@ void main() {
 
     expect(result.length, 1);
     expect(result.first.sheet, parsedSheets.first);
-    expect(result.first.columns, columns);
+    expect(result.first.inferredColumns, columns);
   });
 
   test('should throw when file contains no readable sheets', () async {

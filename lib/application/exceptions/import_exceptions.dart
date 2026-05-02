@@ -30,6 +30,18 @@ class InvalidFileExtensionException extends ImportException {
         );
 }
 
+/// Thrown when file format is not supported.
+class UnsupportedFormatException extends ImportException {
+  final String extension;
+
+  const UnsupportedFormatException({
+    required this.extension,
+  }) : super(
+    code: 'unsupported_format',
+    message: 'Unsupported file format: $extension',
+  );
+}
+
 /// Thrown when parser cannot be resolved.
 class ParserNotFoundException extends ImportException {
   const ParserNotFoundException(String extension)
