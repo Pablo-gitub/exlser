@@ -25,11 +25,15 @@ class DriftDatasource {
     final result = await db
         .customSelect(
           sql,
-          variables: variables,
+          variables: variables ?? const [],
         )
         .get();
 
-    return result.map((row) => row.data).toList();
+    return result
+        .map<Map<String, dynamic>>(
+          (row) => Map<String, dynamic>.from(row.data),
+        )
+        .toList();
   }
 
   /// Execute a raw SQL command (INSERT/UPDATE/DELETE).
