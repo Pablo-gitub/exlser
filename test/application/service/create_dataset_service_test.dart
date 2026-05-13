@@ -8,17 +8,23 @@ import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/parsed_sheet.dart';
+import 'package:exel_category/domain/entities/source_file_reference.dart';
 
 import 'package:exel_category/domain/usecases/dataset/create_dataset_usecase.dart';
+import 'package:exel_category/domain/usecases/dataset/register_dataset_file_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/create_dataset_table_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/register_columns_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/build_dynamic_table_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/insert_rows_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/infer_schema_usecase.dart';
+import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
 
 /// ---------------- MOCKS ----------------
 
 class MockCreateDatasetUseCase extends Mock implements CreateDatasetUseCase {}
+
+class MockRegisterDatasetFileUseCase extends Mock
+    implements RegisterDatasetFileUseCase {}
 
 class MockCreateDatasetTableUseCase extends Mock
     implements CreateDatasetTableUseCase {}
@@ -41,6 +47,7 @@ void main() {
   late CreateDatasetService service;
 
   late MockCreateDatasetUseCase createDatasetUseCase;
+  late MockRegisterDatasetFileUseCase registerDatasetFileUseCase;
   late MockCreateDatasetTableUseCase createDatasetTableUseCase;
   late MockRegisterColumnsUseCase registerColumnsUseCase;
   late MockBuildDynamicTableUseCase buildDynamicTableUseCase;
@@ -51,10 +58,19 @@ void main() {
     registerFallbackValue(FakeDatasetTable());
     registerFallbackValue(FakeDatasetColumn());
     registerFallbackValue(<DatasetColumn>[]);
+    registerFallbackValue(
+      SourceFileReference(
+        fileName: 'fallback.xlsx',
+        storageMode: DatasetFileStorageMode.path,
+        originalPath: '/tmp/fallback.xlsx',
+        importedAt: DateTime(2026),
+      ),
+    );
   });
 
   setUp(() {
     createDatasetUseCase = MockCreateDatasetUseCase();
+    registerDatasetFileUseCase = MockRegisterDatasetFileUseCase();
     createDatasetTableUseCase = MockCreateDatasetTableUseCase();
     registerColumnsUseCase = MockRegisterColumnsUseCase();
     buildDynamicTableUseCase = MockBuildDynamicTableUseCase();
@@ -63,6 +79,7 @@ void main() {
 
     service = CreateDatasetService(
       createDatasetUseCase: createDatasetUseCase,
+      registerDatasetFileUseCase: registerDatasetFileUseCase,
       createDatasetTableUseCase: createDatasetTableUseCase,
       registerColumnsUseCase: registerColumnsUseCase,
       buildDynamicTableUseCase: buildDynamicTableUseCase,
@@ -310,6 +327,56 @@ void main() {
           rowCount: any(named: 'rowCount'),
           colCount: any(named: 'colCount'),
         )).called(2);
+  });
+
+  test('should register source file reference after dataset creation',
+      () async {
+    final sourceFileReference = SourceFileReference(
+      fileName: 'file.xlsx',
+      storageMode: DatasetFileStorageMode.path,
+      originalPath: '/tmp/file.xlsx',
+      importedAt: DateTime(2026, 1, 2),
+      fileSize: 42,
+    );
+
+    final dataset = Dataset(
+      id: 7,
+      name: 'Test',
+      sourceFileName: 'file.xlsx',
+      createdAt: 0,
+      lastOpenedAt: null,
+    );
+
+    when(() => createDatasetUseCase.call(
+          datasetName: any(named: 'datasetName'),
+          sourceFileName: any(named: 'sourceFileName'),
+        )).thenAnswer((_) async => dataset);
+
+    when(() => registerDatasetFileUseCase.call(
+          datasetId: any(named: 'datasetId'),
+          sourceFileReference: any(named: 'sourceFileReference'),
+        )).thenAnswer((_) async => sourceFileReference.toDatasetFile(
+          datasetId: dataset.id,
+          id: 1,
+        ));
+
+    await service.createDataset(
+      datasetName: 'Test',
+      sourceFileName: 'file.xlsx',
+      sourceFileReference: sourceFileReference,
+      sheets: const [],
+    );
+
+    verifyInOrder([
+      () => createDatasetUseCase.call(
+            datasetName: 'Test',
+            sourceFileName: 'file.xlsx',
+          ),
+      () => registerDatasetFileUseCase.call(
+            datasetId: dataset.id,
+            sourceFileReference: sourceFileReference,
+          ),
+    ]);
   });
 
   test('should propagate error if table creation fails', () async {

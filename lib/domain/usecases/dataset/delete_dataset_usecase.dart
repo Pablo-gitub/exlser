@@ -1,3 +1,4 @@
+import 'package:exel_category/domain/repositories/dataset_file_repository.dart';
 import 'package:exel_category/domain/repositories/datasets_repository.dart';
 import 'package:exel_category/domain/repositories/schema_repository.dart';
 
@@ -23,16 +24,21 @@ import 'package:exel_category/domain/repositories/schema_repository.dart';
 class DeleteDatasetUseCase {
   final DatasetsRepository datasetsRepository;
   final SchemaRepository schemaRepository;
+  final DatasetFileRepository datasetFileRepository;
 
   const DeleteDatasetUseCase({
     required this.datasetsRepository,
     required this.schemaRepository,
+    required this.datasetFileRepository,
   });
 
   Future<void> call(int datasetId) async {
-    // Si delega allo SchemaRepository la cancellazione delle tabelle dinamiche e dei metadati delle colonne
+    if (datasetId <= 0) {
+      throw Exception('Dataset id must be greater than 0');
+    }
+
+    await datasetFileRepository.deleteByDatasetId(datasetId);
     await schemaRepository.deleteSchemaForDataset(datasetId);
-    // Si elimina l'entità principale
     await datasetsRepository.deleteDataset(datasetId);
   }
 }

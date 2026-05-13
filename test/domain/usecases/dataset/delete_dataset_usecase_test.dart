@@ -1,3 +1,4 @@
+import 'package:exel_category/domain/repositories/dataset_file_repository.dart';
 import 'package:exel_category/domain/repositories/datasets_repository.dart';
 import 'package:exel_category/domain/repositories/schema_repository.dart';
 import 'package:exel_category/domain/usecases/dataset/delete_dataset_usecase.dart';
@@ -8,25 +9,32 @@ class MockDatasetsRepository extends Mock implements DatasetsRepository {}
 
 class MockSchemaRepository extends Mock implements SchemaRepository {}
 
+class MockDatasetFileRepository extends Mock implements DatasetFileRepository {}
+
 void main() {
   group('DeleteDatasetUseCase', () {
     late MockDatasetsRepository datasetsRepository;
     late MockSchemaRepository schemaRepository;
+    late MockDatasetFileRepository datasetFileRepository;
     late DeleteDatasetUseCase useCase;
 
     setUp(() {
       datasetsRepository = MockDatasetsRepository();
       schemaRepository = MockSchemaRepository();
+      datasetFileRepository = MockDatasetFileRepository();
       useCase = DeleteDatasetUseCase(
         datasetsRepository: datasetsRepository,
         schemaRepository: schemaRepository,
+        datasetFileRepository: datasetFileRepository,
       );
     });
 
-    test('should delete schema and then dataset from repositories', () async {
+    test('should delete file reference, schema and dataset', () async {
       /// Arrange
       const datasetId = 123;
 
+      when(() => datasetFileRepository.deleteByDatasetId(any()))
+          .thenAnswer((_) async {});
       when(() => schemaRepository.deleteSchemaForDataset(any()))
           .thenAnswer((_) async {});
       when(() => datasetsRepository.deleteDataset(any()))
@@ -36,13 +44,26 @@ void main() {
       await useCase(datasetId);
 
       /// Assert
-      // Verifichiamo che entrambi i metodi vengano chiamati con l'ID corretto
-      verify(() => schemaRepository.deleteSchemaForDataset(datasetId))
-          .called(1);
-      verify(() => datasetsRepository.deleteDataset(datasetId)).called(1);
+      verifyInOrder([
+        () => datasetFileRepository.deleteByDatasetId(datasetId),
+        () => schemaRepository.deleteSchemaForDataset(datasetId),
+        () => datasetsRepository.deleteDataset(datasetId),
+      ]);
 
-      // Opzionale ma consigliato: assicurarsi che vengano chiamati in questo preciso ordine (non lasciare file "orfani")
-      // Tuttavia, in questo caso l'assenza di eccezioni convalida implicitamente che siano eseguiti.
+      verifyNoMoreInteractions(datasetFileRepository);
+      verifyNoMoreInteractions(schemaRepository);
+      verifyNoMoreInteractions(datasetsRepository);
+    });
+
+    test('should throw when dataset id is invalid', () async {
+      expect(
+        () => useCase(0),
+        throwsException,
+      );
+
+      verifyNever(() => datasetFileRepository.deleteByDatasetId(any()));
+      verifyNever(() => schemaRepository.deleteSchemaForDataset(any()));
+      verifyNever(() => datasetsRepository.deleteDataset(any()));
     });
 
     /// TODO:

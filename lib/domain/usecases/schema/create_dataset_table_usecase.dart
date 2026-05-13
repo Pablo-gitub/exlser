@@ -1,6 +1,7 @@
 import 'package:exel_category/data/adapters/sanitizers/sql_name_sanitizer.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
 import 'package:exel_category/domain/repositories/schema_repository.dart';
+
 /// Creates metadata for a dataset table.
 ///
 /// A dataset table corresponds to one sheet (or logical table)
@@ -42,7 +43,7 @@ class CreateDatasetTableUseCase {
     }
 
     final sqlTableName = SqlNameSanitizer.sanitize(
-      '${datasetId}_$trimmedSheetName',
+      'ds_${datasetId}_$trimmedSheetName',
     );
 
     final table = DatasetTable(

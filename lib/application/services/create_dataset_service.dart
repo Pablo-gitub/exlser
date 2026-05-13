@@ -1,5 +1,7 @@
 import 'package:exel_category/domain/entities/parsed_sheet.dart';
+import 'package:exel_category/domain/entities/source_file_reference.dart';
 import 'package:exel_category/domain/usecases/dataset/create_dataset_usecase.dart';
+import 'package:exel_category/domain/usecases/dataset/register_dataset_file_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/create_dataset_table_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/register_columns_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/build_dynamic_table_usecase.dart';
@@ -18,6 +20,7 @@ import 'package:exel_category/domain/usecases/schema/infer_schema_usecase.dart';
 /// - data rows
 class CreateDatasetService {
   final CreateDatasetUseCase createDatasetUseCase;
+  final RegisterDatasetFileUseCase registerDatasetFileUseCase;
   final CreateDatasetTableUseCase createDatasetTableUseCase;
   final RegisterColumnsUseCase registerColumnsUseCase;
   final BuildDynamicTableUseCase buildDynamicTableUseCase;
@@ -26,6 +29,7 @@ class CreateDatasetService {
 
   const CreateDatasetService({
     required this.createDatasetUseCase,
+    required this.registerDatasetFileUseCase,
     required this.createDatasetTableUseCase,
     required this.registerColumnsUseCase,
     required this.buildDynamicTableUseCase,
@@ -36,6 +40,7 @@ class CreateDatasetService {
   Future<void> createDataset({
     required String datasetName,
     required String sourceFileName,
+    SourceFileReference? sourceFileReference,
     required List<ParsedSheet> sheets,
   }) async {
     /// 1. Create dataset
@@ -44,6 +49,13 @@ class CreateDatasetService {
       sourceFileName: sourceFileName,
     );
 
+    if (sourceFileReference != null) {
+      await registerDatasetFileUseCase.call(
+        datasetId: dataset.id,
+        sourceFileReference: sourceFileReference,
+      );
+    }
+
     /// 2. Process each sheet
     for (final sheet in sheets) {
       /// 2.1 Create table metadata
@@ -51,9 +63,7 @@ class CreateDatasetService {
         datasetId: dataset.id,
         sheetName: sheet.name,
         rowCount: sheet.rows.length,
-        colCount: sheet.rows.isNotEmpty
-            ? sheet.rows.first.keys.length
-            : 0,
+        colCount: sheet.rows.isNotEmpty ? sheet.rows.first.keys.length : 0,
       );
 
       /// 2.2 Convert to matrix for schema inference

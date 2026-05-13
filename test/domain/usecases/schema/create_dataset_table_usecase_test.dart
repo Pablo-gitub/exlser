@@ -5,27 +5,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 /// Mock repository used to isolate use case behavior.
-class MockSchemaRepository extends Mock
-    implements SchemaRepository {}
+class MockSchemaRepository extends Mock implements SchemaRepository {}
 
 /// Fake entity required by mocktail when using `any()`.
-class FakeDatasetTable extends Fake
-    implements DatasetTable {}
+class FakeDatasetTable extends Fake implements DatasetTable {}
 
 void main() {
-
   /// Register fallback values required by mocktail.
   setUpAll(() {
     registerFallbackValue(FakeDatasetTable());
   });
 
   group('CreateDatasetTableUseCase', () {
-
     late MockSchemaRepository repository;
     late CreateDatasetTableUseCase useCase;
 
     setUp(() {
-
       /// Fresh mocked repository before each test.
       repository = MockSchemaRepository();
 
@@ -38,7 +33,6 @@ void main() {
     test(
       'should create dataset table correctly',
       () async {
-
         /// Arrange
         /// Repository returns persisted table metadata.
         when(
@@ -75,20 +69,13 @@ void main() {
     test(
       'should sanitize sql table name',
       () async {
-
         /// Arrange
         when(
           () => repository.createDatasetTable(any()),
-        ).thenAnswer(
-          (_) async => DatasetTable(
-            id: 1,
-            datasetId: 10,
-            sheetNameOriginal: 'Sales Report 2025',
-            sqlTableName: 'sales_report_2025',
-            rowCount: 50,
-            colCount: 3,
-          ),
-        );
+        ).thenAnswer((invocation) async {
+          final table = invocation.positionalArguments.first as DatasetTable;
+          return table.copyWith(id: 1);
+        });
 
         /// Act
         final result = await useCase(
@@ -101,7 +88,7 @@ void main() {
         /// Assert
         expect(
           result.sqlTableName,
-          'sales_report_2025',
+          'ds_10_sales_report_2025',
         );
       },
     );
@@ -109,7 +96,6 @@ void main() {
     test(
       'should call repository createDatasetTable once',
       () async {
-
         /// Arrange
         when(
           () => repository.createDatasetTable(any()),
