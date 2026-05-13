@@ -29,9 +29,11 @@ class ImportDataService {
     try {
       final extension = _getFileExtension(file.fileName);
 
+      final filePath = _getParserInputPath(file);
+
       final parser = _resolveParser(extension);
 
-      final parsedSheets = await _parseFile(parser, file.fileName);
+      final parsedSheets = await _parseFile(parser, filePath);
 
       final prepared = _processSheets(parsedSheets);
 
@@ -67,6 +69,14 @@ class ImportDataService {
     }
 
     return extension;
+  }
+
+  String _getParserInputPath(ImportFile file) {
+    if (!file.hasPath) {
+      throw const MissingFilePathException();
+    }
+
+    return file.path!;
   }
 
   dynamic _resolveParser(String extension) {
@@ -160,6 +170,7 @@ class ImportDataService {
     return matrix;
   }
 }
+
 /// Handles the pre-commit import flow:
 /// 1. Save or reference uploaded file
 /// 2. Detect file type
@@ -170,15 +181,15 @@ class ImportDataService {
 /// This service must NOT create persistent datasets/tables/rows.
 /// That responsibility belongs to CreateDatasetService after user confirmation.
 //class ImportDataService {
-  //const ImportDataService();
+//const ImportDataService();
 
-  //Future<void> prepareImport() async {
-    // TODO:
-    // 1. Save or reference uploaded file
-    // 2. Detect file type
-    // 3. Get parser from ParserFactory
-    // 4. Parse raw rows / sheets
-    // 5. Infer schema for each parsed sheet
-    //throw UnimplementedError();
-  //}
+//Future<void> prepareImport() async {
+// TODO:
+// 1. Save or reference uploaded file
+// 2. Detect file type
+// 3. Get parser from ParserFactory
+// 4. Parse raw rows / sheets
+// 5. Infer schema for each parsed sheet
+//throw UnimplementedError();
+//}
 //}

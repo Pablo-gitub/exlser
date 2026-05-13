@@ -53,7 +53,8 @@ void main() {
     /// - schema inference
     /// - result structure
 
-    final filePath = 'test.xlsx';
+    final fileName = 'test.xlsx';
+    final filePath = '/tmp/uploads/test.xlsx';
 
     final parsedSheets = [
       ParsedSheet(
@@ -87,7 +88,7 @@ void main() {
 
     final result = await service.prepareImport(
       file: ImportFile.fromPath(
-        fileName: filePath,
+        fileName: fileName,
         path: filePath,
       ),
     );
@@ -103,6 +104,32 @@ void main() {
     expect(result.sheetCount, 1);
     expect(result.sheets.first.sheet, parsedSheets.first);
     expect(result.sheets.first.inferredColumns, columns);
+  });
+
+  test('should throw when import file only contains bytes', () async {
+    /// ---------------- ARRANGE ----------------
+    ///
+    /// Parsers are still path-based at this stage.
+
+    final file = ImportFile.fromBytes(
+      fileName: 'web_upload.csv',
+      bytes: [1, 2, 3],
+    );
+
+    /// ---------------- ACT & ASSERT ----------------
+
+    expect(
+      () => service.prepareImport(file: file),
+      throwsA(
+        isA<MissingFilePathException>().having(
+          (e) => e.code,
+          'code',
+          'missing_file_path',
+        ),
+      ),
+    );
+
+    verifyNever(() => parserFactory.createParser(any()));
   });
 
   test('should throw when file contains no readable sheets', () async {

@@ -1,3 +1,5 @@
+import 'package:exel_category/application/exceptions/import_exceptions.dart';
+
 /// Represents the input file used by the import pipeline.
 ///
 /// The file can come from:
@@ -22,17 +24,18 @@ class ImportFile {
     required String fileName,
     required List<int> bytes,
   }) {
-    if (fileName.trim().isEmpty) {
-      throw Exception('File name cannot be empty');
-    }
+    final normalizedFileName = _normalizeFileName(fileName);
 
     if (bytes.isEmpty) {
-      throw Exception('File bytes cannot be empty');
+      throw const InvalidImportFileException(
+        code: 'empty_file_bytes',
+        message: 'File bytes cannot be empty',
+      );
     }
 
     return ImportFile._(
-      fileName: fileName,
-      bytes: bytes,
+      fileName: normalizedFileName,
+      bytes: List.unmodifiable(bytes),
     );
   }
 
@@ -41,21 +44,36 @@ class ImportFile {
     required String fileName,
     required String path,
   }) {
-    if (fileName.trim().isEmpty) {
-      throw Exception('File name cannot be empty');
-    }
+    final normalizedFileName = _normalizeFileName(fileName);
+    final normalizedPath = path.trim();
 
-    if (path.trim().isEmpty) {
-      throw Exception('File path cannot be empty');
+    if (normalizedPath.isEmpty) {
+      throw const InvalidImportFileException(
+        code: 'empty_file_path',
+        message: 'File path cannot be empty',
+      );
     }
 
     return ImportFile._(
-      fileName: fileName,
-      path: path,
+      fileName: normalizedFileName,
+      path: normalizedPath,
     );
   }
 
   bool get hasBytes => bytes != null;
 
   bool get hasPath => path != null;
+
+  static String _normalizeFileName(String fileName) {
+    final normalized = fileName.trim();
+
+    if (normalized.isEmpty) {
+      throw const InvalidImportFileException(
+        code: 'empty_file_name',
+        message: 'File name cannot be empty',
+      );
+    }
+
+    return normalized;
+  }
 }

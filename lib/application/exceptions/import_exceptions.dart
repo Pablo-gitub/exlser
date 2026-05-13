@@ -37,9 +37,26 @@ class UnsupportedFormatException extends ImportException {
   const UnsupportedFormatException({
     required this.extension,
   }) : super(
-    code: 'unsupported_format',
-    message: 'Unsupported file format: $extension',
-  );
+          code: 'unsupported_format',
+          message: 'Unsupported file format: $extension',
+        );
+}
+
+/// Thrown when import file input is invalid.
+class InvalidImportFileException extends ImportException {
+  const InvalidImportFileException({
+    required super.code,
+    required super.message,
+  });
+}
+
+/// Thrown while parsers only support filesystem paths.
+class MissingFilePathException extends ImportException {
+  const MissingFilePathException()
+      : super(
+          code: 'missing_file_path',
+          message: 'Current import parsers require a filesystem path',
+        );
 }
 
 /// Thrown when parser cannot be resolved.
