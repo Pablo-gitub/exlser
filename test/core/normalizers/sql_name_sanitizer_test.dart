@@ -1,5 +1,5 @@
 
-import 'package:exel_category/data/adapters/normalizers/sql_name_sanitizer.dart';
+import 'package:exel_category/core/normalizers/sql_name_sanitizer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
