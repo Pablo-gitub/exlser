@@ -1,4 +1,5 @@
 import 'package:exel_category/application/exceptions/import_exceptions.dart';
+import 'package:exel_category/application/dto/import_file.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -85,7 +86,10 @@ void main() {
     /// ---------------- ACT ----------------
 
     final result = await service.prepareImport(
-      filePath: filePath,
+      file: ImportFile.fromPath(
+        fileName: filePath,
+        path: filePath,
+      ),
     );
 
     /// ---------------- ASSERT ----------------
@@ -115,7 +119,12 @@ void main() {
     /// ---------------- ACT & ASSERT ----------------
 
     expect(
-      () => service.prepareImport(filePath: filePath),
+      () => service.prepareImport(
+        file: ImportFile.fromPath(
+          fileName: filePath,
+          path: filePath,
+        ),
+      ),
       throwsA(
         isA<ParsingException>().having((e) => e.code, 'code', 'no_sheets'),
       ),
@@ -130,7 +139,12 @@ void main() {
     /// ---------------- ACT & ASSERT ----------------
 
     expect(
-      () => service.prepareImport(filePath: filePath),
+      () => service.prepareImport(
+        file: ImportFile.fromPath(
+          fileName: filePath,
+          path: filePath,
+        ),
+      ),
       throwsA(isA<InvalidFileExtensionException>()),
     );
   });

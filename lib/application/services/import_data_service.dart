@@ -1,3 +1,4 @@
+import 'package:exel_category/application/dto/import_file.dart';
 import 'package:exel_category/application/dto/prepared_import_result.dart';
 import 'package:exel_category/application/dto/prepared_sheet.dart';
 import 'package:exel_category/application/exceptions/import_exceptions.dart';
@@ -23,14 +24,14 @@ class ImportDataService {
   });
 
   Future<PreparedImportResult> prepareImport({
-    required String filePath,
+    required ImportFile file,
   }) async {
     try {
-      final extension = _getFileExtension(filePath);
+      final extension = _getFileExtension(file.fileName);
 
       final parser = _resolveParser(extension);
 
-      final parsedSheets = await _parseFile(parser, filePath);
+      final parsedSheets = await _parseFile(parser, file.fileName);
 
       final prepared = _processSheets(parsedSheets);
 
@@ -42,7 +43,7 @@ class ImportDataService {
       }
 
       return PreparedImportResult(
-        fileName: p.basename(filePath),
+        fileName: p.basename(file.fileName),
         fileExtension: extension,
         sheets: prepared,
       );
