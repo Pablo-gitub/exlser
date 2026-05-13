@@ -8,7 +8,6 @@ import 'package:exel_category/domain/entities/dataset_column.dart';
 /// It handles sheet metadata, column metadata and the creation of
 /// dynamic SQL tables used to store imported data.
 abstract class SchemaRepository {
-
   /// Returns all tables belonging to a dataset.
   Future<List<DatasetTable>> getTablesForDataset(int datasetId);
 
@@ -46,4 +45,7 @@ abstract class SchemaRepository {
 
   /// Drops a dynamic SQL table.
   Future<void> dropDynamicTable(String tableName);
+
+  /// Deletes schema metadata and dynamic tables for a given dataset
+  Future<void> deleteSchemaForDataset(int datasetId);
 }

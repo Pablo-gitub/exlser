@@ -1,3 +1,6 @@
+import 'package:exel_category/domain/entities/dataset.dart';
+import 'package:exel_category/domain/repositories/datasets_repository.dart';
+
 /// Retrieves all datasets stored in the system.
 ///
 /// Used to populate the UI with previously imported datasets.
@@ -13,11 +16,13 @@
 /// 1. Call repository.getAllDatasets()
 /// 2. Return list of Dataset entities
 class GetDatasetsUseCase {
+  final DatasetsRepository repository;
 
-  // TODO:
-  // - inject DatasetsRepository
-  // - implement call() method
-  // - retrieve dataset list from repository
-  // - return result
+  const GetDatasetsUseCase({
+    required this.repository,
+  });
 
+  Future<List<Dataset>> call() async {
+    return await repository.getAllDatasets();
+  }
 }

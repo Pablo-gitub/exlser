@@ -132,4 +132,39 @@ class SchemaRepositoryImpl implements SchemaRepository {
 
     await datasource.execute(sql);
   }
+
+  @override
+  Future<void> deleteSchemaForDataset(int datasetId) async {
+    if (datasetId <= 0) {
+      throw Exception('Dataset id must be greater than 0');
+    }
+
+    final tables = await datasource.query(
+      'SELECT id, sql_table_name FROM dataset_tables WHERE dataset_id = ?',
+      arguments: [datasetId],
+    );
+
+    await datasource.runInTransaction(() async {
+      for (final table in tables) {
+        final tableId = table['id'];
+        final tableName = table['sql_table_name'];
+
+        if (tableName is String && tableName.trim().isNotEmpty) {
+          await dropDynamicTable(tableName);
+        }
+
+        if (tableId is int) {
+          await datasource.executeWithArgs(
+            'DELETE FROM dataset_columns WHERE dataset_table_id = ?',
+            [tableId],
+          );
+        }
+      }
+
+      await datasource.executeWithArgs(
+        'DELETE FROM dataset_tables WHERE dataset_id = ?',
+        [datasetId],
+      );
+    });
+  }
 }

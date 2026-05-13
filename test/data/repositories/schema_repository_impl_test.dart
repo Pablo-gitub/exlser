@@ -11,9 +11,11 @@ class MockDatasource extends Mock implements DriftDatasource {}
 class MockBuilder extends Mock implements DynamicTableBuilder {}
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(() async {});
+  });
 
   group('SchemaRepositoryImpl', () {
-
     late MockDatasource datasource;
     late MockBuilder builder;
     late SchemaRepositoryImpl repository;
@@ -31,7 +33,6 @@ void main() {
     test(
       'createDynamicTable should call builder and datasource',
       () async {
-
         /// Arrange
         final columns = [
           DatasetColumn(
@@ -51,8 +52,7 @@ void main() {
               columns: any(named: 'columns'),
             )).thenReturn('CREATE TABLE test');
 
-        when(() => datasource.execute(any()))
-            .thenAnswer((_) async {});
+        when(() => datasource.execute(any())).thenAnswer((_) async {});
 
         /// Act
         await repository.createDynamicTable(
@@ -66,15 +66,13 @@ void main() {
               columns: columns,
             )).called(1);
 
-        verify(() => datasource.execute(any()))
-            .called(1);
+        verify(() => datasource.execute(any())).called(1);
       },
     );
 
     test(
       'createDynamicTable should throw if columns are empty',
       () async {
-
         /// Act & Assert
         expect(
           () => repository.createDynamicTable(
@@ -89,10 +87,8 @@ void main() {
     test(
       'dropDynamicTable should execute correct SQL',
       () async {
-
         /// Arrange
-        when(() => datasource.execute(any()))
-            .thenAnswer((_) async {});
+        when(() => datasource.execute(any())).thenAnswer((_) async {});
 
         /// Act
         await repository.dropDynamicTable(
@@ -103,6 +99,79 @@ void main() {
         verify(() => datasource.execute(
               'DROP TABLE IF EXISTS my_table',
             )).called(1);
+      },
+    );
+
+    test(
+      'deleteSchemaForDataset should drop dynamic tables and delete metadata',
+      () async {
+        /// Arrange
+        const datasetId = 7;
+
+        when(() => datasource.query(
+              any(),
+              arguments: any(named: 'arguments'),
+            )).thenAnswer(
+          (_) async => [
+            {'id': 10, 'sql_table_name': 'ds_7_sheet1'},
+            {'id': 11, 'sql_table_name': 'ds_7_sheet2'},
+          ],
+        );
+
+        when(() => datasource.runInTransaction(any())).thenAnswer(
+          (invocation) async {
+            final action =
+                invocation.positionalArguments.first as Future<void> Function();
+            await action();
+          },
+        );
+
+        when(() => datasource.execute(any())).thenAnswer((_) async {});
+        when(() => datasource.executeWithArgs(any(), any()))
+            .thenAnswer((_) async {});
+
+        /// Act
+        await repository.deleteSchemaForDataset(datasetId);
+
+        /// Assert
+        verify(() => datasource.query(
+              'SELECT id, sql_table_name FROM dataset_tables WHERE dataset_id = ?',
+              arguments: [datasetId],
+            )).called(1);
+
+        verify(() => datasource.runInTransaction(any())).called(1);
+        verify(() => datasource.execute('DROP TABLE IF EXISTS ds_7_sheet1'))
+            .called(1);
+        verify(() => datasource.execute('DROP TABLE IF EXISTS ds_7_sheet2'))
+            .called(1);
+        verify(() => datasource.executeWithArgs(
+              'DELETE FROM dataset_columns WHERE dataset_table_id = ?',
+              [10],
+            )).called(1);
+        verify(() => datasource.executeWithArgs(
+              'DELETE FROM dataset_columns WHERE dataset_table_id = ?',
+              [11],
+            )).called(1);
+        verify(() => datasource.executeWithArgs(
+              'DELETE FROM dataset_tables WHERE dataset_id = ?',
+              [datasetId],
+            )).called(1);
+      },
+    );
+
+    test(
+      'deleteSchemaForDataset should throw when dataset id is invalid',
+      () async {
+        expect(
+          () => repository.deleteSchemaForDataset(0),
+          throwsException,
+        );
+
+        verifyNever(() => datasource.query(
+              any(),
+              arguments: any(named: 'arguments'),
+            ));
+        verifyNever(() => datasource.runInTransaction(any()));
       },
     );
 
