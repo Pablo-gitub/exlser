@@ -180,8 +180,8 @@ void main() {
 
     /// ---------------- ACT & ASSERT ----------------
 
-    expect(
-      () => service.prepareImport(
+    await expectLater(
+      service.prepareImport(
         file: ImportFile.fromPath(
           fileName: filePath,
           path: filePath,
@@ -193,6 +193,116 @@ void main() {
     );
   });
 
+  test('should throw unsupported format when parser cannot be resolved',
+      () async {
+    /// ---------------- ARRANGE ----------------
+
+    when(() => parserFactory.createParser('ods')).thenThrow(
+      Exception('Unsupported file format: ods'),
+    );
+
+    /// ---------------- ACT & ASSERT ----------------
+
+    await expectLater(
+      service.prepareImport(
+        file: ImportFile.fromPath(
+          fileName: 'data.ods',
+          path: '/tmp/uploads/data.ods',
+        ),
+      ),
+      throwsA(
+        isA<UnsupportedFormatException>().having(
+          (e) => e.extension,
+          'extension',
+          'ods',
+        ),
+      ),
+    );
+
+    verify(() => parserFactory.createParser('ods')).called(1);
+    verifyNever(() => parser.parsePath(any()));
+    verifyNever(() => parser.parseBytes(any()));
+  });
+
+  test('should wrap parser errors in parsing exception', () async {
+    /// ---------------- ARRANGE ----------------
+
+    const filePath = '/tmp/uploads/broken.csv';
+
+    when(() => parserFactory.createParser('csv')).thenReturn(parser);
+
+    when(() => parser.parsePath(filePath)).thenThrow(
+      Exception('Cannot decode CSV'),
+    );
+
+    /// ---------------- ACT & ASSERT ----------------
+
+    await expectLater(
+      service.prepareImport(
+        file: ImportFile.fromPath(
+          fileName: 'broken.csv',
+          path: filePath,
+        ),
+      ),
+      throwsA(
+        isA<ParsingException>().having(
+          (e) => e.code,
+          'code',
+          'parsing_failed',
+        ),
+      ),
+    );
+
+    verify(() => parserFactory.createParser('csv')).called(1);
+    verify(() => parser.parsePath(filePath)).called(1);
+    verifyNever(() => inferSchemaUseCase.call(any(), any()));
+  });
+
+  test('should throw schema inference exception when inference fails',
+      () async {
+    /// ---------------- ARRANGE ----------------
+
+    const filePath = '/tmp/uploads/schema.csv';
+
+    final parsedSheets = [
+      ParsedSheet(
+        name: 'Products',
+        rows: [
+          {'product': 'book', 'price': '10'},
+        ],
+      ),
+    ];
+
+    when(() => parserFactory.createParser('csv')).thenReturn(parser);
+
+    when(() => parser.parsePath(filePath))
+        .thenAnswer((_) async => parsedSheets);
+
+    when(() => inferSchemaUseCase.call(any(), any())).thenThrow(
+      Exception('Invalid schema'),
+    );
+
+    /// ---------------- ACT & ASSERT ----------------
+
+    await expectLater(
+      service.prepareImport(
+        file: ImportFile.fromPath(
+          fileName: 'schema.csv',
+          path: filePath,
+        ),
+      ),
+      throwsA(
+        isA<SchemaInferenceException>()
+            .having((e) => e.code, 'code', 'schema_failed')
+            .having((e) => e.message, 'message', contains('Products')),
+      ),
+    );
+
+    verify(() => parserFactory.createParser('csv')).called(1);
+    verify(() => parser.parsePath(filePath)).called(1);
+    verify(() => inferSchemaUseCase.call(any(), 0)).called(1);
+  });
+
   test('should throw if file has no extension', () async {
     /// ---------------- ARRANGE ----------------
 
@@ -200,8 +310,8 @@ void main() {
 
     /// ---------------- ACT & ASSERT ----------------
 
-    expect(
-      () => service.prepareImport(
+    await expectLater(
+      service.prepareImport(
         file: ImportFile.fromPath(
           fileName: filePath,
           path: filePath,
