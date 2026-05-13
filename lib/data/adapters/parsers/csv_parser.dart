@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:csv/csv.dart';
 import 'package:exel_category/data/adapters/mappers/table_row_mapper.dart';
@@ -28,14 +29,23 @@ import 'package:exel_category/domain/entities/parsed_sheet.dart';
 /// Values remain raw strings and will be normalized later
 /// by the schema inference pipeline.
 class CsvParser implements SpreadsheetParser {
-
   @override
-  Future<List<ParsedSheet>> parse(String filePath) async {
-
-    final file = File(filePath);
+  Future<List<ParsedSheet>> parsePath(String path) async {
+    final file = File(path);
 
     final content = await file.readAsString();
 
+    return _parseContent(content);
+  }
+
+  @override
+  Future<List<ParsedSheet>> parseBytes(List<int> bytes) async {
+    final content = utf8.decode(bytes);
+
+    return _parseContent(content);
+  }
+
+  List<ParsedSheet> _parseContent(String content) {
     if (content.trim().isEmpty) {
       throw Exception('CSV file is empty');
     }

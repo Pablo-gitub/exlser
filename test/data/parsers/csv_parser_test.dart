@@ -1,11 +1,11 @@
+import 'dart:io';
+
 import 'package:exel_category/data/adapters/parsers/csv_parser.dart';
 import 'package:exel_category/domain/entities/parsed_sheet.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-
   group('CsvParser', () {
-
     late CsvParser parser;
 
     setUp(() {
@@ -15,8 +15,7 @@ void main() {
     test(
       'should correctly parse a valid csv file',
       () async {
-
-        final sheets = await parser.parse(
+        final sheets = await parser.parsePath(
           'test/fixtures/csv/simple.csv',
         );
 
@@ -48,10 +47,23 @@ void main() {
     );
 
     test(
+      'should correctly parse csv bytes',
+      () async {
+        final bytes = await File('test/fixtures/csv/simple.csv').readAsBytes();
+
+        final sheets = await parser.parseBytes(bytes);
+
+        expect(sheets.length, 1);
+        expect(sheets.first.name, 'Sheet1');
+        expect(sheets.first.rows.length, 6);
+        expect(sheets.first.rows.first['product'], 'book');
+      },
+    );
+
+    test(
       'should correctly map column names',
       () async {
-
-        final sheets = await parser.parse(
+        final sheets = await parser.parsePath(
           'test/fixtures/csv/simple.csv',
         );
 
@@ -67,11 +79,20 @@ void main() {
     test(
       'should throw an error when csv file is empty',
       () async {
-
         expect(
-          () => parser.parse(
+          () => parser.parsePath(
             'test/fixtures/csv/empty.csv',
           ),
+          throwsException,
+        );
+      },
+    );
+
+    test(
+      'should throw an error when csv bytes are empty',
+      () async {
+        expect(
+          () => parser.parseBytes(const []),
           throwsException,
         );
       },

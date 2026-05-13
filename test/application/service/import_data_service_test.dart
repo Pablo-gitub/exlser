@@ -31,6 +31,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(FakeDatasetColumn());
     registerFallbackValue(<DatasetColumn>[]);
+    registerFallbackValue(<int>[]);
   });
 
   setUp(() {
@@ -80,7 +81,8 @@ void main() {
 
     when(() => parserFactory.createParser('xlsx')).thenReturn(parser);
 
-    when(() => parser.parse(filePath)).thenAnswer((_) async => parsedSheets);
+    when(() => parser.parsePath(filePath))
+        .thenAnswer((_) async => parsedSheets);
 
     when(() => inferSchemaUseCase.call(any(), any())).thenReturn(columns);
 
@@ -96,7 +98,7 @@ void main() {
     /// ---------------- ASSERT ----------------
 
     verify(() => parserFactory.createParser('xlsx')).called(1);
-    verify(() => parser.parse(filePath)).called(1);
+    verify(() => parser.parsePath(filePath)).called(1);
     verify(() => inferSchemaUseCase.call(any(), 0)).called(1);
 
     expect(result.fileName, 'test.xlsx');
@@ -106,30 +108,63 @@ void main() {
     expect(result.sheets.first.inferredColumns, columns);
   });
 
-  test('should throw when import file only contains bytes', () async {
+  test('should parse in-memory bytes and infer schema correctly', () async {
     /// ---------------- ARRANGE ----------------
     ///
-    /// Parsers are still path-based at this stage.
+    /// Verifies web/upload import flow without requiring a file path.
 
-    final file = ImportFile.fromBytes(
-      fileName: 'web_upload.csv',
-      bytes: [1, 2, 3],
-    );
+    final fileBytes = [1, 2, 3];
 
-    /// ---------------- ACT & ASSERT ----------------
+    final parsedSheets = [
+      ParsedSheet(
+        name: 'Sheet1',
+        rows: [
+          {'product': 'book', 'price': '10'},
+        ],
+      ),
+    ];
 
-    expect(
-      () => service.prepareImport(file: file),
-      throwsA(
-        isA<MissingFilePathException>().having(
-          (e) => e.code,
-          'code',
-          'missing_file_path',
-        ),
+    final columns = [
+      DatasetColumn(
+        id: 0,
+        datasetTableId: 0,
+        originalName: 'product',
+        dbName: 'product',
+        declaredType: ColumnType.text,
+        inferredType: ColumnType.text,
+        nullable: false,
+        statsJson: null,
+      ),
+    ];
+
+    when(() => parserFactory.createParser('csv')).thenReturn(parser);
+
+    when(() => parser.parseBytes(fileBytes))
+        .thenAnswer((_) async => parsedSheets);
+
+    when(() => inferSchemaUseCase.call(any(), any())).thenReturn(columns);
+
+    /// ---------------- ACT ----------------
+
+    final result = await service.prepareImport(
+      file: ImportFile.fromBytes(
+        fileName: 'web_upload.csv',
+        bytes: fileBytes,
       ),
     );
 
-    verifyNever(() => parserFactory.createParser(any()));
+    /// ---------------- ASSERT ----------------
+
+    verify(() => parserFactory.createParser('csv')).called(1);
+    verify(() => parser.parseBytes(fileBytes)).called(1);
+    verifyNever(() => parser.parsePath(any()));
+    verify(() => inferSchemaUseCase.call(any(), 0)).called(1);
+
+    expect(result.fileName, 'web_upload.csv');
+    expect(result.fileExtension, 'csv');
+    expect(result.sheetCount, 1);
+    expect(result.sheets.first.sheet, parsedSheets.first);
+    expect(result.sheets.first.inferredColumns, columns);
   });
 
   test('should throw when file contains no readable sheets', () async {
@@ -141,7 +176,7 @@ void main() {
 
     when(() => parserFactory.createParser('csv')).thenReturn(parser);
 
-    when(() => parser.parse(filePath)).thenAnswer((_) async => []);
+    when(() => parser.parsePath(filePath)).thenAnswer((_) async => []);
 
     /// ---------------- ACT & ASSERT ----------------
 

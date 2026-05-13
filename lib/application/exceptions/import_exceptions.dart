@@ -50,15 +50,6 @@ class InvalidImportFileException extends ImportException {
   });
 }
 
-/// Thrown while parsers only support filesystem paths.
-class MissingFilePathException extends ImportException {
-  const MissingFilePathException()
-      : super(
-          code: 'missing_file_path',
-          message: 'Current import parsers require a filesystem path',
-        );
-}
-
 /// Thrown when parser cannot be resolved.
 class ParserNotFoundException extends ImportException {
   const ParserNotFoundException(String extension)

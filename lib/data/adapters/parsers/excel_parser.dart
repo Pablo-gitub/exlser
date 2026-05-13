@@ -16,11 +16,9 @@ import 'package:exel_category/domain/entities/parsed_sheet.dart';
 /// This parser does NOT infer data types.
 /// Values remain raw strings.
 class ExcelParser implements SpreadsheetParser {
-
   @override
-  Future<List<ParsedSheet>> parse(String filePath) async {
-
-    final file = File(filePath);
+  Future<List<ParsedSheet>> parsePath(String path) async {
+    final file = File(path);
 
     if (!await file.exists()) {
       throw Exception('Excel file not found');
@@ -28,12 +26,16 @@ class ExcelParser implements SpreadsheetParser {
 
     final bytes = await file.readAsBytes();
 
+    return parseBytes(bytes);
+  }
+
+  @override
+  Future<List<ParsedSheet>> parseBytes(List<int> bytes) async {
     final excel = Excel.decodeBytes(bytes);
 
     final sheets = <ParsedSheet>[];
 
     for (final sheetName in excel.tables.keys) {
-
       final table = excel.tables[sheetName];
 
       if (table == null || table.rows.isEmpty) {
@@ -42,15 +44,11 @@ class ExcelParser implements SpreadsheetParser {
 
       /// Convert Excel cells into raw string rows.
       final rawRows = table.rows.map((row) {
-
         return row.map((cell) {
-
           final value = cell?.value;
 
           return value?.toString() ?? '';
-
         }).toList();
-
       }).toList();
 
       /// Normalize headers.

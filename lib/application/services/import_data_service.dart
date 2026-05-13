@@ -2,6 +2,7 @@ import 'package:exel_category/application/dto/import_file.dart';
 import 'package:exel_category/application/dto/prepared_import_result.dart';
 import 'package:exel_category/application/dto/prepared_sheet.dart';
 import 'package:exel_category/application/exceptions/import_exceptions.dart';
+import 'package:exel_category/data/adapters/parsers/spreadsheet_parser.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:exel_category/data/adapters/parsers/parser_factory.dart';
@@ -29,11 +30,9 @@ class ImportDataService {
     try {
       final extension = _getFileExtension(file.fileName);
 
-      final filePath = _getParserInputPath(file);
-
       final parser = _resolveParser(extension);
 
-      final parsedSheets = await _parseFile(parser, filePath);
+      final parsedSheets = await _parseFile(parser, file);
 
       final prepared = _processSheets(parsedSheets);
 
@@ -71,15 +70,7 @@ class ImportDataService {
     return extension;
   }
 
-  String _getParserInputPath(ImportFile file) {
-    if (!file.hasPath) {
-      throw const MissingFilePathException();
-    }
-
-    return file.path!;
-  }
-
-  dynamic _resolveParser(String extension) {
+  SpreadsheetParser _resolveParser(String extension) {
     try {
       return parserFactory.createParser(extension);
     } catch (_) {
@@ -90,11 +81,13 @@ class ImportDataService {
   }
 
   Future<List<ParsedSheet>> _parseFile(
-    dynamic parser,
-    String filePath,
+    SpreadsheetParser parser,
+    ImportFile file,
   ) async {
     try {
-      final sheets = await parser.parse(filePath);
+      final sheets = file.hasPath
+          ? await parser.parsePath(file.path!)
+          : await parser.parseBytes(file.bytes!);
 
       if (sheets.isEmpty) {
         throw const ParsingException(

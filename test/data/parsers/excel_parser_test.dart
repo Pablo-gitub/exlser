@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:exel_category/data/adapters/parsers/excel_parser.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,7 +14,7 @@ void main() {
     test(
       'should correctly parse a simple excel file',
       () async {
-        final sheets = await parser.parse(
+        final sheets = await parser.parsePath(
           'test/fixtures/excel/simple.xlsx',
         );
 
@@ -32,9 +34,24 @@ void main() {
     );
 
     test(
+      'should correctly parse excel bytes',
+      () async {
+        final bytes =
+            await File('test/fixtures/excel/simple.xlsx').readAsBytes();
+
+        final sheets = await parser.parseBytes(bytes);
+
+        expect(sheets.length, 1);
+        expect(sheets.first.name, 'Foglio1');
+        expect(sheets.first.rows.length, 6);
+        expect(sheets.first.rows.first['product'], 'book');
+      },
+    );
+
+    test(
       'should correctly preserve column names',
       () async {
-        final sheets = await parser.parse(
+        final sheets = await parser.parsePath(
           'test/fixtures/excel/simple.xlsx',
         );
 
@@ -50,7 +67,7 @@ void main() {
     test(
       'should correctly parse multiple sheets',
       () async {
-        final sheets = await parser.parse(
+        final sheets = await parser.parsePath(
           'test/fixtures/excel/multi_sheet.xlsx',
         );
 
@@ -65,7 +82,7 @@ void main() {
     test(
       'should preserve sheet names',
       () async {
-        final sheets = await parser.parse(
+        final sheets = await parser.parsePath(
           'test/fixtures/excel/multi_sheet.xlsx',
         );
 
@@ -79,7 +96,7 @@ void main() {
       'should throw when excel file is empty',
       () async {
         expect(
-          () => parser.parse(
+          () => parser.parsePath(
             'test/fixtures/excel/empty.xlsx',
           ),
           throwsException,
@@ -91,7 +108,7 @@ void main() {
       'should throw when excel file does not exist',
       () async {
         expect(
-          () => parser.parse(
+          () => parser.parsePath(
             'test/fixtures/excel/not_existing.xlsx',
           ),
           throwsException,
