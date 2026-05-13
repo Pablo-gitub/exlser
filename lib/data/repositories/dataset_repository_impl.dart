@@ -1,6 +1,7 @@
-import 'package:exel_category/domain/entities/dataset.dart';
+import 'package:exel_category/core/database/daos/datasets_dao.dart';
+import 'package:exel_category/core/database/app_database.dart' as db;
+import 'package:exel_category/domain/entities/dataset.dart' as domain;
 import 'package:exel_category/domain/repositories/datasets_repository.dart';
-import 'package:exel_category/data/datasources/drift_datasource.dart';
 
 /// Concrete implementation of [DatasetsRepository].
 ///
@@ -12,78 +13,122 @@ import 'package:exel_category/data/datasources/drift_datasource.dart';
 /// - Update dataset information
 /// - Delete dataset records
 class DatasetsRepositoryImpl implements DatasetsRepository {
-  final DriftDatasource datasource;
+  final DatasetsDao dao;
 
-  DatasetsRepositoryImpl(this.datasource);
+  DatasetsRepositoryImpl({
+    required this.dao,
+  });
 
   @override
-  Future<List<Dataset>> getAllDatasets() async {
-    /// TODO:
-    /// Retrieve all dataset records from database.
-    ///
-    /// Steps:
-    /// 1. Query dataset metadata table
-    /// 2. Map rows to Dataset entities
-    /// 3. Return list of Dataset objects
-    throw UnimplementedError();
+  Future<List<domain.Dataset>> getAllDatasets() async {
+    final rows = await dao.getAllDatasets();
+
+    return rows.map(_mapRow).toList();
   }
 
   @override
-  Future<Dataset?> getDatasetById(int id) async {
-    /// TODO:
-    /// Retrieve a single dataset by id.
-    ///
-    /// Steps:
-    /// 1. Query dataset table using id
-    /// 2. Map database row → Dataset entity
-    /// 3. Return null if dataset does not exist
-    throw UnimplementedError();
+  Future<domain.Dataset?> getDatasetById(int id) async {
+    _validateId(id);
+
+    final row = await dao.getDatasetById(id);
+
+    if (row == null) return null;
+
+    return _mapRow(row);
   }
 
   @override
-  Future<Dataset> createDataset(Dataset dataset) async {
-    /// TODO:
-    /// Insert dataset metadata into database.
-    ///
-    /// Steps:
-    /// 1. Insert dataset record
-    /// 2. Retrieve generated id
-    /// 3. Return Dataset entity with assigned id
-    throw UnimplementedError();
+  Future<domain.Dataset> createDataset(domain.Dataset dataset) async {
+    final name = dataset.name.trim();
+    final sourceFileName = dataset.sourceFileName.trim();
+
+    if (name.isEmpty) {
+      throw ArgumentError('Dataset name cannot be empty');
+    }
+
+    if (sourceFileName.isEmpty) {
+      throw ArgumentError('Source file name cannot be empty');
+    }
+
+    final id = await dao.createDataset(
+      name: name,
+      sourceFileName: sourceFileName,
+      sourceFileHash: dataset.sourceFileHash,
+      createdAt: dataset.createdAt,
+      lastOpenedAt: dataset.lastOpenedAt,
+    );
+
+    return dataset.copyWith(
+      id: id,
+      name: name,
+      sourceFileName: sourceFileName,
+    );
   }
 
   @override
-  Future<void> updateDataset(Dataset dataset) async {
-    /// TODO:
-    /// Update dataset metadata.
-    ///
-    /// Steps:
-    /// 1. Locate dataset record by id
-    /// 2. Update metadata fields
-    /// 3. Persist changes
-    throw UnimplementedError();
+  Future<void> updateDataset(domain.Dataset dataset) async {
+    _validateId(dataset.id);
+
+    final name = dataset.name.trim();
+    final sourceFileName = dataset.sourceFileName.trim();
+
+    if (name.isEmpty) {
+      throw ArgumentError('Dataset name cannot be empty');
+    }
+
+    if (sourceFileName.isEmpty) {
+      throw ArgumentError('Source file name cannot be empty');
+    }
+
+    final updated = await dao.updateDataset(
+      id: dataset.id,
+      name: name,
+      sourceFileName: sourceFileName,
+      sourceFileHash: dataset.sourceFileHash,
+      createdAt: dataset.createdAt,
+      lastOpenedAt: dataset.lastOpenedAt,
+    );
+
+    if (!updated) {
+      throw StateError('Dataset not found: ${dataset.id}');
+    }
   }
 
   @override
   Future<void> deleteDataset(int id) async {
-    /// TODO:
-    /// Delete dataset metadata.
-    ///
-    /// Steps:
-    /// 1. Remove dataset record
-    /// 2. Remove related schema metadata
-    /// 3. Drop associated dynamic tables
-    throw UnimplementedError();
+    _validateId(id);
+
+    await dao.deleteDatasetById(id);
   }
 
   @override
   Future<void> markDatasetOpened(int datasetId) async {
-    /// TODO:
-    /// Update dataset lastOpened timestamp.
-    ///
-    /// Steps:
-    /// 1. Update lastOpenedAt field
-    /// 2. Persist modification
-    throw UnimplementedError();
+    _validateId(datasetId);
+
+    final updated = await dao.updateLastOpenedAt(
+      datasetId: datasetId,
+      lastOpenedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+
+    if (!updated) {
+      throw StateError('Dataset not found: $datasetId');
+    }
+  }
+
+  domain.Dataset _mapRow(db.Dataset row) {
+    return domain.Dataset(
+      id: row.id,
+      name: row.name,
+      sourceFileName: row.sourceFileName,
+      sourceFileHash: row.sourceFileHash,
+      createdAt: row.createdAt,
+      lastOpenedAt: row.lastOpenedAt,
+    );
+  }
+
+  void _validateId(int id) {
+    if (id <= 0) {
+      throw ArgumentError('Dataset id must be greater than 0');
+    }
   }
 }

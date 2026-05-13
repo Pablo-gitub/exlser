@@ -104,6 +104,31 @@ class DatasetsDao extends DatabaseAccessor<AppDatabase>
     return affectedRows > 0;
   }
 
+  /// Updates dataset metadata.
+  ///
+  /// Returns true when at least one row has been updated.
+  Future<bool> updateDataset({
+    required int id,
+    required String name,
+    required String sourceFileName,
+    String? sourceFileHash,
+    required int createdAt,
+    int? lastOpenedAt,
+  }) async {
+    final affectedRows =
+        await (update(datasets)..where((t) => t.id.equals(id))).write(
+      DatasetsCompanion(
+        name: Value(name),
+        sourceFileName: Value(sourceFileName),
+        sourceFileHash: Value(sourceFileHash),
+        createdAt: Value(createdAt),
+        lastOpenedAt: Value(lastOpenedAt),
+      ),
+    );
+
+    return affectedRows > 0;
+  }
+
   /// Deletes a dataset by id.
   ///
   /// Returns the number of deleted rows.
