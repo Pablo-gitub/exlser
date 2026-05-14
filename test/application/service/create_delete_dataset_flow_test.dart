@@ -1,18 +1,17 @@
 import 'package:drift/native.dart';
+import 'package:exel_category/application/dto/confirmed_import.dart';
 import 'package:exel_category/application/services/create_dataset_service.dart';
 import 'package:exel_category/core/database/app_database.dart'
     hide DatasetColumn, DatasetTable;
 import 'package:exel_category/core/database/daos/dataset_files_dao.dart';
 import 'package:exel_category/core/database/daos/datasets_dao.dart';
-import 'package:exel_category/data/adapters/normalizers/boolean_normalizer.dart';
-import 'package:exel_category/data/adapters/normalizers/date_normalizer.dart';
-import 'package:exel_category/data/adapters/normalizers/number_normalizer.dart';
 import 'package:exel_category/data/datasources/drift_datasource.dart';
 import 'package:exel_category/data/repositories/dataset_file_repository_impl.dart';
 import 'package:exel_category/data/repositories/dataset_repository_impl.dart';
 import 'package:exel_category/data/repositories/query_repository_impl.dart';
 import 'package:exel_category/data/repositories/schema_repository_impl.dart';
 import 'package:exel_category/data/schema/dynamic_table_builder.dart';
+import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/parsed_sheet.dart';
 import 'package:exel_category/domain/entities/source_file_reference.dart';
 import 'package:exel_category/domain/usecases/dataset/create_dataset_usecase.dart';
@@ -20,9 +19,9 @@ import 'package:exel_category/domain/usecases/dataset/delete_dataset_usecase.dar
 import 'package:exel_category/domain/usecases/dataset/register_dataset_file_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/build_dynamic_table_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/create_dataset_table_usecase.dart';
-import 'package:exel_category/domain/usecases/schema/infer_schema_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/insert_rows_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/register_columns_usecase.dart';
+import 'package:exel_category/domain/value_objects/column_type.dart';
 import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -69,11 +68,6 @@ void main() {
           repository: schemaRepository,
         ),
         insertRowsUseCase: InsertRowsUseCase(queryRepository),
-        inferSchemaUseCase: InferSchemaUseCase(
-          numberNormalizer: NumberNormalizer(),
-          dateNormalizer: DateNormalizer(),
-          booleanNormalizer: BooleanNormalizer(),
-        ),
       );
 
       deleteDatasetUseCase = DeleteDatasetUseCase(
@@ -97,26 +91,56 @@ void main() {
         fileSize: 128,
       );
 
-      await createDatasetService.createDataset(
-        datasetName: 'Sales',
-        sourceFileName: 'sales.xlsx',
-        sourceFileReference: sourceFileReference,
-        sheets: [
-          ParsedSheet(
-            name: 'Sheet 1',
-            rows: [
-              {'product': 'book', 'price': '10'},
-              {'product': 'pen', 'price': '2'},
-            ],
-          ),
-        ],
+      final result = await createDatasetService.createDataset(
+        confirmedImport: ConfirmedImport(
+          datasetName: 'Sales',
+          sourceFileName: 'sales.xlsx',
+          sourceFileReference: sourceFileReference,
+          sheets: [
+            ConfirmedImportSheet(
+              sheet: ParsedSheet(
+                name: 'Sheet 1',
+                rows: [
+                  {'product': 'book', 'price': '10'},
+                  {'product': 'pen', 'price': '2'},
+                ],
+              ),
+              columns: [
+                DatasetColumn(
+                  id: 0,
+                  datasetTableId: 0,
+                  originalName: 'product',
+                  dbName: 'product',
+                  declaredType: ColumnType.text,
+                  inferredType: ColumnType.text,
+                  nullable: false,
+                  statsJson: null,
+                ),
+                DatasetColumn(
+                  id: 0,
+                  datasetTableId: 0,
+                  originalName: 'price',
+                  dbName: 'price',
+                  declaredType: ColumnType.integer,
+                  inferredType: ColumnType.integer,
+                  nullable: false,
+                  statsJson: null,
+                ),
+              ],
+            ),
+          ],
+        ),
       );
 
-      final dataset = (await datasetsRepository.getAllDatasets()).single;
-      final fileReference = await datasetFileRepository.getByDatasetId(
-        dataset.id,
+      final dataset = await datasetsRepository.getDatasetById(
+        result.datasetId,
       );
-      final tables = await schemaRepository.getTablesForDataset(dataset.id);
+      final fileReference = await datasetFileRepository.getByDatasetId(
+        result.datasetId,
+      );
+      final tables = await schemaRepository.getTablesForDataset(
+        result.datasetId,
+      );
       final columns = await schemaRepository.getColumnsForTable(
         tables.single.id,
       );
@@ -124,16 +148,27 @@ void main() {
         tables.single.sqlTableName,
       );
 
+      expect(result.datasetName, 'Sales');
+      expect(result.tableCount, 1);
+      expect(result.columnCount, 2);
+      expect(result.rowCount, 2);
+      expect(dataset?.name, 'Sales');
       expect(fileReference?.originalPath, '/tmp/sales.xlsx');
-      expect(tables.single.sqlTableName, startsWith('ds_${dataset.id}_'));
+      expect(tables.single.sqlTableName, startsWith('ds_${result.datasetId}_'));
       expect(columns.map((column) => column.dbName), ['product', 'price']);
       expect(rowCount, 2);
 
-      await deleteDatasetUseCase(dataset.id);
+      await deleteDatasetUseCase(result.datasetId);
 
-      expect(await datasetsRepository.getDatasetById(dataset.id), isNull);
-      expect(await datasetFileRepository.getByDatasetId(dataset.id), isNull);
-      expect(await schemaRepository.getTablesForDataset(dataset.id), isEmpty);
+      expect(await datasetsRepository.getDatasetById(result.datasetId), isNull);
+      expect(
+        await datasetFileRepository.getByDatasetId(result.datasetId),
+        isNull,
+      );
+      expect(
+        await schemaRepository.getTablesForDataset(result.datasetId),
+        isEmpty,
+      );
       expect(
         () => queryRepository.countRows(tables.single.sqlTableName),
         throwsA(anything),

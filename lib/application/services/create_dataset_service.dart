@@ -1,12 +1,12 @@
-import 'package:exel_category/domain/entities/parsed_sheet.dart';
-import 'package:exel_category/domain/entities/source_file_reference.dart';
+import 'package:exel_category/application/dto/confirmed_import.dart';
+import 'package:exel_category/application/dto/created_dataset_result.dart';
+import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/usecases/dataset/create_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/register_dataset_file_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/create_dataset_table_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/register_columns_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/build_dynamic_table_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/insert_rows_usecase.dart';
-import 'package:exel_category/domain/usecases/schema/infer_schema_usecase.dart';
 
 /// Application service responsible for orchestrating
 /// the dataset creation flow after user confirmation.
@@ -25,7 +25,6 @@ class CreateDatasetService {
   final RegisterColumnsUseCase registerColumnsUseCase;
   final BuildDynamicTableUseCase buildDynamicTableUseCase;
   final InsertRowsUseCase insertRowsUseCase;
-  final InferSchemaUseCase inferSchemaUseCase;
 
   const CreateDatasetService({
     required this.createDatasetUseCase,
@@ -34,84 +33,108 @@ class CreateDatasetService {
     required this.registerColumnsUseCase,
     required this.buildDynamicTableUseCase,
     required this.insertRowsUseCase,
-    required this.inferSchemaUseCase,
   });
 
-  Future<void> createDataset({
-    required String datasetName,
-    required String sourceFileName,
-    SourceFileReference? sourceFileReference,
-    required List<ParsedSheet> sheets,
+  Future<CreatedDatasetResult> createDataset({
+    required ConfirmedImport confirmedImport,
   }) async {
+    if (confirmedImport.sheets.isEmpty) {
+      throw Exception('Cannot create dataset without sheets');
+    }
+
     /// 1. Create dataset
     final dataset = await createDatasetUseCase.call(
-      datasetName: datasetName,
-      sourceFileName: sourceFileName,
+      datasetName: confirmedImport.datasetName,
+      sourceFileName: confirmedImport.sourceFileName,
     );
 
-    if (sourceFileReference != null) {
+    if (confirmedImport.sourceFileReference != null) {
       await registerDatasetFileUseCase.call(
         datasetId: dataset.id,
-        sourceFileReference: sourceFileReference,
+        sourceFileReference: confirmedImport.sourceFileReference!,
       );
     }
 
     /// 2. Process each sheet
-    for (final sheet in sheets) {
+    for (final confirmedSheet in confirmedImport.sheets) {
+      final sheet = confirmedSheet.sheet;
+
+      if (confirmedSheet.columns.isEmpty) {
+        throw Exception('Cannot create dataset table without columns');
+      }
+
       /// 2.1 Create table metadata
       final table = await createDatasetTableUseCase.call(
         datasetId: dataset.id,
         sheetName: sheet.name,
         rowCount: sheet.rows.length,
-        colCount: sheet.rows.isNotEmpty ? sheet.rows.first.keys.length : 0,
+        colCount: confirmedSheet.columns.length,
       );
 
-      /// 2.2 Convert to matrix for schema inference
-      final rawRows = _convertToMatrix(sheet.rows);
-
-      /// 2.3 Infer schema
-      final columns = inferSchemaUseCase.call(
-        rawRows,
+      final columns = _attachTableId(
+        confirmedSheet.columns,
         table.id,
       );
 
-      /// 2.4 Register columns (FIX IMPORTANTE)
+      /// 2.2 Register confirmed columns.
       await registerColumnsUseCase.call(
         datasetTableId: table.id,
         columns: columns,
       );
 
-      /// 2.5 Create physical SQL table
+      /// 2.3 Create physical SQL table.
       await buildDynamicTableUseCase.call(
         table: table,
         columns: columns,
       );
 
-      /// 2.6 Insert rows
+      /// 2.4 Insert rows using confirmed database column names.
       await insertRowsUseCase.call(
         tableName: table.sqlTableName,
-        rows: sheet.rows,
+        rows: _mapRowsToDatabaseColumns(
+          rows: sheet.rows,
+          columns: columns,
+        ),
       );
     }
+
+    return CreatedDatasetResult(
+      datasetId: dataset.id,
+      datasetName: dataset.name,
+      sourceFileName: dataset.sourceFileName,
+      tableCount: confirmedImport.tableCount,
+      columnCount: confirmedImport.columnCount,
+      rowCount: confirmedImport.rowCount,
+    );
   }
 
-  List<List<String>> _convertToMatrix(
-    List<Map<String, dynamic>> rows,
+  List<DatasetColumn> _attachTableId(
+    List<DatasetColumn> columns,
+    int datasetTableId,
   ) {
+    return columns
+        .map(
+          (column) => column.copyWith(
+            datasetTableId: datasetTableId,
+          ),
+        )
+        .toList();
+  }
+
+  List<Map<String, dynamic>> _mapRowsToDatabaseColumns({
+    required List<Map<String, dynamic>> rows,
+    required List<DatasetColumn> columns,
+  }) {
     if (rows.isEmpty) return [];
 
-    final headers = rows.first.keys.toList();
+    return rows.map((row) {
+      final mapped = <String, dynamic>{};
 
-    final matrix = <List<String>>[];
+      for (final column in columns) {
+        mapped[column.dbName] = row[column.originalName];
+      }
 
-    matrix.add(headers);
-
-    for (final row in rows) {
-      matrix.add(
-        headers.map((h) => row[h]?.toString() ?? '').toList(),
-      );
-    }
-
-    return matrix;
+      return mapped;
+    }).toList();
   }
 }
