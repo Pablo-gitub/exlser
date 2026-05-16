@@ -6,6 +6,7 @@ import 'package:exel_category/domain/entities/source_file_reference.dart';
 ///
 /// Current behavior:
 /// - path-based imports are referenced by original path
+/// - path-based imports can be copied into app storage
 /// - byte-based imports are marked as web-temporary
 ///
 /// This use case does not persist dataset metadata or parsed rows.
@@ -19,8 +20,17 @@ class SaveUploadedFileUseCase {
   Future<SourceFileReference> call(
     ImportFile file, {
     DateTime? importedAt,
+    bool saveLocally = false,
   }) {
     if (file.hasPath) {
+      if (saveLocally) {
+        return datasource.copyPath(
+          fileName: file.fileName,
+          path: file.path!,
+          importedAt: importedAt,
+        );
+      }
+
       return datasource.referencePath(
         fileName: file.fileName,
         path: file.path!,
