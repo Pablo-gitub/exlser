@@ -52,7 +52,17 @@ Presentation
 views
 viewmodels
 widgets
+providers
 bloc
+```
+
+State management rule:
+```
+Riverpod -> app-level providers, routing, settings, lightweight ViewModels,
+            Home state, and temporary import wizard state.
+
+BLoC     -> dataset workspace state: loaded dataset, active sheet, filters,
+            sorting, fetched rows, refresh events, view mode, analytics.
 ```
 ⸻
 
@@ -110,6 +120,7 @@ UI
 ```
 presentation/views/home/home_view.dart
 presentation/widgets/schema/schema_confirmation_dialog.dart
+presentation/providers/*
 ```
 
 Result:

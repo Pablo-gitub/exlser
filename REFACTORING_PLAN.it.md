@@ -29,7 +29,7 @@ La seconda fase introduce un core relazionale persistente basato su Drift (SQLit
 - Isolamento del Domain Layer
 - Astrazione dei Repository
 - Introduzione dei UseCase
-- Presentazione basata su BLoC
+- Presentazione ibrida Riverpod/BLoC
 - Test unitari per la logica di dominio
 
 Limitazioni della Fase 1:
@@ -46,6 +46,15 @@ Limitazioni della Fase 1:
 ## 🎯 Obiettivo
 
 Trasformare ExcelCategory in uno strumento analitico con persistenza dati locale.
+
+## Gestione Stato Presentation
+
+La Fase 2 usa una strategia ibrida:
+
+- Riverpod gestisce provider applicativi, dependency wiring, routing, settings, ViewModel leggeri e stato temporaneo della UI, incluso il wizard di import.
+- BLoC gestisce il workspace dataset, dove lo stato e' guidato da eventi: dataset aperto, sheet attivo, filtri, ordinamento, righe caricate, refresh, modalita' di visualizzazione e future interazioni analytics.
+
+Questa separazione mantiene semplice il flusso di import e lascia al workspace dataset una struttura piu' forte per crescere.
 
 ---
 

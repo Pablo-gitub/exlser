@@ -29,7 +29,7 @@ The second refactoring introduces a persistent relational core using Drift (SQLi
 - Domain layer isolation
 - Repository abstraction
 - UseCase layer
-- BLoC-based presentation
+- Hybrid Riverpod/BLoC presentation
 - Unit tests for domain logic
 
 Limitations:
@@ -45,6 +45,15 @@ Limitations:
 ## 🎯 Objective
 
 Transform ExcelCategory into a data-persistent analytical tool.
+
+## Presentation State Management
+
+Phase 2 uses a split state-management strategy:
+
+- Riverpod handles app-level dependency providers, routing, settings, lightweight ViewModels, and temporary UI workflows such as the import wizard.
+- BLoC handles the dataset workspace, where interactions are event-driven and stateful: dataset loading, active sheet, filters, sorting, row fetching, refresh events, view mode, and future analytics.
+
+This keeps the import flow simple while giving the dataset workspace a stronger event/state model as it grows.
 
 ---
 

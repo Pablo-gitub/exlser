@@ -60,9 +60,30 @@ lib/
 ### Layers
 
 - **Domain** → Pure business logic (Entities, Repositories, UseCases)
+- **Application** → Import and dataset orchestration services
 - **Data** → Drift database, datasources, repository implementations
-- **Presentation** → BLoC / UI
+- **Presentation** → UI, Riverpod providers/ViewModels, and BLoC workspace state
 - **Core** → Shared infrastructure
+
+### State Management
+
+The presentation layer uses a hybrid state-management strategy:
+
+- **Riverpod** is used for dependency wiring, lightweight UI ViewModels, routing, settings, and temporary workflow state such as the import wizard.
+- **BLoC** is reserved for the dataset workspace, where state is event-driven and expected to grow: loaded dataset, active sheet, filters, sorting, rows, refresh events, view mode, and future analytics interactions.
+
+In short:
+
+```text
+Riverpod = UI orchestration and temporary state
+BLoC = dataset interaction engine and event-driven workspace state
+```
+
+Current import-flow providers live under:
+
+```text
+lib/presentation/providers/
+```
 
 ---
 
@@ -159,4 +180,3 @@ This project demonstrates:
 ## 📄 License
 
 Open-source project.
-
