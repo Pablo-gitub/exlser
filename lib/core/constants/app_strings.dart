@@ -66,6 +66,24 @@ class AppStrings {
   static const String importColumnTypeBoolean =
       'import.column_types.type.boolean';
   static const String importColumnTypeDate = 'import.column_types.type.date';
+  static const String importConfirmationTitle = 'import.confirmation.title';
+  static const String importConfirmationDatasetName =
+      'import.confirmation.dataset_name';
+  static const String importConfirmationSourceFile =
+      'import.confirmation.source_file';
+  static const String importConfirmationFileStorage =
+      'import.confirmation.file_storage';
+  static const String importConfirmationSheets = 'import.confirmation.sheets';
+  static const String importConfirmationColumns = 'import.confirmation.columns';
+  static const String importConfirmationRows = 'import.confirmation.rows';
+  static const String importConfirmationColumnTypes =
+      'import.confirmation.column_types';
+  static const String importFileStorageOriginalPath =
+      'import.confirmation.storage.original_path';
+  static const String importFileStorageAppCopy =
+      'import.confirmation.storage.app_copy';
+  static const String importFileStorageWebTemporary =
+      'import.confirmation.storage.web_temporary';
 
   /// Import errors
   static const String importNoExtension = 'import.error.no_extension';
@@ -74,4 +92,5 @@ class AppStrings {
   static const String importEmptySheets = 'import.error.no_sheets';
   static const String importSchemaFailed = 'import.error.schema_failed';
   static const String importUnexpectedError = 'import.error.unexpected_error';
+  static const String importCreationFailed = 'import.error.creation_failed';
 }

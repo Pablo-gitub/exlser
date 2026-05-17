@@ -1,5 +1,6 @@
 import 'package:exel_category/application/dto/import_file.dart';
 import 'package:exel_category/presentation/providers/service_providers.dart';
+import 'package:exel_category/presentation/providers/usecase_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'import_dialog_viewmodel.dart';
@@ -34,11 +35,15 @@ final importDialogViewModelProvider = ChangeNotifierProvider.family<
     ImportDialogViewModel, ImportDialogProviderArgs>(
   (ref, args) {
     final importDataService = ref.watch(importDataServiceProvider);
+    final saveUploadedFileUseCase = ref.watch(saveUploadedFileUseCaseProvider);
+    final createDatasetService = ref.watch(createDatasetServiceProvider);
 
     return ImportDialogViewModel(
       file: args.file,
       initialDatasetName: args.initialDatasetName,
       prepareImport: importDataService.prepareImport,
+      saveUploadedFile: saveUploadedFileUseCase.call,
+      createDataset: createDatasetService.createDataset,
     );
   },
 );

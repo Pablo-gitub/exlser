@@ -64,13 +64,29 @@
                 "date": "Date"
             }
         },
+        "confirmation": {
+            "title": "Confirm import",
+            "dataset_name": "Dataset",
+            "source_file": "Source file",
+            "file_storage": "File storage",
+            "sheets": "Sheets",
+            "columns": "Columns",
+            "rows": "Rows",
+            "column_types": "Confirmed column types",
+            "storage": {
+                "original_path": "Reference original file path",
+                "app_copy": "Copy file into app storage",
+                "web_temporary": "Temporary browser file reference"
+            }
+        },
         "error": {
             "no_extension": "File has no extension",
             "parser_not_found": "Unsupported file format",
             "parsing_failed": "Error while reading file",
             "no_sheets": "File contains no readable sheets",
             "schema_failed": "Error during sheet analysis",
-            "unexpected_error": "Unexpected import error"
+            "unexpected_error": "Unexpected import error",
+            "creation_failed": "Could not create the dataset"
         }
     }
 }

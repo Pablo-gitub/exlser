@@ -1,12 +1,16 @@
 import 'dart:async';
 
+import 'package:exel_category/application/dto/confirmed_import.dart';
+import 'package:exel_category/application/dto/created_dataset_result.dart';
 import 'package:exel_category/application/dto/import_file.dart';
 import 'package:exel_category/application/dto/prepared_import_result.dart';
 import 'package:exel_category/application/dto/prepared_sheet.dart';
 import 'package:exel_category/application/exceptions/import_exceptions.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/parsed_sheet.dart';
+import 'package:exel_category/domain/entities/source_file_reference.dart';
 import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
 import 'package:exel_category/presentation/views/home/widgets/import_dialog/import_dialog_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -17,9 +21,8 @@ void main() {
       final preparedResult = _preparedResult();
       var callCount = 0;
 
-      final viewModel = ImportDialogViewModel(
+      final viewModel = _viewModel(
         file: importFile,
-        initialDatasetName: 'Sales',
         prepareImport: ({required file}) async {
           callCount++;
           expect(file, same(importFile));
@@ -38,9 +41,7 @@ void main() {
 
     test('should expose loading state while preparing import', () async {
       final completer = Completer<PreparedImportResult>();
-      final viewModel = ImportDialogViewModel(
-        file: _importFile(),
-        initialDatasetName: 'Sales',
+      final viewModel = _viewModel(
         prepareImport: ({required file}) => completer.future,
       );
 
@@ -57,9 +58,7 @@ void main() {
     });
 
     test('should stay on general step and expose import error code', () async {
-      final viewModel = ImportDialogViewModel(
-        file: _importFile(),
-        initialDatasetName: 'Sales',
+      final viewModel = _viewModel(
         prepareImport: ({required file}) {
           throw const ParsingException(
             code: 'parsing_failed',
@@ -78,9 +77,7 @@ void main() {
 
     test('should not prepare import when current step is invalid', () async {
       var callCount = 0;
-      final viewModel = ImportDialogViewModel(
-        file: _importFile(),
-        initialDatasetName: 'Sales',
+      final viewModel = _viewModel(
         prepareImport: ({required file}) async {
           callCount++;
           return _preparedResult();
@@ -98,9 +95,7 @@ void main() {
     test('should reuse prepared result when returning to general step',
         () async {
       var callCount = 0;
-      final viewModel = ImportDialogViewModel(
-        file: _importFile(),
-        initialDatasetName: 'Sales',
+      final viewModel = _viewModel(
         prepareImport: ({required file}) async {
           callCount++;
           return _preparedResult();
@@ -117,9 +112,7 @@ void main() {
 
     test('should initialize selected column types from prepared import',
         () async {
-      final viewModel = ImportDialogViewModel(
-        file: _importFile(),
-        initialDatasetName: 'Sales',
+      final viewModel = _viewModel(
         prepareImport: ({required file}) async => _preparedResult(),
       );
 
@@ -138,9 +131,7 @@ void main() {
 
     test('should build confirmed import with selected type overrides',
         () async {
-      final viewModel = ImportDialogViewModel(
-        file: _importFile(),
-        initialDatasetName: 'Sales',
+      final viewModel = _viewModel(
         prepareImport: ({required file}) async => _preparedResult(),
       );
 
@@ -175,9 +166,7 @@ void main() {
 
     test('should advance to confirmation after column types are confirmed',
         () async {
-      final viewModel = ImportDialogViewModel(
-        file: _importFile(),
-        initialDatasetName: 'Sales',
+      final viewModel = _viewModel(
         prepareImport: ({required file}) async => _preparedResult(),
       );
 
@@ -187,7 +176,110 @@ void main() {
       expect(viewModel.currentStep, ImportDialogStep.confirmation);
       expect(viewModel.confirmedImport, isNotNull);
     });
+
+    test('should save source file and create dataset on finish', () async {
+      final sourceFileReference = _sourceFileReference();
+      ConfirmedImport? capturedImport;
+      bool? capturedSaveLocally;
+
+      final viewModel = _viewModel(
+        prepareImport: ({required file}) async => _preparedResult(),
+        saveUploadedFile: (
+          file, {
+          importedAt,
+          saveLocally = false,
+        }) async {
+          capturedSaveLocally = saveLocally;
+          expect(file.fileName, 'sales.csv');
+          return sourceFileReference;
+        },
+        createDataset: ({required confirmedImport}) async {
+          capturedImport = confirmedImport;
+          return _createdDatasetResult();
+        },
+      );
+
+      viewModel.updateSaveLocally(false);
+      await viewModel.goToNextStep();
+      await viewModel.goToNextStep();
+      final result = await viewModel.finishImport();
+
+      expect(capturedSaveLocally, isFalse);
+      expect(result?.datasetId, 42);
+      expect(viewModel.createdDatasetResult?.datasetId, 42);
+      expect(viewModel.isCreatingDataset, isFalse);
+      expect(viewModel.importErrorCode, isNull);
+      expect(capturedImport?.sourceFileReference, sourceFileReference);
+      expect(capturedImport?.datasetName, 'Sales');
+    });
+
+    test('should expose creation error when dataset creation fails', () async {
+      final viewModel = _viewModel(
+        prepareImport: ({required file}) async => _preparedResult(),
+        createDataset: ({required confirmedImport}) {
+          throw Exception('create failed');
+        },
+      );
+
+      await viewModel.goToNextStep();
+      await viewModel.goToNextStep();
+      final result = await viewModel.finishImport();
+
+      expect(result, isNull);
+      expect(viewModel.currentStep, ImportDialogStep.confirmation);
+      expect(viewModel.importErrorCode, 'creation_failed');
+      expect(viewModel.isCreatingDataset, isFalse);
+    });
+
+    test('should not finish before confirmation step', () async {
+      var saveCallCount = 0;
+      var createCallCount = 0;
+      final viewModel = _viewModel(
+        saveUploadedFile: (
+          file, {
+          importedAt,
+          saveLocally = false,
+        }) async {
+          saveCallCount++;
+          return _sourceFileReference();
+        },
+        createDataset: ({required confirmedImport}) async {
+          createCallCount++;
+          return _createdDatasetResult();
+        },
+      );
+
+      final result = await viewModel.finishImport();
+
+      expect(result, isNull);
+      expect(saveCallCount, 0);
+      expect(createCallCount, 0);
+      expect(viewModel.currentStep, ImportDialogStep.general);
+    });
   });
+}
+
+ImportDialogViewModel _viewModel({
+  ImportFile? file,
+  String initialDatasetName = 'Sales',
+  PrepareImportCallback? prepareImport,
+  SaveUploadedFileCallback? saveUploadedFile,
+  CreateDatasetCallback? createDataset,
+}) {
+  return ImportDialogViewModel(
+    file: file ?? _importFile(),
+    initialDatasetName: initialDatasetName,
+    prepareImport:
+        prepareImport ?? ({required file}) async => _preparedResult(),
+    saveUploadedFile: saveUploadedFile ??
+        (file, {importedAt, saveLocally = false}) async {
+          return _sourceFileReference();
+        },
+    createDataset: createDataset ??
+        ({required confirmedImport}) async {
+          return _createdDatasetResult();
+        },
+  );
 }
 
 ImportFile _importFile() {
@@ -231,5 +323,25 @@ PreparedImportResult _preparedResult() {
         ],
       ),
     ],
+  );
+}
+
+SourceFileReference _sourceFileReference() {
+  return SourceFileReference(
+    fileName: 'sales.csv',
+    storageMode: DatasetFileStorageMode.webTemporary,
+    importedAt: DateTime(2026, 1, 2),
+    fileSize: 3,
+  );
+}
+
+CreatedDatasetResult _createdDatasetResult() {
+  return const CreatedDatasetResult(
+    datasetId: 42,
+    datasetName: 'Sales',
+    sourceFileName: 'sales.csv',
+    tableCount: 1,
+    columnCount: 2,
+    rowCount: 1,
   );
 }

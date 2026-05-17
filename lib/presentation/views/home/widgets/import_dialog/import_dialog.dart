@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../router/routes.dart';
 import 'import_dialog_provider.dart';
 import 'import_dialog_viewmodel.dart';
 import 'pages/import_column_type_page.dart';
@@ -17,9 +18,7 @@ import 'pages/import_general_page.dart';
 /// - render the current import step
 /// - manage step navigation controls
 /// - delegate step-specific UI to dedicated pages
-///
-/// This dialog does not execute the final import yet.
-/// Final import will be triggered from the confirmation step.
+/// - trigger dataset creation from the confirmation step
 class ImportDialog extends ConsumerWidget {
   final ImportFile file;
   final String initialDatasetName;
@@ -87,7 +86,7 @@ class ImportDialog extends ConsumerWidget {
         return ImportColumnTypePage(viewModel: viewModel);
 
       case ImportDialogStep.confirmation:
-        return const ImportConfirmationPage();
+        return ImportConfirmationPage(viewModel: viewModel);
     }
   }
 
@@ -99,8 +98,7 @@ class ImportDialog extends ConsumerWidget {
       children: [
         if (viewModel.canGoBack)
           TextButton(
-            onPressed:
-                viewModel.isPreparingImport ? null : viewModel.goToPreviousStep,
+            onPressed: viewModel.isBusy ? null : viewModel.goToPreviousStep,
             child: Text(AppStrings.previous.tr()),
           ),
         const Spacer(),
@@ -108,18 +106,26 @@ class ImportDialog extends ConsumerWidget {
           onPressed: viewModel.canContinue
               ? () async {
                   if (viewModel.isLastStep) {
-                    // Trigger final import action
+                    final result = await viewModel.finishImport();
+                    if (result == null || !context.mounted) return;
+
+                    final navigator = Navigator.of(context);
+                    final router = GoRouter.of(context);
+
                     onImportCompleted();
-                    // Close dialog and navigate to dataset view
-                    Navigator.of(context).pop();
-                    // TODO: navigate to the newly created dataset view, passing the new dataset ID
-                    context.go('/datasets/1');
+                    navigator.pop();
+                    router.goNamed(
+                      AppRoutes.datasetName,
+                      pathParameters: {
+                        AppRoutes.datasetIdParam: '${result.datasetId}',
+                      },
+                    );
                   } else {
                     await viewModel.goToNextStep();
                   }
                 }
               : null,
-          child: viewModel.isPreparingImport
+          child: viewModel.isBusy
               ? const SizedBox.square(
                   dimension: 18,
                   child: CircularProgressIndicator(
@@ -167,6 +173,8 @@ class ImportDialog extends ConsumerWidget {
         return AppStrings.importEmptySheets;
       case 'schema_failed':
         return AppStrings.importSchemaFailed;
+      case 'creation_failed':
+        return AppStrings.importCreationFailed;
       default:
         return AppStrings.importUnexpectedError;
     }

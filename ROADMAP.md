@@ -51,7 +51,9 @@ column names, and column types.
 
 ## Current Status
 
-The project is past the low-level import foundation. The next major work is UI wiring for the real import flow.
+The project is past the low-level import foundation. The import wizard can now
+create a real dataset after final confirmation. The next major work is making
+created datasets visible, reopenable, and readable from the UI.
 
 ### Completed Foundation
 
@@ -108,7 +110,7 @@ The project is past the low-level import foundation. The next major work is UI w
 - [x] Riverpod providers for use cases.
 - [x] Riverpod providers for application services.
 - [x] Provider integration test with an in-memory database.
-- [x] Latest known full test run: `flutter test` passing with 202 tests.
+- [x] Latest known full test run: `flutter test` passing with 218 tests.
 - [x] Latest known analyzer state: no blocking errors, 6 known informational warnings.
 
 ### Existing UI Skeleton
@@ -118,8 +120,8 @@ The project is past the low-level import foundation. The next major work is UI w
 - [x] `HomeViewModel` tracks selected file path/bytes.
 - [x] Import dialog skeleton exists.
 - [x] General import step exists.
-- [x] Column type step placeholder exists.
-- [x] Confirmation step placeholder exists.
+- [x] Column type confirmation step exists.
+- [x] Final confirmation and dataset creation step exists.
 - [x] Base router exists.
 - [x] Dataset list skeleton exists.
 - [x] Dataset view skeleton exists.
@@ -128,8 +130,9 @@ The project is past the low-level import foundation. The next major work is UI w
 Current checkpoint:
 
 ```text
-Import core foundation is mostly ready.
-The app is not publishable yet because the real UI flow is not wired.
+Import creation flow is wired through the wizard.
+The app is not publishable yet because created datasets still need to be listed,
+opened, displayed, and deleted from the UI.
 ```
 
 ## Path to the First Publishable Preview
@@ -198,21 +201,21 @@ Definition of done:
 
 Goal: the dataset is created only after the user confirms the wizard.
 
-- [ ] Show final summary: dataset name, source file, storage mode, sheet count, column count, row count.
-- [ ] Call `SaveUploadedFileUseCase` using the selected `saveLocally` option.
-- [ ] Call `CreateDatasetService.createDataset` only when the user clicks Finish/Create Dataset.
-- [ ] Use the real `CreatedDatasetResult.datasetId`.
-- [ ] Close the dialog after success.
-- [ ] Clear the selected file in Home after success.
-- [ ] Navigate to `DatasetView` with the real dataset id.
-- [ ] Remove temporary navigation to `/datasets/1`.
+- [x] Show final summary: dataset name, source file, storage mode, sheet count, column count, row count.
+- [x] Call `SaveUploadedFileUseCase` using the selected `saveLocally` option.
+- [x] Call `CreateDatasetService.createDataset` only when the user clicks Finish/Create Dataset.
+- [x] Use the real `CreatedDatasetResult.datasetId`.
+- [x] Close the dialog after success.
+- [x] Clear the selected file in Home after success.
+- [x] Navigate to `DatasetView` with the real dataset id.
+- [x] Remove temporary navigation to `/datasets/1`.
 
 Definition of done:
 
-- [ ] The UI creates a dataset end-to-end.
-- [ ] The source file reference is registered.
-- [ ] Navigation uses the real dataset id.
-- [ ] Tests cover the confirmation flow.
+- [x] The UI creates a dataset end-to-end.
+- [x] The source file reference is registered.
+- [x] Navigation uses the real dataset id.
+- [x] Tests cover the confirmation flow.
 
 ### 5. Add i18n and User-Facing Import Errors
 

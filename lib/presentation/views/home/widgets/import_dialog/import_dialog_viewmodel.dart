@@ -1,12 +1,24 @@
 import 'package:exel_category/application/dto/import_file.dart';
 import 'package:exel_category/application/dto/confirmed_import.dart';
+import 'package:exel_category/application/dto/created_dataset_result.dart';
 import 'package:exel_category/application/dto/prepared_import_result.dart';
 import 'package:exel_category/application/exceptions/import_exceptions.dart';
+import 'package:exel_category/domain/entities/source_file_reference.dart';
 import 'package:exel_category/domain/value_objects/column_type.dart';
 import 'package:flutter/foundation.dart';
 
 typedef PrepareImportCallback = Future<PreparedImportResult> Function({
   required ImportFile file,
+});
+
+typedef SaveUploadedFileCallback = Future<SourceFileReference> Function(
+  ImportFile file, {
+  DateTime? importedAt,
+  bool saveLocally,
+});
+
+typedef CreateDatasetCallback = Future<CreatedDatasetResult> Function({
+  required ConfirmedImport confirmedImport,
 });
 
 /// Steps of the import dialog workflow.
@@ -23,22 +35,27 @@ enum ImportDialogStep {
 /// - manage wizard step navigation
 /// - validate each dialog step
 /// - prepare import configuration
-///
-/// This ViewModel does NOT execute the import.
-/// Import execution will happen only after the entire
-/// configuration flow is completed.
+/// - execute final dataset creation after confirmation
 class ImportDialogViewModel extends ChangeNotifier {
   ImportDialogViewModel({
     required this.file,
     required PrepareImportCallback prepareImport,
+    required SaveUploadedFileCallback saveUploadedFile,
+    required CreateDatasetCallback createDataset,
     required String initialDatasetName,
   })  : _datasetName = initialDatasetName,
         _saveLocally = !kIsWeb,
-        _prepareImport = prepareImport;
+        _prepareImport = prepareImport,
+        _saveUploadedFile = saveUploadedFile,
+        _createDataset = createDataset;
 
   final ImportFile file;
 
   final PrepareImportCallback _prepareImport;
+
+  final SaveUploadedFileCallback _saveUploadedFile;
+
+  final CreateDatasetCallback _createDataset;
 
   ImportDialogStep _currentStep = ImportDialogStep.general;
 
@@ -48,7 +65,11 @@ class ImportDialogViewModel extends ChangeNotifier {
 
   bool _isPreparingImport = false;
 
+  bool _isCreatingDataset = false;
+
   PreparedImportResult? _preparedImportResult;
+
+  CreatedDatasetResult? _createdDatasetResult;
 
   String? _importErrorCode;
 
@@ -64,7 +85,13 @@ class ImportDialogViewModel extends ChangeNotifier {
 
   bool get isPreparingImport => _isPreparingImport;
 
+  bool get isCreatingDataset => _isCreatingDataset;
+
+  bool get isBusy => _isPreparingImport || _isCreatingDataset;
+
   PreparedImportResult? get preparedImportResult => _preparedImportResult;
+
+  CreatedDatasetResult? get createdDatasetResult => _createdDatasetResult;
 
   List<ConfirmedImportSheet> get confirmedSheets {
     final preparedImportResult = _preparedImportResult;
@@ -118,7 +145,7 @@ class ImportDialogViewModel extends ChangeNotifier {
 
   bool get isLastStep => _currentStep == ImportDialogStep.confirmation;
 
-  bool get canContinue => isCurrentStepValid && !_isPreparingImport;
+  bool get canContinue => isCurrentStepValid && !isBusy;
 
   bool get hasConfirmedColumnTypes {
     final preparedImportResult = _preparedImportResult;
@@ -193,6 +220,45 @@ class ImportDialogViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<CreatedDatasetResult?> finishImport() async {
+    if (!canContinue || !isLastStep) return null;
+
+    final baseConfirmedImport = confirmedImport;
+    if (baseConfirmedImport == null) return null;
+
+    _isCreatingDataset = true;
+    _importErrorCode = null;
+    notifyListeners();
+
+    try {
+      final sourceFileReference = await _saveUploadedFile(
+        file,
+        saveLocally: _saveLocally,
+      );
+      final confirmedImportWithFile = ConfirmedImport(
+        datasetName: baseConfirmedImport.datasetName,
+        sourceFileName: baseConfirmedImport.sourceFileName,
+        sourceFileReference: sourceFileReference,
+        sheets: baseConfirmedImport.sheets,
+      );
+      final result = await _createDataset(
+        confirmedImport: confirmedImportWithFile,
+      );
+
+      _createdDatasetResult = result;
+      return result;
+    } on ImportException catch (e) {
+      _importErrorCode = e.code;
+      return null;
+    } catch (_) {
+      _importErrorCode = 'creation_failed';
+      return null;
+    } finally {
+      _isCreatingDataset = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> goToNextStep() async {
     if (!canContinue || isLastStep) return;
 
@@ -219,6 +285,7 @@ class ImportDialogViewModel extends ChangeNotifier {
   Future<void> _prepareSelectedImport() async {
     _isPreparingImport = true;
     _importErrorCode = null;
+    _createdDatasetResult = null;
     notifyListeners();
 
     try {
