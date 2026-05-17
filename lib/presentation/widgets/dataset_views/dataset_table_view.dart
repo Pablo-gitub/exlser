@@ -1,31 +1,72 @@
+import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:flutter/material.dart';
 
-/// Table visualization of dataset rows.
-///
-/// Displays rows in a spreadsheet-like structure.
-///
-/// Features:
-/// - dynamic columns
-/// - horizontal scrolling
-/// - optional column visibility
-/// - optional sorting
-///
-/// This widget receives already filtered data from DatasetViewModel.
-class DatasetTableView extends StatelessWidget {
-
+class DatasetTableView extends StatefulWidget {
+  final List<DatasetColumn> columns;
   final List<Map<String, dynamic>> rows;
 
   const DatasetTableView({
     super.key,
+    required this.columns,
     required this.rows,
   });
 
   @override
-  Widget build(BuildContext context) {
+  State<DatasetTableView> createState() => _DatasetTableViewState();
+}
 
-    /// TODO
-    /// Build dynamic DataTable based on dataset columns
+class _DatasetTableViewState extends State<DatasetTableView> {
+  final ScrollController _scrollController = ScrollController();
 
-    return const Placeholder();
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
+  @override
+  Widget build(BuildContext context) {
+    if (widget.columns.isEmpty || widget.rows.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Scrollbar(
+      thumbVisibility: true,
+      controller: _scrollController,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: [
+            for (final column in widget.columns)
+              DataColumn(
+                label: Text(column.originalName),
+              ),
+          ],
+          rows: [
+            for (final row in widget.rows)
+              DataRow(
+                cells: [
+                  for (final column in widget.columns)
+                    DataCell(
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 220),
+                        child: Text(
+                          _formatCellValue(row[column.dbName]),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _formatCellValue(dynamic value) {
+  if (value == null) return '';
+
+  return value.toString();
 }

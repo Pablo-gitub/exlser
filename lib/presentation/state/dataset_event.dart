@@ -1,36 +1,27 @@
-/// Events dispatched to DatasetBloc.
-///
-/// Events represent user interactions or UI triggers.
-abstract class DatasetEvent {}
+import 'dataset_state.dart';
 
-/// Load dataset workspace.
+abstract class DatasetEvent {
+  const DatasetEvent();
+}
+
 class LoadDatasetEvent extends DatasetEvent {
   final int datasetId;
 
-  LoadDatasetEvent(this.datasetId);
+  const LoadDatasetEvent(this.datasetId);
 }
 
-/// Change active sheet.
 class ChangeSheetEvent extends DatasetEvent {
-  final String sheetName;
+  final int tableId;
 
-  ChangeSheetEvent(this.sheetName);
+  const ChangeSheetEvent(this.tableId);
 }
 
-/// Update filter for a column.
-class UpdateFilterEvent extends DatasetEvent {
-  final String column;
-  final dynamic value;
-
-  UpdateFilterEvent(this.column, this.value);
+class RefreshResultsEvent extends DatasetEvent {
+  const RefreshResultsEvent();
 }
 
-/// Refresh dataset query results.
-class RefreshResultsEvent extends DatasetEvent {}
-
-/// Change result visualization mode.
 class ChangeViewModeEvent extends DatasetEvent {
-  final String mode; // table or cards
+  final DatasetViewMode viewMode;
 
-  ChangeViewModeEvent(this.mode);
+  const ChangeViewModeEvent(this.viewMode);
 }

@@ -85,6 +85,23 @@ Current import-flow providers live under:
 lib/presentation/providers/
 ```
 
+### Analytics Direction
+
+Future analytics will follow a guided auto-BI approach. After schema
+confirmation, the dataset workspace will inspect column types and suggest an
+initial chart automatically:
+
+- `date` + numeric columns -> line or area chart.
+- `text` + numeric columns -> pie/donut for small category sets, bar/column for
+  larger category sets.
+- two numeric columns -> scatter plot.
+- boolean columns -> true/false distribution.
+
+The chart panel will expose dropdown controls for alternative columns,
+aggregations, chart type, grouping, sorting, and top-N limits. More advanced
+regression and forecast views are planned after the first basic charting
+release.
+
 ---
 
 ## 🧠 Current Refactoring Status

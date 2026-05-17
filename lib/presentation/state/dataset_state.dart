@@ -1,44 +1,74 @@
-import '../../domain/entities/dataset.dart';
+import 'package:exel_category/domain/entities/dataset.dart';
+import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/entities/dataset_table.dart';
 
-/// Base class for dataset workspace states.
-abstract class DatasetState {}
+enum DatasetViewMode {
+  table,
+  cards,
+}
 
-/// Initial state before loading data.
-class DatasetInitialState extends DatasetState {}
+sealed class DatasetState {
+  const DatasetState();
+}
 
-/// Loading state while dataset is being initialized.
-class DatasetLoadingState extends DatasetState {}
+class DatasetInitialState extends DatasetState {
+  const DatasetInitialState();
+}
 
-/// State when dataset is fully loaded.
-class DatasetLoadedState extends DatasetState {
+class DatasetLoadingState extends DatasetState {
+  const DatasetLoadingState();
+}
 
+class DatasetEmptyState extends DatasetState {
   final Dataset dataset;
 
-  /// Active sheet name
-  final String activeSheet;
-
-  /// Current filters
-  final Map<String, dynamic> filters;
-
-  /// Current rows
-  final List<Map<String, dynamic>> rows;
-
-  /// Current view mode (table/cards)
-  final String viewMode;
-
-  DatasetLoadedState({
+  const DatasetEmptyState({
     required this.dataset,
-    required this.activeSheet,
-    required this.filters,
-    required this.rows,
-    required this.viewMode,
   });
 }
 
-/// Error state.
+class DatasetLoadedState extends DatasetState {
+  final Dataset dataset;
+  final List<DatasetTable> tables;
+  final DatasetTable activeTable;
+  final List<DatasetColumn> columns;
+  final List<Map<String, dynamic>> rows;
+  final DatasetViewMode viewMode;
+  final int rowLimit;
+
+  const DatasetLoadedState({
+    required this.dataset,
+    required this.tables,
+    required this.activeTable,
+    required this.columns,
+    required this.rows,
+    required this.viewMode,
+    required this.rowLimit,
+  });
+
+  DatasetLoadedState copyWith({
+    Dataset? dataset,
+    List<DatasetTable>? tables,
+    DatasetTable? activeTable,
+    List<DatasetColumn>? columns,
+    List<Map<String, dynamic>>? rows,
+    DatasetViewMode? viewMode,
+    int? rowLimit,
+  }) {
+    return DatasetLoadedState(
+      dataset: dataset ?? this.dataset,
+      tables: tables ?? this.tables,
+      activeTable: activeTable ?? this.activeTable,
+      columns: columns ?? this.columns,
+      rows: rows ?? this.rows,
+      viewMode: viewMode ?? this.viewMode,
+      rowLimit: rowLimit ?? this.rowLimit,
+    );
+  }
+}
+
 class DatasetErrorState extends DatasetState {
+  final String code;
 
-  final String message;
-
-  DatasetErrorState(this.message);
+  const DatasetErrorState(this.code);
 }

@@ -43,6 +43,26 @@
             "delete_failed": "Impossibile eliminare il dataset selezionato."
         }
     },
+    "dataset": {
+        "workspace": {
+            "title": "Workspace dataset",
+            "source_file": "File sorgente",
+            "sheets": "Fogli",
+            "columns": "Colonne",
+            "rows": "Righe",
+            "loaded_rows": "Righe caricate",
+            "select_sheet": "Foglio",
+            "table_view": "Tabella",
+            "card_view": "Schede",
+            "no_tables": "Questo dataset non ha fogli da mostrare.",
+            "no_rows": "Nessuna riga disponibile per questo foglio.",
+            "error": {
+                "load_failed": "Impossibile caricare il workspace del dataset.",
+                "sheet_failed": "Impossibile caricare il foglio selezionato.",
+                "refresh_failed": "Impossibile aggiornare le righe."
+            }
+        }
+    },
     "settings": {
         "language": "Lingua",
         "language_english": "Inglese",

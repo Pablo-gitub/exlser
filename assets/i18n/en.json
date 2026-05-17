@@ -43,6 +43,26 @@
             "delete_failed": "Could not delete the selected dataset."
         }
     },
+    "dataset": {
+        "workspace": {
+            "title": "Dataset workspace",
+            "source_file": "Source file",
+            "sheets": "Sheets",
+            "columns": "Columns",
+            "rows": "Rows",
+            "loaded_rows": "Loaded rows",
+            "select_sheet": "Sheet",
+            "table_view": "Table",
+            "card_view": "Cards",
+            "no_tables": "This dataset has no sheets to display.",
+            "no_rows": "No rows available for this sheet.",
+            "error": {
+                "load_failed": "Could not load the dataset workspace.",
+                "sheet_failed": "Could not load the selected sheet.",
+                "refresh_failed": "Could not refresh rows."
+            }
+        }
+    },
     "settings": {
         "language": "Language",
         "language_english": "English",

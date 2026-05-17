@@ -33,6 +33,28 @@ class AppStrings {
   static const String worksOpenFailed = 'works.error.open_failed';
   static const String worksDeleteFailed = 'works.error.delete_failed';
 
+  static const String datasetWorkspaceTitle = 'dataset.workspace.title';
+  static const String datasetWorkspaceSourceFile =
+      'dataset.workspace.source_file';
+  static const String datasetWorkspaceSheets = 'dataset.workspace.sheets';
+  static const String datasetWorkspaceColumns = 'dataset.workspace.columns';
+  static const String datasetWorkspaceRows = 'dataset.workspace.rows';
+  static const String datasetWorkspaceLoadedRows =
+      'dataset.workspace.loaded_rows';
+  static const String datasetWorkspaceSelectSheet =
+      'dataset.workspace.select_sheet';
+  static const String datasetWorkspaceTableView =
+      'dataset.workspace.table_view';
+  static const String datasetWorkspaceCardView = 'dataset.workspace.card_view';
+  static const String datasetWorkspaceNoTables = 'dataset.workspace.no_tables';
+  static const String datasetWorkspaceNoRows = 'dataset.workspace.no_rows';
+  static const String datasetWorkspaceLoadFailed =
+      'dataset.workspace.error.load_failed';
+  static const String datasetWorkspaceSheetFailed =
+      'dataset.workspace.error.sheet_failed';
+  static const String datasetWorkspaceRefreshFailed =
+      'dataset.workspace.error.refresh_failed';
+
   static const String languageEnglish = 'settings.language_english';
   static const String languageItalian = 'settings.language_italian';
   static const String languageLabel = 'settings.language';

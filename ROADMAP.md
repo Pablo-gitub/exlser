@@ -110,7 +110,7 @@ created datasets visible, reopenable, and readable from the UI.
 - [x] Riverpod providers for use cases.
 - [x] Riverpod providers for application services.
 - [x] Provider integration test with an in-memory database.
-- [x] Latest known full test run: `flutter test` passing with 230 tests.
+- [x] Latest known full test run: `flutter test` passing with 235 tests.
 - [x] Latest known analyzer state: no blocking errors, 6 known informational warnings.
 
 ### Existing UI Skeleton
@@ -257,23 +257,23 @@ Definition of done:
 
 Goal: a created dataset can be opened and read.
 
-- [ ] Add `flutter_bloc` when the real dataset workspace implementation starts.
-- [ ] Replace placeholder `DatasetBloc` with a concrete implementation.
-- [ ] Implement minimum events: load dataset, change sheet, refresh rows, change view mode.
-- [ ] Implement minimum states: initial, loading, loaded, empty, error.
-- [ ] Load dataset metadata.
-- [ ] Load dataset tables/sheets from the schema repository.
-- [ ] Load columns for the active sheet.
-- [ ] Load initial rows with `FetchRowsUseCase`.
-- [ ] Mark dataset as opened by updating `lastOpenedAt`.
-- [ ] Connect `DatasetView` to the BLoC.
+- [x] Add `flutter_bloc` when the real dataset workspace implementation starts.
+- [x] Replace placeholder `DatasetBloc` with a concrete implementation.
+- [x] Implement minimum events: load dataset, change sheet, refresh rows, change view mode.
+- [x] Implement minimum states: initial, loading, loaded, empty, error.
+- [x] Load dataset metadata.
+- [x] Load dataset tables/sheets from the schema repository.
+- [x] Load columns for the active sheet.
+- [x] Load initial rows with `FetchRowsUseCase`.
+- [x] Mark dataset as opened by updating `lastOpenedAt`.
+- [x] Connect `DatasetView` to the BLoC.
 
 Definition of done:
 
-- [ ] Opening a dataset shows sheet metadata, columns, and rows.
-- [ ] Changing sheet reloads columns and rows.
-- [ ] Loading, empty, and error states are visible.
-- [ ] BLoC tests cover the main states and events.
+- [x] Opening a dataset shows sheet metadata, columns, and rows.
+- [x] Changing sheet reloads columns and rows.
+- [x] Loading, empty, and error states are visible.
+- [x] BLoC tests cover the main states and events.
 
 ### 8. Implement the Basic Data Table
 
@@ -382,6 +382,10 @@ Publish criteria:
 
 Goal: provide useful summaries and charts.
 
+- [ ] Define `ChartSuggestion` models with chart type, x/date column,
+      y/value column, category/group column, and aggregation function.
+- [ ] Implement `SuggestChartsUseCase` from confirmed dataset columns.
+- [ ] Automatically suggest an initial chart from column types.
 - [ ] Complete `AggregateColumnUseCase`.
 - [ ] Implement `AnalysisService`.
 - [ ] Wire aggregations to `QueryRepositoryImpl.aggregate`.
@@ -390,14 +394,125 @@ Goal: provide useful summaries and charts.
 - [ ] Connect `DistributionChart`.
 - [ ] Connect `PieChart`.
 - [ ] Connect `LineChart`.
+- [ ] Add bar/column chart support for high-cardinality categories.
+- [ ] Add scatter plot support for numeric-vs-numeric datasets.
 - [ ] Add analytics section to DatasetView.
+- [ ] Add chart controls for column selection, aggregation, chart type,
+      sorting, and top-N limits.
 - [ ] Respect active filters in analytics queries.
+
+### Automatic Chart Suggestion Rules
+
+The dataset workspace should behave like a guided lightweight BI surface.
+After import and schema confirmation, `DatasetView` reads the detected column
+types and proposes a useful initial visualization instead of starting from an
+empty analytics panel.
+
+Supported column types:
+
+- `text`
+- `integer`
+- `real`
+- `boolean`
+- `date`
+
+Initial chart priority:
+
+1. If at least one `date` column and one numeric column exist, suggest a
+   time-based line or area chart.
+2. Otherwise, if at least one `text` column and one numeric column exist,
+   suggest a category chart. Use a pie/donut chart for small category sets and
+   a bar/column chart for larger category sets.
+3. Otherwise, if at least two numeric columns exist, suggest a scatter plot.
+4. Otherwise, if at least one boolean column exists, suggest a true/false
+   distribution chart.
+5. Otherwise, show the table and a clear "no automatic chart available"
+   analytics empty state.
+
+### Chart Rules
+
+Category distribution:
+
+- Required columns: one `text` column and one numeric column.
+- Default chart: pie/donut for up to roughly 8-10 categories.
+- Fallback chart: bar/column when category count is higher.
+- Label: selected text column.
+- Value: selected numeric column aggregated by category.
+- Controls: label column, value column, aggregation (`SUM`, `AVG`, `COUNT`,
+  `MIN`, `MAX`), sort direction, and top-N limit.
+
+Time series:
+
+- Required columns: one `date` column and one numeric column.
+- Default chart: line or area chart.
+- X axis: selected date column.
+- Y axis: selected numeric column.
+- Optional grouping: selected text column for series/category split.
+- Controls: date column, numeric column, optional category column,
+  aggregation, and chart type (`line` or `area`).
+
+Scatter plot:
+
+- Required columns: at least two numeric columns.
+- X axis: selected numeric column.
+- Y axis: selected numeric column.
+- Optional grouping/label: selected text column.
+- Controls: x numeric column, y numeric column, optional group column.
+
+Boolean distribution:
+
+- Required columns: one boolean column.
+- Default chart: pie/donut or bar chart with true/false counts.
+- Optional numeric aggregation: sum or average of a numeric column grouped by
+  boolean value.
+
+Regression and forecast:
+
+- Candidate inputs: two numeric columns, or one `date` column plus one numeric
+  target column.
+- First implementation should stay simple: linear regression, moving average,
+  and lightweight trend lines.
+- Forecast controls: x/date column, target numeric column, forecast horizon,
+  and method (`trend`, `moving_average`, `linear_regression`).
+- This is an advanced analytics enhancement and can be delivered after the
+  first basic charting release if needed.
+
+### DatasetView Analytics Layout
+
+The analytics section should be integrated into `DatasetView` without replacing
+the read-only table.
+
+Planned structure:
+
+```text
+DatasetView
+├── Dataset header
+├── Sheet selector
+├── Suggested chart panel
+│   ├── Chart type selector
+│   ├── X/category dropdown
+│   ├── Y/value dropdown
+│   ├── Aggregation dropdown
+│   ├── Optional group/top-N/sort controls
+│   └── Chart
+├── Data table
+└── Filters / stats
+```
+
+For the first analytics release, the table should remain the primary reliable
+surface and the suggested chart panel can appear above or below it. A more BI-
+oriented workspace can move toward a chart panel plus table workspace after the
+read-only and filtering flows are stable.
 
 ### Milestone Reached: v0.4.0 - Basic Analytics
 
 Publish criteria:
 
-- [ ] The user can see basic aggregations and charts for the opened dataset.
+- [ ] The user can see basic aggregations and suggested charts for the opened
+      dataset.
+- [ ] The first chart is selected automatically from column types.
+- [ ] The user can change chart columns and aggregation from dropdown controls.
+- [ ] Analytics respects the selected sheet and active filters.
 
 ## Path to Cross-Sheet and Multi-Dataset Analysis
 

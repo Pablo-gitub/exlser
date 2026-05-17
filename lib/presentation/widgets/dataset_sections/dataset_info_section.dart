@@ -7,14 +7,12 @@ import 'package:flutter/material.dart';
 /// - Update source file path
 /// - Delete dataset
 ///
-/// This section interacts with DatasetViewModel.
+/// This section will interact with DatasetBloc when metadata editing is added.
 class DatasetInfoSection extends StatelessWidget {
-
   const DatasetInfoSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     /// TODO
     /// Display dataset metadata form
 
