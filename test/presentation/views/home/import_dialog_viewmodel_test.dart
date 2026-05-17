@@ -114,6 +114,79 @@ void main() {
       expect(callCount, 1);
       expect(viewModel.currentStep, ImportDialogStep.columnTypes);
     });
+
+    test('should initialize selected column types from prepared import',
+        () async {
+      final viewModel = ImportDialogViewModel(
+        file: _importFile(),
+        initialDatasetName: 'Sales',
+        prepareImport: ({required file}) async => _preparedResult(),
+      );
+
+      await viewModel.goToNextStep();
+
+      expect(
+        viewModel.selectedColumnTypeFor(sheetIndex: 0, columnIndex: 0),
+        ColumnType.text,
+      );
+      expect(
+        viewModel.selectedColumnTypeFor(sheetIndex: 0, columnIndex: 1),
+        ColumnType.real,
+      );
+      expect(viewModel.hasConfirmedColumnTypes, isTrue);
+    });
+
+    test('should build confirmed import with selected type overrides',
+        () async {
+      final viewModel = ImportDialogViewModel(
+        file: _importFile(),
+        initialDatasetName: 'Sales',
+        prepareImport: ({required file}) async => _preparedResult(),
+      );
+
+      viewModel.updateDatasetName('  Sales 2026  ');
+      await viewModel.goToNextStep();
+      viewModel.updateColumnType(
+        sheetIndex: 0,
+        columnIndex: 0,
+        type: ColumnType.boolean,
+      );
+
+      final confirmedImport = viewModel.confirmedImport;
+
+      expect(confirmedImport?.datasetName, 'Sales 2026');
+      expect(confirmedImport?.sourceFileName, 'sales.csv');
+      expect(confirmedImport?.sourceFileReference, isNull);
+      expect(confirmedImport?.tableCount, 1);
+      expect(confirmedImport?.columnCount, 2);
+      expect(
+        confirmedImport?.sheets.single.columns.first.declaredType,
+        ColumnType.boolean,
+      );
+      expect(
+        confirmedImport?.sheets.single.columns.first.inferredType,
+        ColumnType.text,
+      );
+      expect(
+        confirmedImport?.sheets.single.columns.last.declaredType,
+        ColumnType.real,
+      );
+    });
+
+    test('should advance to confirmation after column types are confirmed',
+        () async {
+      final viewModel = ImportDialogViewModel(
+        file: _importFile(),
+        initialDatasetName: 'Sales',
+        prepareImport: ({required file}) async => _preparedResult(),
+      );
+
+      await viewModel.goToNextStep();
+      await viewModel.goToNextStep();
+
+      expect(viewModel.currentStep, ImportDialogStep.confirmation);
+      expect(viewModel.confirmedImport, isNotNull);
+    });
   });
 }
 
@@ -133,7 +206,7 @@ PreparedImportResult _preparedResult() {
         sheet: const ParsedSheet(
           name: 'Sheet1',
           rows: [
-            {'product': 'book'},
+            {'product': 'book', 'price': '10'},
           ],
         ),
         inferredColumns: [
@@ -144,6 +217,15 @@ PreparedImportResult _preparedResult() {
             dbName: 'product',
             declaredType: ColumnType.text,
             inferredType: ColumnType.text,
+            nullable: false,
+          ),
+          const DatasetColumn(
+            id: 0,
+            datasetTableId: 0,
+            originalName: 'price',
+            dbName: 'price',
+            declaredType: ColumnType.real,
+            inferredType: ColumnType.real,
             nullable: false,
           ),
         ],

@@ -38,6 +38,32 @@
         "save_locally": "Salva file localmente",
         "next": "Avanti",
         "finish": "Completa",
+        "column_types": {
+            "title": "Controlla i tipi colonna",
+            "empty": "Nessuna colonna preparata disponibile",
+            "rows": "righe",
+            "original_name": "Nome Excel",
+            "database_name": "Nome in App",
+            "inferred_type": "Tipo di dato",
+            "info": {
+                "tooltip": "Cosa indicano i tipi di dato?",
+                "title": "Tipi di dato",
+                "intro": "Il tipo di dato indica all'app come interpretare e salvare i valori di questa colonna. Puoi mantenere il tipo rilevato oppure modificarlo prima di creare il dataset.",
+                "text": "Testo: parole, codici, ID, note o valori misti.",
+                "integer": "Intero: numeri senza decimali.",
+                "real": "Reale: numeri con decimali o valori monetari.",
+                "boolean": "Booleano: vero/falso, si/no o valori binari simili.",
+                "date": "Data: date da gestire come valori di calendario."
+            },
+            "selected_type": "Tipo selezionato",
+            "type": {
+                "text": "Testo",
+                "integer": "Intero",
+                "real": "Reale",
+                "boolean": "Booleano",
+                "date": "Data"
+            }
+        },
         "error": {
             "no_extension": "Il file non ha estensione",
             "parser_not_found": "Formato file non supportato",

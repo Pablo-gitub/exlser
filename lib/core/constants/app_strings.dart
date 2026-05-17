@@ -32,6 +32,40 @@ class AppStrings {
   static const String importSaveLocally = 'import.save_locally';
   static const String importNext = 'import.next';
   static const String importFinish = 'import.finish';
+  static const String importColumnTypesTitle = 'import.column_types.title';
+  static const String importColumnTypesEmpty = 'import.column_types.empty';
+  static const String importColumnTypesRows = 'import.column_types.rows';
+  static const String importColumnOriginalName =
+      'import.column_types.original_name';
+  static const String importColumnDatabaseName =
+      'import.column_types.database_name';
+  static const String importColumnInferredType =
+      'import.column_types.inferred_type';
+  static const String importColumnTypeInfoTooltip =
+      'import.column_types.info.tooltip';
+  static const String importColumnTypeInfoTitle =
+      'import.column_types.info.title';
+  static const String importColumnTypeInfoIntro =
+      'import.column_types.info.intro';
+  static const String importColumnTypeInfoText =
+      'import.column_types.info.text';
+  static const String importColumnTypeInfoInteger =
+      'import.column_types.info.integer';
+  static const String importColumnTypeInfoReal =
+      'import.column_types.info.real';
+  static const String importColumnTypeInfoBoolean =
+      'import.column_types.info.boolean';
+  static const String importColumnTypeInfoDate =
+      'import.column_types.info.date';
+  static const String importColumnSelectedType =
+      'import.column_types.selected_type';
+  static const String importColumnTypeText = 'import.column_types.type.text';
+  static const String importColumnTypeInteger =
+      'import.column_types.type.integer';
+  static const String importColumnTypeReal = 'import.column_types.type.real';
+  static const String importColumnTypeBoolean =
+      'import.column_types.type.boolean';
+  static const String importColumnTypeDate = 'import.column_types.type.date';
 
   /// Import errors
   static const String importNoExtension = 'import.error.no_extension';

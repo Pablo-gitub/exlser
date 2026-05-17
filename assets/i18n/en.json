@@ -38,6 +38,32 @@
         "save_locally": "Save file locally",
         "next": "Next",
         "finish": "Finish",
+        "column_types": {
+            "title": "Review column types",
+            "empty": "No prepared columns available",
+            "rows": "rows",
+            "original_name": "Excel name",
+            "database_name": "App name",
+            "inferred_type": "Data type",
+            "info": {
+                "tooltip": "What do data types mean?",
+                "title": "Data types",
+                "intro": "The data type tells the app how to interpret and store the values in this column. You can keep the detected type or change it before creating the dataset.",
+                "text": "Text: words, codes, IDs, notes, or mixed values.",
+                "integer": "Integer: whole numbers without decimals.",
+                "real": "Real: numbers with decimals or monetary values.",
+                "boolean": "Boolean: true/false, yes/no, or similar binary values.",
+                "date": "Date: dates that should be handled as calendar values."
+            },
+            "selected_type": "Selected type",
+            "type": {
+                "text": "Text",
+                "integer": "Integer",
+                "real": "Real",
+                "boolean": "Boolean",
+                "date": "Date"
+            }
+        },
         "error": {
             "no_extension": "File has no extension",
             "parser_not_found": "Unsupported file format",

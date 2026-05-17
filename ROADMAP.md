@@ -178,21 +178,21 @@ Definition of done:
 
 Goal: the user can review and correct the schema before dataset creation.
 
-- [ ] Show detected sheets.
-- [ ] Show original column names.
-- [ ] Show normalized database column names.
-- [ ] Show inferred column types.
-- [ ] Allow manual type override: text, integer, real, boolean, date.
-- [ ] Validate that every column has a selected type.
-- [ ] Keep `PreparedImportResult` immutable.
-- [ ] Store user modifications in dialog/ViewModel state.
-- [ ] Build `ConfirmedImport` from the prepared result plus user choices.
+- [x] Show detected sheets.
+- [x] Show original column names.
+- [x] Show normalized database column names.
+- [x] Show inferred column types.
+- [x] Allow manual type override: text, integer, real, boolean, date.
+- [x] Validate that every column has a selected type.
+- [x] Keep `PreparedImportResult` immutable.
+- [x] Store user modifications in dialog/ViewModel state.
+- [x] Build `ConfirmedImport` from the prepared result plus user choices.
 
 Definition of done:
 
-- [ ] The user can correct column types before creation.
-- [ ] Corrected types are passed to `CreateDatasetService`.
-- [ ] Tests cover Prepared -> Confirmed conversion.
+- [x] The user can correct column types before creation.
+- [x] Corrected types are passed to `CreateDatasetService`.
+- [x] Tests cover Prepared -> Confirmed conversion.
 
 ### 4. Add Final Confirmation and Dataset Creation
 
@@ -493,13 +493,13 @@ These are not part of the first publishable release:
 
 Immediate next step:
 
-- [ ] Path to the First Publishable Preview - Step 3: Add Column Type Confirmation.
+- [ ] Path to the First Publishable Preview - Step 4: Add Final Confirmation and Dataset Creation.
 
 Practical order:
 
-1. Show detected sheets from `PreparedImportResult`.
-2. Show original column names and normalized database names.
-3. Show inferred column types.
-4. Add editable type controls for text, integer, real, boolean, and date.
-5. Keep `PreparedImportResult` immutable.
-6. Build `ConfirmedImport` from prepared data plus user choices.
+1. Show final summary from `confirmedImport`.
+2. Call `SaveUploadedFileUseCase` with the selected save mode.
+3. Call `CreateDatasetService.createDataset` only on Finish.
+4. Use the real `CreatedDatasetResult.datasetId`.
+5. Clear the Home selected file after success.
+6. Navigate to `DatasetView` with the real dataset id.

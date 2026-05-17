@@ -34,6 +34,7 @@ class ImportDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final size = MediaQuery.sizeOf(context);
     final viewModel = ref.watch(
       importDialogViewModelProvider(
         ImportDialogProviderArgs(
@@ -45,7 +46,10 @@ class ImportDialog extends ConsumerWidget {
 
     return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
+        constraints: BoxConstraints(
+          maxWidth: 720,
+          maxHeight: size.height * 0.85,
+        ),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -56,7 +60,11 @@ class ImportDialog extends ConsumerWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 24),
-              _buildCurrentPage(viewModel),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: _buildCurrentPage(viewModel),
+                ),
+              ),
               if (viewModel.importErrorCode != null) ...[
                 const SizedBox(height: 16),
                 _buildImportError(context, viewModel.importErrorCode!),
@@ -76,7 +84,7 @@ class ImportDialog extends ConsumerWidget {
         return ImportGeneralPage(viewModel: viewModel);
 
       case ImportDialogStep.columnTypes:
-        return const ImportColumnTypePage();
+        return ImportColumnTypePage(viewModel: viewModel);
 
       case ImportDialogStep.confirmation:
         return const ImportConfirmationPage();
