@@ -16,7 +16,9 @@
         "skip": "Skip",
         "previous": "Previous",
         "next": "Next",
-        "start": "Start"
+        "start": "Start",
+        "retry": "Retry",
+        "cancel": "Cancel"
     },
     "menu": {
         "home": "Home",
@@ -80,13 +82,18 @@
             }
         },
         "error": {
-            "no_extension": "File has no extension",
-            "parser_not_found": "Unsupported file format",
-            "parsing_failed": "Error while reading file",
-            "no_sheets": "File contains no readable sheets",
-            "schema_failed": "Error during sheet analysis",
-            "unexpected_error": "Unexpected import error",
-            "creation_failed": "Could not create the dataset"
+            "empty_file_name": "The selected file has no name. Select the file again.",
+            "empty_file_path": "The app cannot access the selected file path. Select the file again.",
+            "empty_file_bytes": "The selected file is empty or unavailable. Select the file again.",
+            "no_extension": "The selected file has no extension. Use a CSV, XLS, or XLSX file.",
+            "unsupported_format": "This file format is not supported. Use a CSV, XLS, or XLSX file.",
+            "parser_not_found": "The app cannot read this file type yet. Use a CSV, XLS, or XLSX file.",
+            "parsing_failed": "The file could not be read. Check that it is not corrupted or password-protected.",
+            "no_sheets": "No readable sheets were found in the file.",
+            "no_valid_sheets": "The file was read, but no sheet contains usable tabular data.",
+            "schema_failed": "The app could not detect a usable table structure in the file.",
+            "unexpected_error": "Something went wrong during import. Try again or select another file.",
+            "creation_failed": "The dataset could not be created. Review the import settings and try again."
         }
     }
 }

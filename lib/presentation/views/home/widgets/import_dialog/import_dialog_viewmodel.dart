@@ -141,6 +141,12 @@ class ImportDialogViewModel extends ChangeNotifier {
 
   String? get importErrorCode => _importErrorCode;
 
+  bool get canRetryPreparation =>
+      _currentStep == ImportDialogStep.general &&
+      _preparedImportResult == null &&
+      _importErrorCode != null &&
+      !isBusy;
+
   bool get canGoBack => _currentStep.index > 0;
 
   bool get isLastStep => _currentStep == ImportDialogStep.confirmation;
@@ -218,6 +224,12 @@ class ImportDialogViewModel extends ChangeNotifier {
   void updateSaveLocally(bool value) {
     _saveLocally = value;
     notifyListeners();
+  }
+
+  Future<void> retryPrepareImport() async {
+    if (!canRetryPreparation) return;
+
+    await goToNextStep();
   }
 
   Future<CreatedDatasetResult?> finishImport() async {

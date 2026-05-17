@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../router/routes.dart';
 import 'import_dialog_provider.dart';
+import 'import_error_messages.dart';
 import 'import_dialog_viewmodel.dart';
 import 'pages/import_column_type_page.dart';
 import 'pages/import_confirmation_page.dart';
@@ -66,7 +67,7 @@ class ImportDialog extends ConsumerWidget {
               ),
               if (viewModel.importErrorCode != null) ...[
                 const SizedBox(height: 16),
-                _buildImportError(context, viewModel.importErrorCode!),
+                _buildImportError(context, viewModel),
               ],
               const SizedBox(height: 24),
               _buildNavigationButtons(context, viewModel),
@@ -142,7 +143,10 @@ class ImportDialog extends ConsumerWidget {
     );
   }
 
-  Widget _buildImportError(BuildContext context, String code) {
+  Widget _buildImportError(
+    BuildContext context,
+    ImportDialogViewModel viewModel,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -150,33 +154,36 @@ class ImportDialog extends ConsumerWidget {
         color: Theme.of(context).colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        _localizedImportError(code).tr(),
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.onErrorContainer,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            ImportErrorMessages.translationKeyForCode(
+              viewModel.importErrorCode!,
+            ).tr(),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onErrorContainer,
+            ),
+          ),
+          if (viewModel.canRetryPreparation) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(AppStrings.cancel.tr()),
+                ),
+                const SizedBox(width: 8),
+                FilledButton.tonal(
+                  onPressed: viewModel.retryPrepareImport,
+                  child: Text(AppStrings.retry.tr()),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
-  }
-
-  String _localizedImportError(String code) {
-    switch (code) {
-      case 'no_extension':
-        return AppStrings.importNoExtension;
-      case 'unsupported_format':
-      case 'parser_not_found':
-        return AppStrings.importParserNotFound;
-      case 'parsing_failed':
-        return AppStrings.importParsingFailed;
-      case 'no_sheets':
-      case 'no_valid_sheets':
-        return AppStrings.importEmptySheets;
-      case 'schema_failed':
-        return AppStrings.importSchemaFailed;
-      case 'creation_failed':
-        return AppStrings.importCreationFailed;
-      default:
-        return AppStrings.importUnexpectedError;
-    }
   }
 }

@@ -11,6 +11,8 @@ class AppStrings {
   static const String previous = 'common.previous';
   static const String next = 'common.next';
   static const String start = 'common.start';
+  static const String retry = 'common.retry';
+  static const String cancel = 'common.cancel';
 
   static const String home = 'menu.home';
   static const String works = 'menu.works';
@@ -87,10 +89,16 @@ class AppStrings {
 
   /// Import errors
   static const String importNoExtension = 'import.error.no_extension';
+  static const String importUnsupportedFormat =
+      'import.error.unsupported_format';
   static const String importParserNotFound = 'import.error.parser_not_found';
   static const String importParsingFailed = 'import.error.parsing_failed';
   static const String importEmptySheets = 'import.error.no_sheets';
+  static const String importNoValidSheets = 'import.error.no_valid_sheets';
   static const String importSchemaFailed = 'import.error.schema_failed';
+  static const String importEmptyFileName = 'import.error.empty_file_name';
+  static const String importEmptyFilePath = 'import.error.empty_file_path';
+  static const String importEmptyFileBytes = 'import.error.empty_file_bytes';
   static const String importUnexpectedError = 'import.error.unexpected_error';
   static const String importCreationFailed = 'import.error.creation_failed';
 }

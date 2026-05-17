@@ -110,7 +110,7 @@ created datasets visible, reopenable, and readable from the UI.
 - [x] Riverpod providers for use cases.
 - [x] Riverpod providers for application services.
 - [x] Provider integration test with an in-memory database.
-- [x] Latest known full test run: `flutter test` passing with 218 tests.
+- [x] Latest known full test run: `flutter test` passing with 221 tests.
 - [x] Latest known analyzer state: no blocking errors, 6 known informational warnings.
 
 ### Existing UI Skeleton
@@ -221,15 +221,15 @@ Definition of done:
 
 Goal: all visible import wizard messages are localized and understandable.
 
-- [ ] Map `ImportException.code` values to localized messages.
-- [ ] Move all visible import wizard strings to i18n/string manager.
-- [ ] Show clear messages for unsupported file, empty file, parser failure, schema failure, and missing file data.
-- [ ] Add retry/cancel behavior for failed preparation.
+- [x] Map `ImportException.code` values to localized messages.
+- [x] Move all visible import wizard strings to i18n/string manager.
+- [x] Show clear messages for unsupported file, empty file, parser failure, schema failure, and missing file data.
+- [x] Add retry/cancel behavior for failed preparation.
 
 Definition of done:
 
-- [ ] No hardcoded user-facing strings remain in the wizard.
-- [ ] Technical errors are translated into user-readable messages.
+- [x] No hardcoded user-facing strings remain in the wizard.
+- [x] Technical errors are translated into user-readable messages.
 
 ### 6. Implement Dataset List
 

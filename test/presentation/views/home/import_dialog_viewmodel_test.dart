@@ -73,6 +73,38 @@ void main() {
       expect(viewModel.preparedImportResult, isNull);
       expect(viewModel.importErrorCode, 'parsing_failed');
       expect(viewModel.isPreparingImport, isFalse);
+      expect(viewModel.canRetryPreparation, isTrue);
+    });
+
+    test('should retry import preparation after failure', () async {
+      var callCount = 0;
+      final viewModel = _viewModel(
+        prepareImport: ({required file}) async {
+          callCount++;
+
+          if (callCount == 1) {
+            throw const ParsingException(
+              code: 'parsing_failed',
+              message: 'Cannot parse file',
+            );
+          }
+
+          return _preparedResult();
+        },
+      );
+
+      await viewModel.goToNextStep();
+      expect(viewModel.currentStep, ImportDialogStep.general);
+      expect(viewModel.importErrorCode, 'parsing_failed');
+      expect(viewModel.canRetryPreparation, isTrue);
+
+      await viewModel.retryPrepareImport();
+
+      expect(callCount, 2);
+      expect(viewModel.currentStep, ImportDialogStep.columnTypes);
+      expect(viewModel.importErrorCode, isNull);
+      expect(viewModel.preparedImportResult, isNotNull);
+      expect(viewModel.canRetryPreparation, isFalse);
     });
 
     test('should not prepare import when current step is invalid', () async {
