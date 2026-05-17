@@ -18,7 +18,10 @@
         "next": "Avanti",
         "start": "Inizia",
         "retry": "Riprova",
-        "cancel": "Annulla"
+        "cancel": "Annulla",
+        "delete": "Elimina",
+        "refresh": "Aggiorna",
+        "open": "Apri"
     },
     "menu": {
         "home": "Home",
@@ -27,7 +30,18 @@
     },
     "works": {
         "empty": "Qui verrà mostrata la tua lista lavori",
-        "go_home": "Vai alla Home"
+        "go_home": "Vai alla Home",
+        "source_file": "File sorgente",
+        "created_at": "Creato",
+        "last_opened_at": "Ultima apertura",
+        "never_opened": "Mai aperto",
+        "delete_title": "Elimina dataset",
+        "delete_message": "Questa operazione rimuoverà dataset, schema, righe e riferimento al file.",
+        "error": {
+            "load_failed": "Impossibile caricare i dataset.",
+            "open_failed": "Impossibile aprire il dataset selezionato.",
+            "delete_failed": "Impossibile eliminare il dataset selezionato."
+        }
     },
     "settings": {
         "language": "Lingua",

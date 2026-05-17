@@ -5,6 +5,7 @@ import 'package:exel_category/data/adapters/normalizers/number_normalizer.dart';
 import 'package:exel_category/domain/usecases/dataset/create_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/delete_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/get_datasets_usecase.dart';
+import 'package:exel_category/domain/usecases/dataset/open_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/register_dataset_file_usecase.dart';
 import 'package:exel_category/domain/usecases/query/fetch_rows_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/build_dynamic_table_usecase.dart';
@@ -58,6 +59,12 @@ final registerDatasetFileUseCaseProvider =
 
 final getDatasetsUseCaseProvider = Provider<GetDatasetsUseCase>((ref) {
   return GetDatasetsUseCase(
+    repository: ref.watch(datasetsRepositoryProvider),
+  );
+});
+
+final openDatasetUseCaseProvider = Provider<OpenDatasetUseCase>((ref) {
+  return OpenDatasetUseCase(
     repository: ref.watch(datasetsRepositoryProvider),
   );
 });

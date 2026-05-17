@@ -13,6 +13,9 @@ class AppStrings {
   static const String start = 'common.start';
   static const String retry = 'common.retry';
   static const String cancel = 'common.cancel';
+  static const String delete = 'common.delete';
+  static const String refresh = 'common.refresh';
+  static const String open = 'common.open';
 
   static const String home = 'menu.home';
   static const String works = 'menu.works';
@@ -20,6 +23,15 @@ class AppStrings {
 
   static const String noWorksYet = 'works.empty';
   static const String goHome = 'works.go_home';
+  static const String worksSourceFile = 'works.source_file';
+  static const String worksCreatedAt = 'works.created_at';
+  static const String worksLastOpenedAt = 'works.last_opened_at';
+  static const String worksNeverOpened = 'works.never_opened';
+  static const String worksDeleteTitle = 'works.delete_title';
+  static const String worksDeleteMessage = 'works.delete_message';
+  static const String worksLoadFailed = 'works.error.load_failed';
+  static const String worksOpenFailed = 'works.error.open_failed';
+  static const String worksDeleteFailed = 'works.error.delete_failed';
 
   static const String languageEnglish = 'settings.language_english';
   static const String languageItalian = 'settings.language_italian';

@@ -18,7 +18,10 @@
         "next": "Next",
         "start": "Start",
         "retry": "Retry",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "refresh": "Refresh",
+        "open": "Open"
     },
     "menu": {
         "home": "Home",
@@ -27,7 +30,18 @@
     },
     "works": {
         "empty": "Here will be shown your list of works",
-        "go_home": "Go to Home"
+        "go_home": "Go to Home",
+        "source_file": "Source file",
+        "created_at": "Created",
+        "last_opened_at": "Last opened",
+        "never_opened": "Never opened",
+        "delete_title": "Delete dataset",
+        "delete_message": "This will remove the dataset, schema, rows, and file reference.",
+        "error": {
+            "load_failed": "Could not load datasets.",
+            "open_failed": "Could not open the selected dataset.",
+            "delete_failed": "Could not delete the selected dataset."
+        }
     },
     "settings": {
         "language": "Language",

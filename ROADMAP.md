@@ -110,7 +110,7 @@ created datasets visible, reopenable, and readable from the UI.
 - [x] Riverpod providers for use cases.
 - [x] Riverpod providers for application services.
 - [x] Provider integration test with an in-memory database.
-- [x] Latest known full test run: `flutter test` passing with 221 tests.
+- [x] Latest known full test run: `flutter test` passing with 230 tests.
 - [x] Latest known analyzer state: no blocking errors, 6 known informational warnings.
 
 ### Existing UI Skeleton
@@ -235,23 +235,23 @@ Definition of done:
 
 Goal: created datasets are visible and manageable.
 
-- [ ] Connect `DatasetsListViewModel` or a Riverpod provider to `GetDatasetsUseCase`.
-- [ ] Show an empty state when no datasets exist.
-- [ ] Show created datasets.
-- [ ] Display dataset name.
-- [ ] Display creation date.
-- [ ] Display last opened date when available.
-- [ ] Display source file information when available.
-- [ ] Open a selected dataset.
-- [ ] Delete a selected dataset with user confirmation.
-- [ ] Use `DeleteDatasetUseCase` for deletion.
+- [x] Connect `DatasetsListViewModel` or a Riverpod provider to `GetDatasetsUseCase`.
+- [x] Show an empty state when no datasets exist.
+- [x] Show created datasets.
+- [x] Display dataset name.
+- [x] Display creation date.
+- [x] Display last opened date when available.
+- [x] Display source file information when available.
+- [x] Open a selected dataset.
+- [x] Delete a selected dataset with user confirmation.
+- [x] Use `DeleteDatasetUseCase` for deletion.
 
 Definition of done:
 
-- [ ] Created datasets appear in the list.
-- [ ] Open works with a real dataset id.
-- [ ] Delete removes dataset, schema, rows, and file reference.
-- [ ] ViewModel or widget tests cover list/open/delete.
+- [x] Created datasets appear in the list.
+- [x] Open works with a real dataset id.
+- [x] Delete removes dataset, schema, rows, and file reference.
+- [x] ViewModel or widget tests cover list/open/delete.
 
 ### 7. Implement the Read-Only Dataset Workspace with BLoC
 
