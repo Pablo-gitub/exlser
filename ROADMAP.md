@@ -142,19 +142,19 @@ Filtering, export, analytics, and cross-dataset features are not required for th
 
 Goal: the selected file from the Home screen reaches the real import wizard as an `ImportFile`.
 
-- [ ] Inject real providers into `HomeViewModel` and/or `ImportDialogViewModel`.
-- [ ] Convert the Home file selection into `ImportFile`.
-- [ ] Support path-based files on desktop/mobile.
-- [ ] Support bytes-based files on web/dropzone.
-- [ ] Pass `ImportFile` into the import dialog.
-- [ ] Keep dataset creation disabled at this stage.
+- [x] Use the existing Riverpod Home/Dialog providers for handoff state.
+- [x] Convert the Home file selection into `ImportFile`.
+- [x] Support path-based files on desktop/mobile.
+- [x] Support bytes-based files on web/dropzone.
+- [x] Pass `ImportFile` into the import dialog.
+- [x] Keep dataset creation disabled at this stage.
 
 Definition of done:
 
-- [ ] The dialog receives the real selected file.
-- [ ] The flow works for path input and bytes input.
-- [ ] The Home selection can still be cleared.
-- [ ] ViewModel or widget tests cover the basic file handoff.
+- [x] The dialog receives the real selected file.
+- [x] The flow works for path input and bytes input.
+- [x] The Home selection can still be cleared.
+- [x] ViewModel or widget tests cover the basic file handoff.
 
 ### 2. Run `prepareImport` from the Wizard
 
@@ -493,13 +493,13 @@ These are not part of the first publishable release:
 
 Immediate next step:
 
-- [ ] Path to the First Publishable Preview - Step 1: Wire Home to the Import Wizard.
+- [ ] Path to the First Publishable Preview - Step 2: Run `prepareImport` from the Wizard.
 
 Practical order:
 
-1. Pass `ImportFile` from Home to the dialog.
-2. Inject `ImportDataService` through Riverpod.
-3. Run `prepareImport`.
-4. Store `PreparedImportResult` in dialog state.
-5. Show loading and error states.
+1. Inject `ImportDataService` through Riverpod.
+2. Run `prepareImport` from the dialog flow.
+3. Store `PreparedImportResult` in dialog state.
+4. Show loading and error states.
+5. Keep persistence disabled until final confirmation.
 6. Prepare the next step: editable column type confirmation.

@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:exel_category/core/constants/app_strings.dart';
 import 'package:exel_category/presentation/views/home/widgets/file_drop_area.dart';
+import 'package:exel_category/presentation/views/home/widgets/import_dialog/import_dialog.dart';
 import 'package:exel_category/presentation/widgets/layout/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,9 +61,7 @@ class HomeView extends ConsumerWidget {
                   child: ElevatedButton(
                     onPressed: viewModel.hasFile
                         ? () {
-                            ref
-                                .read(homeViewModelProvider)
-                                .processFile(context);
+                            _openImportDialog(context, ref);
                           }
                         : null,
                     child: Padding(
@@ -75,6 +74,24 @@ class HomeView extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _openImportDialog(BuildContext context, WidgetRef ref) {
+    final viewModel = ref.read(homeViewModelProvider);
+    final file = viewModel.selectedImportFile;
+
+    if (file == null) return;
+
+    showDialog(
+      context: context,
+      builder: (_) => ImportDialog(
+        file: file,
+        initialDatasetName: viewModel.suggestedDatasetName,
+        onImportCompleted: () {
+          ref.read(homeViewModelProvider).clearSelection();
+        },
       ),
     );
   }

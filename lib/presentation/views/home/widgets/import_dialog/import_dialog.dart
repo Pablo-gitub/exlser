@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:exel_category/application/dto/import_file.dart';
 import 'package:exel_category/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,11 +21,13 @@ import 'pages/import_general_page.dart';
 /// This dialog does not execute the final import yet.
 /// Final import will be triggered from the confirmation step.
 class ImportDialog extends ConsumerWidget {
+  final ImportFile file;
   final String initialDatasetName;
   final VoidCallback onImportCompleted;
 
   const ImportDialog({
     super.key,
+    required this.file,
     required this.initialDatasetName,
     required this.onImportCompleted,
   });
@@ -32,7 +35,12 @@ class ImportDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.watch(
-      importDialogViewModelProvider(initialDatasetName),
+      importDialogViewModelProvider(
+        ImportDialogProviderArgs(
+          file: file,
+          initialDatasetName: initialDatasetName,
+        ),
+      ),
     );
 
     return Dialog(

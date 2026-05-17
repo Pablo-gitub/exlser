@@ -1,3 +1,4 @@
+import 'package:exel_category/application/dto/import_file.dart';
 import 'package:flutter/foundation.dart';
 
 /// Steps of the import dialog workflow.
@@ -20,9 +21,12 @@ enum ImportDialogStep {
 /// configuration flow is completed.
 class ImportDialogViewModel extends ChangeNotifier {
   ImportDialogViewModel({
+    required this.file,
     required String initialDatasetName,
   })  : _datasetName = initialDatasetName,
         _saveLocally = !kIsWeb;
+
+  final ImportFile file;
 
   ImportDialogStep _currentStep = ImportDialogStep.general;
 
@@ -36,10 +40,11 @@ class ImportDialogViewModel extends ChangeNotifier {
 
   bool get saveLocally => _saveLocally;
 
+  String get sourceFileName => file.fileName;
+
   bool get canGoBack => _currentStep.index > 0;
 
-  bool get isLastStep =>
-      _currentStep == ImportDialogStep.confirmation;
+  bool get isLastStep => _currentStep == ImportDialogStep.confirmation;
 
   bool get isCurrentStepValid {
     switch (_currentStep) {
