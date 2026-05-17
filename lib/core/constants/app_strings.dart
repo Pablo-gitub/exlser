@@ -41,6 +41,8 @@ class AppStrings {
   static const String datasetWorkspaceRows = 'dataset.workspace.rows';
   static const String datasetWorkspaceLoadedRows =
       'dataset.workspace.loaded_rows';
+  static const String datasetWorkspaceInitialRowLimit =
+      'dataset.workspace.initial_row_limit';
   static const String datasetWorkspaceSelectSheet =
       'dataset.workspace.select_sheet';
   static const String datasetWorkspaceTableView =

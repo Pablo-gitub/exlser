@@ -174,10 +174,19 @@ class _DatasetHeader extends StatelessWidget {
             ),
             _MetricTile(
               label: AppStrings.datasetWorkspaceLoadedRows.tr(),
-              value: '$loadedRowCount / $rowLimit',
+              value: '$loadedRowCount / ${activeTable.rowCount}',
             ),
           ],
         ),
+        if (activeTable.rowCount > rowLimit && loadedRowCount >= rowLimit) ...[
+          const SizedBox(height: 8),
+          Text(
+            AppStrings.datasetWorkspaceInitialRowLimit.tr(
+              namedArgs: {'count': '$rowLimit'},
+            ),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
         const SizedBox(height: 16),
         SegmentedButton<DatasetViewMode>(
           segments: [

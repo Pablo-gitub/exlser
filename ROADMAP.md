@@ -110,7 +110,7 @@ created datasets visible, reopenable, and readable from the UI.
 - [x] Riverpod providers for use cases.
 - [x] Riverpod providers for application services.
 - [x] Provider integration test with an in-memory database.
-- [x] Latest known full test run: `flutter test` passing with 235 tests.
+- [x] Latest known full test run: `flutter test` passing with 238 tests.
 - [x] Latest known analyzer state: no blocking errors, 6 known informational warnings.
 
 ### Existing UI Skeleton
@@ -279,18 +279,18 @@ Definition of done:
 
 Goal: imported rows are readable in the UI.
 
-- [ ] Implement the real `DatasetTableView`.
-- [ ] Support vertical scrolling.
-- [ ] Support horizontal scrolling.
-- [ ] Show column headers.
-- [ ] Show rows loaded from the database.
-- [ ] Handle null and empty cell values.
-- [ ] Add a reasonable initial row limit or pagination.
+- [x] Implement the real `DatasetTableView`.
+- [x] Support vertical scrolling.
+- [x] Support horizontal scrolling.
+- [x] Show column headers.
+- [x] Show rows loaded from the database.
+- [x] Handle null and empty cell values.
+- [x] Add a reasonable initial row limit or pagination.
 
 Definition of done:
 
-- [ ] The imported dataset is readable as a table.
-- [ ] The UI remains usable with many columns.
+- [x] The imported dataset is readable as a table.
+- [x] The UI remains usable with many columns.
 
 ### 9. Prepare the First Public Preview
 

@@ -51,6 +51,7 @@
             "columns": "Colonne",
             "rows": "Righe",
             "loaded_rows": "Righe caricate",
+            "initial_row_limit": "Sono mostrate le prime {count} righe.",
             "select_sheet": "Foglio",
             "table_view": "Tabella",
             "card_view": "Schede",
