@@ -39,4 +39,5 @@ class AppStrings {
   static const String importParsingFailed = 'import.error.parsing_failed';
   static const String importEmptySheets = 'import.error.no_sheets';
   static const String importSchemaFailed = 'import.error.schema_failed';
+  static const String importUnexpectedError = 'import.error.unexpected_error';
 }

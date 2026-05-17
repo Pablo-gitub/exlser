@@ -1,5 +1,11 @@
 import 'package:exel_category/application/dto/import_file.dart';
+import 'package:exel_category/application/dto/prepared_import_result.dart';
+import 'package:exel_category/application/exceptions/import_exceptions.dart';
 import 'package:flutter/foundation.dart';
+
+typedef PrepareImportCallback = Future<PreparedImportResult> Function({
+  required ImportFile file,
+});
 
 /// Steps of the import dialog workflow.
 enum ImportDialogStep {
@@ -22,17 +28,27 @@ enum ImportDialogStep {
 class ImportDialogViewModel extends ChangeNotifier {
   ImportDialogViewModel({
     required this.file,
+    required PrepareImportCallback prepareImport,
     required String initialDatasetName,
   })  : _datasetName = initialDatasetName,
-        _saveLocally = !kIsWeb;
+        _saveLocally = !kIsWeb,
+        _prepareImport = prepareImport;
 
   final ImportFile file;
+
+  final PrepareImportCallback _prepareImport;
 
   ImportDialogStep _currentStep = ImportDialogStep.general;
 
   String _datasetName;
 
   bool _saveLocally;
+
+  bool _isPreparingImport = false;
+
+  PreparedImportResult? _preparedImportResult;
+
+  String? _importErrorCode;
 
   ImportDialogStep get currentStep => _currentStep;
 
@@ -42,9 +58,17 @@ class ImportDialogViewModel extends ChangeNotifier {
 
   String get sourceFileName => file.fileName;
 
+  bool get isPreparingImport => _isPreparingImport;
+
+  PreparedImportResult? get preparedImportResult => _preparedImportResult;
+
+  String? get importErrorCode => _importErrorCode;
+
   bool get canGoBack => _currentStep.index > 0;
 
   bool get isLastStep => _currentStep == ImportDialogStep.confirmation;
+
+  bool get canContinue => isCurrentStepValid && !_isPreparingImport;
 
   bool get isCurrentStepValid {
     switch (_currentStep) {
@@ -70,8 +94,17 @@ class ImportDialogViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void goToNextStep() {
-    if (!isCurrentStepValid || isLastStep) return;
+  Future<void> goToNextStep() async {
+    if (!canContinue || isLastStep) return;
+
+    if (_currentStep == ImportDialogStep.general &&
+        _preparedImportResult == null) {
+      await _prepareSelectedImport();
+
+      if (_preparedImportResult == null) {
+        return;
+      }
+    }
 
     _currentStep = ImportDialogStep.values[_currentStep.index + 1];
     notifyListeners();
@@ -82,5 +115,24 @@ class ImportDialogViewModel extends ChangeNotifier {
 
     _currentStep = ImportDialogStep.values[_currentStep.index - 1];
     notifyListeners();
+  }
+
+  Future<void> _prepareSelectedImport() async {
+    _isPreparingImport = true;
+    _importErrorCode = null;
+    notifyListeners();
+
+    try {
+      _preparedImportResult = await _prepareImport(file: file);
+    } on ImportException catch (e) {
+      _preparedImportResult = null;
+      _importErrorCode = e.code;
+    } catch (_) {
+      _preparedImportResult = null;
+      _importErrorCode = 'unexpected_error';
+    } finally {
+      _isPreparingImport = false;
+      notifyListeners();
+    }
   }
 }

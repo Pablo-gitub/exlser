@@ -160,19 +160,19 @@ Definition of done:
 
 Goal: the wizard parses the selected file and stores a temporary prepared result.
 
-- [ ] Inject `ImportDataService` through Riverpod.
-- [ ] Execute `ImportDataService.prepareImport` from the dialog flow.
-- [ ] Store `PreparedImportResult` in temporary dialog state.
-- [ ] Show loading state while parsing/inference is running.
-- [ ] Show import errors using `ImportException.code`.
-- [ ] Do not persist anything yet.
+- [x] Inject `ImportDataService` through Riverpod.
+- [x] Execute `ImportDataService.prepareImport` from the dialog flow.
+- [x] Store `PreparedImportResult` in temporary dialog state.
+- [x] Show loading state while parsing/inference is running.
+- [x] Show import errors using `ImportException.code`.
+- [x] Do not persist anything yet.
 
 Definition of done:
 
-- [ ] The wizard can parse a real selected CSV/XLSX file.
-- [ ] The prepared result contains sheets, columns, row counts, and inferred types.
-- [ ] Parser/schema errors are visible in the UI.
-- [ ] Tests cover success and failure states.
+- [x] The wizard can parse a real selected CSV/XLSX file.
+- [x] The prepared result contains sheets, columns, row counts, and inferred types.
+- [x] Parser/schema errors are visible in the UI.
+- [x] Tests cover success and failure states.
 
 ### 3. Add Column Type Confirmation
 
@@ -493,13 +493,13 @@ These are not part of the first publishable release:
 
 Immediate next step:
 
-- [ ] Path to the First Publishable Preview - Step 2: Run `prepareImport` from the Wizard.
+- [ ] Path to the First Publishable Preview - Step 3: Add Column Type Confirmation.
 
 Practical order:
 
-1. Inject `ImportDataService` through Riverpod.
-2. Run `prepareImport` from the dialog flow.
-3. Store `PreparedImportResult` in dialog state.
-4. Show loading and error states.
-5. Keep persistence disabled until final confirmation.
-6. Prepare the next step: editable column type confirmation.
+1. Show detected sheets from `PreparedImportResult`.
+2. Show original column names and normalized database names.
+3. Show inferred column types.
+4. Add editable type controls for text, integer, real, boolean, and date.
+5. Keep `PreparedImportResult` immutable.
+6. Build `ConfirmedImport` from prepared data plus user choices.

@@ -1,4 +1,5 @@
 import 'package:exel_category/application/dto/import_file.dart';
+import 'package:exel_category/presentation/providers/service_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'import_dialog_viewmodel.dart';
@@ -32,9 +33,12 @@ class ImportDialogProviderArgs {
 final importDialogViewModelProvider = ChangeNotifierProvider.family<
     ImportDialogViewModel, ImportDialogProviderArgs>(
   (ref, args) {
+    final importDataService = ref.watch(importDataServiceProvider);
+
     return ImportDialogViewModel(
       file: args.file,
       initialDatasetName: args.initialDatasetName,
+      prepareImport: importDataService.prepareImport,
     );
   },
 );

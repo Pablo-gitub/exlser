@@ -43,7 +43,8 @@
             "parser_not_found": "Formato file non supportato",
             "parsing_failed": "Errore durante la lettura del file",
             "no_sheets": "Il file non contiene fogli leggibili",
-            "schema_failed": "Errore nell'analisi del foglio"
+            "schema_failed": "Errore nell'analisi del foglio",
+            "unexpected_error": "Errore imprevisto durante l'importazione"
         }
     }
 }

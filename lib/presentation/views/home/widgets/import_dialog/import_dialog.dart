@@ -57,6 +57,10 @@ class ImportDialog extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
               _buildCurrentPage(viewModel),
+              if (viewModel.importErrorCode != null) ...[
+                const SizedBox(height: 16),
+                _buildImportError(context, viewModel.importErrorCode!),
+              ],
               const SizedBox(height: 24),
               _buildNavigationButtons(context, viewModel),
             ],
@@ -87,13 +91,14 @@ class ImportDialog extends ConsumerWidget {
       children: [
         if (viewModel.canGoBack)
           TextButton(
-            onPressed: viewModel.goToPreviousStep,
+            onPressed:
+                viewModel.isPreparingImport ? null : viewModel.goToPreviousStep,
             child: Text(AppStrings.previous.tr()),
           ),
         const Spacer(),
         ElevatedButton(
-          onPressed: viewModel.isCurrentStepValid
-              ? () {
+          onPressed: viewModel.canContinue
+              ? () async {
                   if (viewModel.isLastStep) {
                     // Trigger final import action
                     onImportCompleted();
@@ -102,17 +107,60 @@ class ImportDialog extends ConsumerWidget {
                     // TODO: navigate to the newly created dataset view, passing the new dataset ID
                     context.go('/datasets/1');
                   } else {
-                    viewModel.goToNextStep();
+                    await viewModel.goToNextStep();
                   }
                 }
               : null,
-          child: Text(
-            viewModel.isLastStep
-                ? AppStrings.importFinish.tr()
-                : AppStrings.importNext.tr(),
-          ),
+          child: viewModel.isPreparingImport
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                )
+              : Text(
+                  viewModel.isLastStep
+                      ? AppStrings.importFinish.tr()
+                      : AppStrings.importNext.tr(),
+                ),
         ),
       ],
     );
+  }
+
+  Widget _buildImportError(BuildContext context, String code) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        _localizedImportError(code).tr(),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onErrorContainer,
+        ),
+      ),
+    );
+  }
+
+  String _localizedImportError(String code) {
+    switch (code) {
+      case 'no_extension':
+        return AppStrings.importNoExtension;
+      case 'unsupported_format':
+      case 'parser_not_found':
+        return AppStrings.importParserNotFound;
+      case 'parsing_failed':
+        return AppStrings.importParsingFailed;
+      case 'no_sheets':
+      case 'no_valid_sheets':
+        return AppStrings.importEmptySheets;
+      case 'schema_failed':
+        return AppStrings.importSchemaFailed;
+      default:
+        return AppStrings.importUnexpectedError;
+    }
   }
 }

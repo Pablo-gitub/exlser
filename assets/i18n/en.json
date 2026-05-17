@@ -43,7 +43,8 @@
             "parser_not_found": "Unsupported file format",
             "parsing_failed": "Error while reading file",
             "no_sheets": "File contains no readable sheets",
-            "schema_failed": "Error during sheet analysis"
+            "schema_failed": "Error during sheet analysis",
+            "unexpected_error": "Unexpected import error"
         }
     }
 }
