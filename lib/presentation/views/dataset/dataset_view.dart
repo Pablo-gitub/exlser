@@ -8,6 +8,7 @@ import 'package:exel_category/presentation/providers/usecase_providers.dart';
 import 'package:exel_category/presentation/state/dataset_bloc.dart';
 import 'package:exel_category/presentation/state/dataset_event.dart';
 import 'package:exel_category/presentation/state/dataset_state.dart';
+import 'package:exel_category/presentation/widgets/dataset_sections/analytics_section.dart';
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_card_view.dart';
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_filter_panel.dart';
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_table_view.dart';
@@ -33,6 +34,7 @@ class DatasetView extends ConsumerWidget {
         fetchRows: ref.read(fetchRowsUseCaseProvider),
         applyFilters: ref.read(applyFiltersUseCaseProvider),
         updateDatasetUiState: ref.read(updateDatasetUiStateUseCaseProvider),
+        analysisService: ref.read(analysisServiceProvider),
       )..add(LoadDatasetEvent(datasetId)),
       child: AppScaffold(
         title: AppStrings.datasetWorkspaceTitle.tr(),
@@ -121,6 +123,10 @@ class _LoadedWorkspace extends StatelessWidget {
               columns: state.columns,
               rows: state.rows,
             ),
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 8),
+          AnalyticsSection(state: state),
         ],
       ),
     );

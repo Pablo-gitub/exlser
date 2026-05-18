@@ -79,6 +79,16 @@ class ApplyFiltersUseCase {
     );
   }
 
+  /// Returns the SQL WHERE clause and bound arguments for the given filters,
+  /// or null when no filters are active. Used by analytics to respect filters.
+  ({String sql, List<Object?> arguments})? buildWhereClause(
+    List<DatasetFilter> filters,
+  ) {
+    final clause = _buildWhereClause(filters);
+    if (clause == null) return null;
+    return (sql: clause.sql, arguments: clause.arguments);
+  }
+
   _WhereClause? _buildWhereClause(List<DatasetFilter> filters) {
     if (filters.isEmpty) {
       return null;

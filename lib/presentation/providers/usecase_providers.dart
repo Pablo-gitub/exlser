@@ -1,7 +1,12 @@
+import 'package:exel_category/application/services/analysis_service.dart';
 import 'package:exel_category/application/usecases/file/save_uploaded_file_usecase.dart';
 import 'package:exel_category/data/adapters/normalizers/boolean_normalizer.dart';
 import 'package:exel_category/data/adapters/normalizers/date_normalizer.dart';
 import 'package:exel_category/data/adapters/normalizers/number_normalizer.dart';
+import 'package:exel_category/domain/usecases/analytics/get_category_distribution_usecase.dart';
+import 'package:exel_category/domain/usecases/analytics/get_column_statistics_usecase.dart';
+import 'package:exel_category/domain/usecases/analytics/get_time_series_usecase.dart';
+import 'package:exel_category/domain/usecases/analytics/suggest_charts_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/create_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/delete_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/get_datasets_usecase.dart';
@@ -129,5 +134,39 @@ final getDistinctValuesUseCaseProvider =
     Provider<GetDistinctValuesUseCase>((ref) {
   return GetDistinctValuesUseCase(
     repository: ref.watch(queryRepositoryProvider),
+  );
+});
+
+final suggestChartsUseCaseProvider = Provider<SuggestChartsUseCase>((ref) {
+  return const SuggestChartsUseCase();
+});
+
+final getColumnStatisticsUseCaseProvider =
+    Provider<GetColumnStatisticsUseCase>((ref) {
+  return GetColumnStatisticsUseCase(
+    repository: ref.watch(queryRepositoryProvider),
+  );
+});
+
+final getCategoryDistributionUseCaseProvider =
+    Provider<GetCategoryDistributionUseCase>((ref) {
+  return GetCategoryDistributionUseCase(
+    repository: ref.watch(queryRepositoryProvider),
+  );
+});
+
+final getTimeSeriesUseCaseProvider = Provider<GetTimeSeriesUseCase>((ref) {
+  return GetTimeSeriesUseCase(
+    repository: ref.watch(queryRepositoryProvider),
+  );
+});
+
+final analysisServiceProvider = Provider<AnalysisService>((ref) {
+  return AnalysisService(
+    suggestChartsUseCase: ref.watch(suggestChartsUseCaseProvider),
+    getColumnStatisticsUseCase: ref.watch(getColumnStatisticsUseCaseProvider),
+    getCategoryDistributionUseCase:
+        ref.watch(getCategoryDistributionUseCaseProvider),
+    getTimeSeriesUseCase: ref.watch(getTimeSeriesUseCaseProvider),
   );
 });
