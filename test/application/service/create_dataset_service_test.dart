@@ -327,6 +327,58 @@ void main() {
     ]);
   });
 
+  test('should normalize boolean string values to integers on insert',
+      () async {
+    final confirmedImport = ConfirmedImport(
+      datasetName: 'Test',
+      sourceFileName: 'file.csv',
+      sheets: [
+        _confirmedSheet(
+          rows: [
+            {'active': 'true', 'deleted': 'false'},
+            {'active': 'yes', 'deleted': 'no'},
+            {'active': '1', 'deleted': '0'},
+            {'active': 'TRUE', 'deleted': 'FALSE'},
+          ],
+          columns: [
+            _column(
+              originalName: 'active',
+              dbName: 'active',
+              type: ColumnType.boolean,
+            ),
+            _column(
+              originalName: 'deleted',
+              dbName: 'deleted',
+              type: ColumnType.boolean,
+            ),
+          ],
+        ),
+      ],
+    );
+
+    mockDatasetCreation(_dataset());
+    mockTableCreation(_table());
+    mockColumnRegistration();
+    mockDynamicTableCreation();
+    mockRowInsertion();
+
+    await service.createDataset(confirmedImport: confirmedImport);
+
+    final insertedRows = verify(
+      () => insertRowsUseCase.call(
+        tableName: 'ds_1_sheet1',
+        rows: captureAny(named: 'rows'),
+      ),
+    ).captured.single as List<Map<String, dynamic>>;
+
+    expect(insertedRows, [
+      {'active': 1, 'deleted': 0},
+      {'active': 1, 'deleted': 0},
+      {'active': 1, 'deleted': 0},
+      {'active': 1, 'deleted': 0},
+    ]);
+  });
+
   test('should propagate error if table creation fails', () async {
     mockDatasetCreation(_dataset());
     when(() => createDatasetTableUseCase.call(

@@ -7,6 +7,7 @@ import 'package:exel_category/domain/usecases/schema/create_dataset_table_usecas
 import 'package:exel_category/domain/usecases/schema/register_columns_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/build_dynamic_table_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/insert_rows_usecase.dart';
+import 'package:exel_category/domain/value_objects/column_type.dart';
 
 /// Application service responsible for orchestrating
 /// the dataset creation flow after user confirmation.
@@ -131,10 +132,26 @@ class CreateDatasetService {
       final mapped = <String, dynamic>{};
 
       for (final column in columns) {
-        mapped[column.dbName] = row[column.originalName];
+        mapped[column.dbName] = _normalizeColumnValue(
+          column.declaredType,
+          row[column.originalName],
+        );
       }
 
       return mapped;
     }).toList();
+  }
+
+  Object? _normalizeColumnValue(ColumnType type, Object? rawValue) {
+    if (rawValue == null) return null;
+    final str = rawValue.toString().trim();
+    if (str.isEmpty) return null;
+
+    if (type != ColumnType.boolean) return rawValue;
+
+    final lower = str.toLowerCase();
+    if (lower == 'true' || lower == 'yes' || lower == '1') return 1;
+    if (lower == 'false' || lower == 'no' || lower == '0') return 0;
+    return null;
   }
 }

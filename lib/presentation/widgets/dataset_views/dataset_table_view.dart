@@ -1,4 +1,6 @@
 import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 import 'package:flutter/material.dart';
 
 class DatasetTableView extends StatefulWidget {
@@ -9,11 +11,15 @@ class DatasetTableView extends StatefulWidget {
 
   final List<DatasetColumn> columns;
   final List<Map<String, dynamic>> rows;
+  final DatasetSort? sort;
+  final ValueChanged<DatasetColumn>? onSortColumn;
 
   const DatasetTableView({
     super.key,
     required this.columns,
     required this.rows,
+    this.sort,
+    this.onSortColumn,
   });
 
   @override
@@ -74,6 +80,9 @@ class _DatasetTableViewState extends State<DatasetTableView> {
                   controller: _verticalController,
                   scrollDirection: Axis.vertical,
                   child: DataTable(
+                    sortColumnIndex: _sortColumnIndex,
+                    sortAscending:
+                        widget.sort?.direction != SortDirection.descending,
                     headingRowHeight: _headingRowHeight,
                     dataRowMinHeight: _dataRowHeight,
                     dataRowMaxHeight: _dataRowHeight,
@@ -86,6 +95,9 @@ class _DatasetTableViewState extends State<DatasetTableView> {
                       for (final column in widget.columns)
                         DataColumn(
                           label: _HeaderCell(label: column.originalName),
+                          onSort: widget.onSortColumn == null
+                              ? null
+                              : (_, __) => widget.onSortColumn!(column),
                         ),
                     ],
                     rows: [
@@ -95,7 +107,10 @@ class _DatasetTableViewState extends State<DatasetTableView> {
                             for (final column in widget.columns)
                               DataCell(
                                 _DataCellText(
-                                  value: _formatCellValue(row[column.dbName]),
+                                  value: _formatCellValue(
+                                    row[column.dbName],
+                                    columnType: column.declaredType,
+                                  ),
                                 ),
                               ),
                           ],
@@ -119,6 +134,19 @@ class _DatasetTableViewState extends State<DatasetTableView> {
     final preferredHeight = _headingRowHeight + (_dataRowHeight * rowCount);
 
     return preferredHeight.clamp(_minimumTableHeight, maxHeight).toDouble();
+  }
+
+  int? get _sortColumnIndex {
+    final sort = widget.sort;
+    if (sort == null) {
+      return null;
+    }
+
+    final index = widget.columns.indexWhere(
+      (column) => column.dbName == sort.column.dbName,
+    );
+
+    return index < 0 ? null : index;
   }
 }
 
@@ -164,9 +192,14 @@ class _DataCellText extends StatelessWidget {
   }
 }
 
-String _formatCellValue(dynamic value) {
+String _formatCellValue(dynamic value, {ColumnType? columnType}) {
   if (value == null) return '';
   if (value is String && value.trim().isEmpty) return '';
+
+  if (columnType == ColumnType.boolean) {
+    final n = value is num ? value : num.tryParse(value.toString());
+    if (n != null) return n != 0 ? 'True' : 'False';
+  }
 
   return value.toString();
 }
