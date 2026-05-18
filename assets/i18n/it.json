@@ -1,6 +1,6 @@
 {
     "app": {
-        "name": "Exlser"
+        "name": "ExlSer"
     },
     "home": {
         "select_file": "Seleziona un file Excel o CSV",

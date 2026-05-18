@@ -1,6 +1,6 @@
 {
-    "name": "exel_category",
-    "short_name": "exel_category",
+    "name": "ExlSer",
+    "short_name": "ExlSer",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

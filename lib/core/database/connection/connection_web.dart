@@ -22,8 +22,6 @@ QueryExecutor openConnectionImpl() {
       driftWorkerUri: Uri.parse('drift_worker.js'),
     );
 
-    print("Drift Web Database opened");
-
     return db.resolvedExecutor;
   });
 }

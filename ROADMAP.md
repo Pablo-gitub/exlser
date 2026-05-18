@@ -1,4 +1,4 @@
-# ExlSer / ExcelCategory Roadmap
+# ExlSer Roadmap
 
 This document is the working roadmap for the project. It defines what is already complete, what must be done next, and which completion checkpoint each group of work unlocks.
 
@@ -110,8 +110,8 @@ created datasets visible, reopenable, and readable from the UI.
 - [x] Riverpod providers for use cases.
 - [x] Riverpod providers for application services.
 - [x] Provider integration test with an in-memory database.
-- [x] Latest known full test run: `flutter test` passing with 238 tests.
-- [x] Latest known analyzer state: no blocking errors, 6 known informational warnings.
+- [x] Latest known full test run: `flutter test` passing with 241 tests.
+- [x] Latest known analyzer state: `flutter analyze` passing with no issues.
 
 ### Existing UI Skeleton
 
@@ -296,16 +296,16 @@ Definition of done:
 
 Goal: prepare the first public build.
 
-- [ ] Decide whether to fix or explicitly accept the 6 known analyzer info warnings.
-- [ ] Add widget tests for Home/upload/import dialog.
-- [ ] Add a smoke test for import -> create -> open dataset.
-- [ ] Verify build on web.
-- [ ] Verify build on at least one native platform.
-- [ ] Verify app name, splash screen, icons, and assets.
-- [ ] Verify database persistence after app restart.
-- [ ] Update README with run/test/build instructions.
-- [ ] Set app version for v0.1.0.
-- [ ] Add initial changelog/release notes.
+- [x] Decide whether to fix or explicitly accept the 6 known analyzer info warnings.
+- [x] Add widget tests for Home/upload/import dialog.
+- [x] Add a smoke test for import -> create -> open dataset.
+- [x] Verify build on web.
+- [x] Verify build on at least one native platform.
+- [x] Verify app name, splash screen, icons, and assets.
+- [x] Verify database persistence after app restart.
+- [x] Update README with run/test/build instructions.
+- [x] Set app version for v0.1.0.
+- [x] Add initial changelog/release notes.
 
 ### Milestone Reached: v0.1.0 - First Publishable Preview
 
@@ -313,20 +313,20 @@ The first publishable preview is reached only when all work in the previous sect
 
 Publish criteria:
 
-- [ ] A user can select a CSV or XLSX file.
-- [ ] A user can process the selected file through the import wizard.
-- [ ] A user can review detected sheets and columns.
-- [ ] A user can correct inferred column types.
-- [ ] A user can confirm the import.
-- [ ] A user can create a persistent dataset.
-- [ ] A user can see the created dataset in the dataset list.
-- [ ] A user can open the dataset.
-- [ ] A user can view imported rows in a table.
-- [ ] A user can delete a dataset safely.
-- [ ] `flutter test` passes.
-- [ ] `flutter analyze` has no blocking issues.
-- [ ] A release build can be produced for the chosen first target platform.
-- [ ] The README explains what the preview can and cannot do.
+- [x] A user can select a CSV or XLSX file.
+- [x] A user can process the selected file through the import wizard.
+- [x] A user can review detected sheets and columns.
+- [x] A user can correct inferred column types.
+- [x] A user can confirm the import.
+- [x] A user can create a persistent dataset.
+- [x] A user can see the created dataset in the dataset list.
+- [x] A user can open the dataset.
+- [x] A user can view imported rows in a table.
+- [x] A user can delete a dataset safely.
+- [x] `flutter test` passes.
+- [x] `flutter analyze` has no blocking issues.
+- [x] A release build can be produced for the chosen first target platform.
+- [x] The README explains what the preview can and cannot do.
 
 ## Path to Filtering and Sorting
 

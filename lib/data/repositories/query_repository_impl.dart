@@ -27,7 +27,7 @@ class QueryRepositoryImpl implements QueryRepository {
   /// - [offset]: number of rows to skip (optional)
   ///
   /// Returns:
-  /// - List of rows as Map<String, dynamic>
+  /// - List of rows as `Map<String, dynamic>`
   ///
   /// Throws:
   /// - Exception if tableName is empty
@@ -43,7 +43,6 @@ class QueryRepositoryImpl implements QueryRepository {
     int? limit,
     int? offset,
   }) async {
-
     final trimmedTable = tableName.trim();
 
     if (trimmedTable.isEmpty) {
@@ -93,7 +92,7 @@ class QueryRepositoryImpl implements QueryRepository {
   /// - [offset]: number of rows to skip (optional)
   ///
   /// Returns:
-  /// - List of rows as Map<String, dynamic>
+  /// - List of rows as `Map<String, dynamic>`
   ///
   /// Throws:
   /// - Exception if tableName is empty
@@ -113,7 +112,6 @@ class QueryRepositoryImpl implements QueryRepository {
     int? limit,
     int? offset,
   }) async {
-
     final trimmedTable = tableName.trim();
     final trimmedWhere = whereClause.trim();
 
@@ -175,7 +173,6 @@ class QueryRepositoryImpl implements QueryRepository {
   /// - Uses alias "count" to standardize result parsing
   @override
   Future<int> countRows(String tableName) async {
-
     final trimmedTable = tableName.trim();
 
     if (trimmedTable.isEmpty) {
@@ -233,7 +230,6 @@ class QueryRepositoryImpl implements QueryRepository {
     required String tableName,
     required DatasetColumn column,
   }) async {
-
     final trimmedTable = tableName.trim();
     final trimmedColumn = column.dbName.trim();
 
@@ -290,7 +286,6 @@ class QueryRepositoryImpl implements QueryRepository {
     required DatasetColumn column,
     required String function,
   }) async {
-
     final trimmedTable = tableName.trim();
     final trimmedColumn = column.dbName.trim();
     final trimmedFunction = function.trim().toUpperCase();
@@ -348,7 +343,7 @@ class QueryRepositoryImpl implements QueryRepository {
   /// - [offset]: rows to skip (optional)
   ///
   /// Returns:
-  /// - List of rows as Map<String, dynamic>
+  /// - List of rows as `Map<String, dynamic>`
   ///
   /// Throws:
   /// - Exception if tableName, whereClause or orderBy are invalid
@@ -365,7 +360,6 @@ class QueryRepositoryImpl implements QueryRepository {
     int? limit,
     int? offset,
   }) async {
-
     final trimmedTable = tableName.trim();
     final trimmedWhere = whereClause.trim();
     final trimmedOrder = orderBy.trim();
@@ -425,7 +419,7 @@ class QueryRepositoryImpl implements QueryRepository {
   /// - [arguments]: optional bound parameters
   ///
   /// Returns:
-  /// - List of rows as Map<String, dynamic>
+  /// - List of rows as `Map<String, dynamic>`
   ///
   /// Throws:
   /// - Exception if SQL is empty
@@ -438,7 +432,6 @@ class QueryRepositoryImpl implements QueryRepository {
     String sql,
     List<dynamic>? arguments,
   ) async {
-
     final trimmedSql = sql.trim();
 
     if (trimmedSql.isEmpty) {

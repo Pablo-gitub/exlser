@@ -1,8 +1,8 @@
-# ExcelCategory
+# ExlSer
 
 [Refactoring Plan](REFACTORING_PLAN.md)
 
-ExcelCategory is a cross-platform data processing tool built with Flutter.
+ExlSer is a cross-platform CSV and Excel dataset workspace built with Flutter.
 
 Originally designed as a simple Excel filtering utility, the project is now evolving into a structured, scalable data-processing engine with local relational persistence and a Clean Architecture foundation.
 
@@ -12,7 +12,7 @@ The goal is to transform it from a basic filtering app into a robust, extensible
 
 ## 🚀 Vision
 
-ExcelCategory is transitioning toward:
+ExlSer is transitioning toward:
 
 - Clean Architecture (Domain-driven structure)
 - Local relational persistence using Drift (SQLite)
@@ -112,7 +112,7 @@ The project is under active architectural refactoring on:
 
 refactor/architectural_refactoring
 
-````
+```
 
 Major ongoing upgrade:
 - Migration from in-memory filtering to relational persistence
@@ -123,10 +123,17 @@ Major ongoing upgrade:
 
 ## 🛠 Development
 
+### Requirements
+
+- Flutter SDK compatible with Dart `^3.5.3`
+- A configured Flutter target platform for the build you want to verify
+- Xcode for iOS/macOS builds
+- Android Studio or Android SDK tooling for Android builds
+
 ### Install dependencies
 ```bash
 flutter pub get
-````
+```
 
 ### Generate Drift files
 
@@ -140,21 +147,83 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
+Useful targets:
+
+```bash
+flutter run -d chrome
+flutter run -d macos
+```
+
+### Analyze
+
+```bash
+flutter analyze
+```
+
 ---
 
 ## 🧪 Testing
 
-Domain layer is fully unit-tested.
+Run the full test suite:
 
 ```bash
 flutter test
 ```
 
-Future additions:
+Run focused checks:
 
-* DAO tests
-* Integration tests
-* Widget tests
+```bash
+flutter test test/application/service/import_create_open_smoke_test.dart
+flutter test test/presentation/views/home/home_import_widget_test.dart
+```
+
+---
+
+## 📦 Build
+
+Web preview build:
+
+```bash
+flutter build web --release
+```
+
+macOS preview build:
+
+```bash
+flutter build macos --release
+```
+
+Android preview build:
+
+```bash
+flutter build apk --release
+```
+
+The first public preview target is `v0.1.0`.
+
+---
+
+## v0.1.0 Preview Scope
+
+The first publishable preview focuses on the local import workflow:
+
+- select a CSV or XLSX file
+- inspect inferred sheets and columns
+- correct column types before persistence
+- create a local dataset
+- see created datasets in the Works list
+- open a dataset in a read-only workspace
+- read imported rows in a table
+- delete a dataset together with schema, rows, and file reference
+
+Not included in `v0.1.0`:
+
+- filtering and sorting
+- export
+- analytics and automatic charts
+- cross-sheet or multi-dataset analysis
+
+Those features are tracked in [ROADMAP.md](ROADMAP.md).
 
 ---
 

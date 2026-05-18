@@ -34,12 +34,11 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'Exlser',
+      title: 'ExlSer',
       theme: AppTheme.lightTheme,
       locale: context.locale,
       supportedLocales: context.supportedLocales,
-      localizationsDelegates:
-          context.localizationDelegates,
+      localizationsDelegates: context.localizationDelegates,
       routerConfig: router,
     );
   }

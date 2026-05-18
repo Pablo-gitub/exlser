@@ -20,7 +20,7 @@ import 'package:exel_category/domain/entities/parsed_sheet.dart';
 /// - persist datasets
 ///
 /// Output:
-/// List<ParsedSheet>
+/// List of ParsedSheet values.
 ///
 /// Each ParsedSheet contains:
 /// - sheet name
