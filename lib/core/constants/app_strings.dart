@@ -46,6 +46,14 @@ class AppStrings {
       'dataset.workspace.loaded_rows';
   static const String datasetWorkspaceInitialRowLimit =
       'dataset.workspace.initial_row_limit';
+  static const String datasetWorkspaceRowsPerPage =
+      'dataset.workspace.rows_per_page';
+  static const String datasetWorkspacePaginationRange =
+      'dataset.workspace.pagination.range';
+  static const String datasetWorkspacePaginationPage =
+      'dataset.workspace.pagination.page';
+  static const String datasetWorkspacePaginationInvalidLimit =
+      'dataset.workspace.pagination.invalid_limit';
   static const String datasetWorkspaceSelectSheet =
       'dataset.workspace.select_sheet';
   static const String datasetWorkspaceTableView =
@@ -63,6 +71,8 @@ class AppStrings {
       'dataset.workspace.error.filter_failed';
   static const String datasetWorkspaceSortFailed =
       'dataset.workspace.error.sort_failed';
+  static const String datasetWorkspacePaginationFailed =
+      'dataset.workspace.error.pagination_failed';
   static const String datasetWorkspaceFiltersTitle =
       'dataset.workspace.filters.title';
   static const String datasetWorkspaceFiltersColumn =

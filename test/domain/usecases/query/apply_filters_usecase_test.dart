@@ -232,6 +232,43 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('should count rows directly when no filters are provided', () async {
+      when(() => repository.countRows(any())).thenAnswer((_) async => 42);
+
+      final count = await useCase.countRows(tableName: 'products');
+
+      expect(count, 42);
+      verify(() => repository.countRows('products')).called(1);
+    });
+
+    test('should count rows using the generated where clause', () async {
+      when(() => repository.executeRawQuery(any(), any()))
+          .thenAnswer((_) async => [
+                {'count': 3},
+              ]);
+
+      final count = await useCase.countRows(
+        tableName: 'products',
+        filters: [
+          DatasetFilter(
+            column: _column(
+              dbName: 'brand',
+              type: ColumnType.text,
+            ),
+            operator: FilterOperator.contains,
+            value: 'van',
+          ),
+        ],
+      );
+
+      expect(count, 3);
+      verify(() => repository.executeRawQuery(
+            "SELECT COUNT(*) AS count FROM products WHERE "
+            "(brand LIKE ? ESCAPE '\\')",
+            ['%van%'],
+          )).called(1);
+    });
   });
 }
 

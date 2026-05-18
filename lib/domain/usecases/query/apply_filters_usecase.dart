@@ -89,6 +89,34 @@ class ApplyFiltersUseCase {
     return (sql: clause.sql, arguments: clause.arguments);
   }
 
+  Future<int> countRows({
+    required String tableName,
+    List<DatasetFilter> filters = const [],
+  }) async {
+    final trimmedTable = tableName.trim();
+    if (trimmedTable.isEmpty) {
+      throw ArgumentError('Table name cannot be empty');
+    }
+
+    final where = _buildWhereClause(filters);
+    if (where == null) {
+      return repository.countRows(trimmedTable);
+    }
+
+    final rows = await repository.executeRawQuery(
+      'SELECT COUNT(*) AS count FROM $trimmedTable WHERE ${where.sql}',
+      where.arguments,
+    );
+    if (rows.isEmpty) {
+      return 0;
+    }
+
+    final value = rows.first['count'];
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
   _WhereClause? _buildWhereClause(List<DatasetFilter> filters) {
     if (filters.isEmpty) {
       return null;

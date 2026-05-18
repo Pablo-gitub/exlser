@@ -66,6 +66,10 @@ void main() {
             datasetId: any(named: 'datasetId'),
             uiStateJson: any(named: 'uiStateJson'),
           )).thenAnswer((_) async {});
+      when(() => applyFilters.countRows(
+            tableName: any(named: 'tableName'),
+            filters: any(named: 'filters'),
+          )).thenAnswer((_) async => 1);
       bloc = DatasetBloc(
         openDataset: openDataset,
         schemaRepository: schemaRepository,
@@ -354,6 +358,7 @@ void main() {
       expect(state.rows, [
         {'product': 'pen'},
       ]);
+      expect(state.pageIndex, 0);
 
       final captured = verify(() => applyFilters.call(
             tableName: 'tbl_1',
@@ -473,6 +478,113 @@ void main() {
         contains('"filters"'),
       );
       expect(chartLoadCount, 2);
+    });
+
+    test('should change row limit and reload the first page', () async {
+      final dataset = _dataset();
+      final table = _table(id: 10, rowCount: 920);
+      final column = _column();
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [table],
+        columns: [column],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => fetchRows.call(
+            tableName: 'tbl_1',
+            limit: 250,
+            offset: 0,
+          )).thenAnswer(
+        (_) async => [
+          {'id': 2, 'product': 'pen'},
+        ],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((state) => state is DatasetLoadedState);
+
+      final limitedState = bloc.stream.firstWhere(
+        (state) =>
+            state is DatasetLoadedState &&
+            state.rowLimit == 250 &&
+            state.pageIndex == 0,
+      );
+
+      bloc.add(const ChangeRowLimitEvent(250));
+
+      final state = await limitedState as DatasetLoadedState;
+
+      expect(state.totalRowCount, 920);
+      expect(state.pageCount, 4);
+      expect(state.rows, [
+        {'product': 'pen'},
+      ]);
+      verify(() => fetchRows.call(
+            tableName: 'tbl_1',
+            limit: 250,
+            offset: 0,
+          )).called(1);
+      verify(() => updateDatasetUiState.call(
+            datasetId: 1,
+            uiStateJson: any(named: 'uiStateJson'),
+          )).called(1);
+    });
+
+    test('should load requested page using limit and offset', () async {
+      final dataset = _dataset();
+      final table = _table(id: 10, rowCount: 920);
+      final column = _column();
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [table],
+        columns: [column],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => fetchRows.call(
+            tableName: 'tbl_1',
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 100,
+          )).thenAnswer(
+        (_) async => [
+          {'id': 101, 'product': 'page two'},
+        ],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((state) => state is DatasetLoadedState);
+
+      final pageState = bloc.stream.firstWhere(
+        (state) =>
+            state is DatasetLoadedState &&
+            state.pageIndex == 1 &&
+            state.rows.single['product'] == 'page two',
+      );
+
+      bloc.add(const ChangePageEvent(1));
+
+      final state = await pageState as DatasetLoadedState;
+
+      expect(state.pageNumber, 2);
+      expect(state.pageCount, 10);
+      expect(state.canGoToPreviousPage, isTrue);
+      expect(state.canGoToNextPage, isTrue);
+      verify(() => fetchRows.call(
+            tableName: 'tbl_1',
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 100,
+          )).called(1);
     });
 
     test('should toggle sorting by column', () async {
@@ -777,13 +889,14 @@ DatasetTable _table({
   required int id,
   String name = 'Sheet1',
   String tableName = 'tbl_1',
+  int rowCount = 1,
 }) {
   return DatasetTable(
     id: id,
     datasetId: 1,
     sheetNameOriginal: name,
     sqlTableName: tableName,
-    rowCount: 1,
+    rowCount: rowCount,
     colCount: 1,
   );
 }

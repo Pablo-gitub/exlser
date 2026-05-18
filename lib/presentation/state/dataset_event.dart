@@ -32,6 +32,18 @@ class ChangeViewModeEvent extends DatasetEvent {
   const ChangeViewModeEvent(this.viewMode);
 }
 
+class ChangeRowLimitEvent extends DatasetEvent {
+  final int rowLimit;
+
+  const ChangeRowLimitEvent(this.rowLimit);
+}
+
+class ChangePageEvent extends DatasetEvent {
+  final int pageIndex;
+
+  const ChangePageEvent(this.pageIndex);
+}
+
 class AddFilterEvent extends DatasetEvent {
   final DatasetFilter filter;
 

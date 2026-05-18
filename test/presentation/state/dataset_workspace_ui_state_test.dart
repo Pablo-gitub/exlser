@@ -169,6 +169,26 @@ void main() {
       expect(state.charts, isEmpty);
     });
 
+    test('fromJson restores pagination values', () {
+      final state = DatasetWorkspaceUiState.fromJson({
+        'rowLimit': 250,
+        'pageIndex': 3,
+      });
+
+      expect(state.rowLimit, 250);
+      expect(state.pageIndex, 3);
+    });
+
+    test('fromJson falls back for invalid pagination values', () {
+      final state = DatasetWorkspaceUiState.fromJson({
+        'rowLimit': -1,
+        'pageIndex': -2,
+      });
+
+      expect(state.rowLimit, DatasetWorkspaceUiState.defaultRowLimit);
+      expect(state.pageIndex, 0);
+    });
+
     test('chart round-trip through JSON preserves suggestion', () {
       const state = DatasetWorkspaceUiState(
         charts: [

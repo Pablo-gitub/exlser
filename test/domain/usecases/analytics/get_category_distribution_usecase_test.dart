@@ -50,6 +50,24 @@ void main() {
       expect(result.chartType, ChartType.bar);
     });
 
+    test('uses explicit chart type when provided', () async {
+      final column = _col('brand', ColumnType.text);
+      when(() => repository.executeRawQuery(any(), any())).thenAnswer(
+        (_) async => [
+          {'label': 'Nike', 'value': 10.0},
+          {'label': 'Vans', 'value': 5.0},
+        ],
+      );
+
+      final result = await useCase(
+        tableName: 'tbl',
+        xColumn: column,
+        chartType: ChartType.bar,
+      );
+
+      expect(result.chartType, ChartType.bar);
+    });
+
     test('filters out null labels', () async {
       final column = _col('status', ColumnType.text);
       when(() => repository.executeRawQuery(any(), any())).thenAnswer(

@@ -14,6 +14,7 @@ import 'package:exel_category/presentation/widgets/dataset_views/dataset_filter_
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_table_view.dart';
 import 'package:exel_category/presentation/widgets/layout/app_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -82,6 +83,7 @@ class _LoadedWorkspace extends StatelessWidget {
             columns: state.columns,
             loadedRowCount: state.rows.length,
             rowLimit: state.rowLimit,
+            totalRowCount: state.totalRowCount,
             viewMode: state.viewMode,
           ),
           const SizedBox(height: 16),
@@ -123,6 +125,8 @@ class _LoadedWorkspace extends StatelessWidget {
               columns: state.columns,
               rows: state.rows,
             ),
+          const SizedBox(height: 12),
+          _DatasetPaginationControls(state: state),
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 8),
@@ -140,6 +144,7 @@ class _DatasetHeader extends StatelessWidget {
   final List<DatasetColumn> columns;
   final int loadedRowCount;
   final int rowLimit;
+  final int totalRowCount;
   final DatasetViewMode viewMode;
 
   const _DatasetHeader({
@@ -149,6 +154,7 @@ class _DatasetHeader extends StatelessWidget {
     required this.columns,
     required this.loadedRowCount,
     required this.rowLimit,
+    required this.totalRowCount,
     required this.viewMode,
   });
 
@@ -197,19 +203,10 @@ class _DatasetHeader extends StatelessWidget {
             ),
             _MetricTile(
               label: AppStrings.datasetWorkspaceLoadedRows.tr(),
-              value: '$loadedRowCount / ${activeTable.rowCount}',
+              value: '$loadedRowCount / $totalRowCount',
             ),
           ],
         ),
-        if (activeTable.rowCount > rowLimit && loadedRowCount >= rowLimit) ...[
-          const SizedBox(height: 8),
-          Text(
-            AppStrings.datasetWorkspaceInitialRowLimit.tr(
-              namedArgs: {'count': '$rowLimit'},
-            ),
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
         const SizedBox(height: 16),
         SegmentedButton<DatasetViewMode>(
           segments: [
@@ -279,6 +276,151 @@ class _MetricTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _DatasetPaginationControls extends StatefulWidget {
+  final DatasetLoadedState state;
+
+  const _DatasetPaginationControls({
+    required this.state,
+  });
+
+  @override
+  State<_DatasetPaginationControls> createState() =>
+      _DatasetPaginationControlsState();
+}
+
+class _DatasetPaginationControlsState
+    extends State<_DatasetPaginationControls> {
+  late final TextEditingController _limitController;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _limitController = TextEditingController(
+      text: widget.state.rowLimit.toString(),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _DatasetPaginationControls oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final currentText = _limitController.text.trim();
+    final currentValue = int.tryParse(currentText);
+    if (currentValue == oldWidget.state.rowLimit &&
+        widget.state.rowLimit != oldWidget.state.rowLimit) {
+      _limitController.text = widget.state.rowLimit.toString();
+      _errorText = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _limitController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = widget.state;
+    final firstRow =
+        state.totalRowCount == 0 ? 0 : (state.pageIndex * state.rowLimit) + 1;
+    final lastRow = state.totalRowCount == 0
+        ? 0
+        : (state.pageIndex * state.rowLimit + state.rows.length);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).dividerColor),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            SizedBox(
+              width: 150,
+              child: TextField(
+                controller: _limitController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: InputDecoration(
+                  labelText: AppStrings.datasetWorkspaceRowsPerPage.tr(),
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                  errorText: _errorText,
+                ),
+                onSubmitted: (_) => _applyLimit(context),
+              ),
+            ),
+            FilledButton.tonal(
+              onPressed: () => _applyLimit(context),
+              child: Text(AppStrings.apply.tr()),
+            ),
+            Text(
+              AppStrings.datasetWorkspacePaginationRange.tr(
+                namedArgs: {
+                  'from': '$firstRow',
+                  'to': '$lastRow',
+                  'total': '${state.totalRowCount}',
+                },
+              ),
+            ),
+            Text(
+              AppStrings.datasetWorkspacePaginationPage.tr(
+                namedArgs: {
+                  'page': '${state.pageNumber}',
+                  'pages': '${state.pageCount}',
+                },
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              tooltip: AppStrings.previous.tr(),
+              onPressed: state.canGoToPreviousPage
+                  ? () {
+                      context
+                          .read<DatasetBloc>()
+                          .add(ChangePageEvent(state.pageIndex - 1));
+                    }
+                  : null,
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              tooltip: AppStrings.next.tr(),
+              onPressed: state.canGoToNextPage
+                  ? () {
+                      context
+                          .read<DatasetBloc>()
+                          .add(ChangePageEvent(state.pageIndex + 1));
+                    }
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _applyLimit(BuildContext context) {
+    final value = int.tryParse(_limitController.text.trim());
+    if (value == null || value <= 0) {
+      setState(() {
+        _errorText = AppStrings.datasetWorkspacePaginationInvalidLimit.tr();
+      });
+      return;
+    }
+
+    setState(() {
+      _errorText = null;
+    });
+    context.read<DatasetBloc>().add(ChangeRowLimitEvent(value));
   }
 }
 
@@ -431,6 +573,8 @@ String _workspaceErrorMessage(String code) {
       return AppStrings.datasetWorkspaceFilterFailed;
     case 'sort_failed':
       return AppStrings.datasetWorkspaceSortFailed;
+    case 'pagination_failed':
+      return AppStrings.datasetWorkspacePaginationFailed;
     case 'sheet_failed':
       return AppStrings.datasetWorkspaceSheetFailed;
     case 'refresh_failed':

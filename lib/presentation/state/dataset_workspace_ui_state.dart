@@ -11,8 +11,12 @@ import 'package:exel_category/domain/value_objects/filter_operator.dart';
 import 'dataset_state.dart';
 
 class DatasetWorkspaceUiState {
+  static const int defaultRowLimit = 100;
+
   final int? activeTableId;
   final DatasetViewMode viewMode;
+  final int rowLimit;
+  final int pageIndex;
   final List<StoredDatasetFilter> filters;
   final StoredDatasetSort? sort;
   final List<StoredAnalyticsChart> charts;
@@ -20,6 +24,8 @@ class DatasetWorkspaceUiState {
   const DatasetWorkspaceUiState({
     this.activeTableId,
     this.viewMode = DatasetViewMode.table,
+    this.rowLimit = defaultRowLimit,
+    this.pageIndex = 0,
     this.filters = const [],
     this.sort,
     this.charts = const [],
@@ -39,6 +45,8 @@ class DatasetWorkspaceUiState {
     return DatasetWorkspaceUiState(
       activeTableId: state.activeTable.id,
       viewMode: state.viewMode,
+      rowLimit: state.rowLimit,
+      pageIndex: state.pageIndex,
       filters: [
         for (final filter in state.filters)
           StoredDatasetFilter.fromDatasetFilter(filter),
@@ -75,6 +83,11 @@ class DatasetWorkspaceUiState {
       activeTableId:
           json['activeTableId'] is int ? json['activeTableId'] as int : null,
       viewMode: _viewModeFromName(json['viewMode']),
+      rowLimit: _positiveIntFromJson(
+        json['rowLimit'],
+        fallback: defaultRowLimit,
+      ),
+      pageIndex: _nonNegativeIntFromJson(json['pageIndex']),
       filters: filtersJson is List
           ? [
               for (final filterJson in filtersJson)
@@ -101,6 +114,8 @@ class DatasetWorkspaceUiState {
     return {
       'activeTableId': activeTableId,
       'viewMode': viewMode.name,
+      'rowLimit': rowLimit,
+      'pageIndex': pageIndex,
       'filters': [for (final filter in filters) filter.toJson()],
       if (sort != null) 'sort': sort!.toJson(),
       if (charts.isNotEmpty)
@@ -330,6 +345,36 @@ SortDirection _sortDirectionFromName(Object? value) {
   }
 
   return SortDirection.ascending;
+}
+
+int _positiveIntFromJson(Object? value, {required int fallback}) {
+  final parsed = _intFromJson(value);
+  if (parsed == null || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+int _nonNegativeIntFromJson(Object? value) {
+  final parsed = _intFromJson(value);
+  if (parsed == null || parsed < 0) {
+    return 0;
+  }
+
+  return parsed;
+}
+
+int? _intFromJson(Object? value) {
+  if (value is int) {
+    return value;
+  }
+
+  if (value is num) {
+    return value.toInt();
+  }
+
+  return int.tryParse(value?.toString() ?? '');
 }
 
 Object? _jsonSafeValue(Object? value) {

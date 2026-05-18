@@ -80,6 +80,7 @@ class AnalysisService {
         xColumn: xCol,
         yColumn: yCol,
         aggregationType: agg,
+        chartType: suggestion.chartType,
         whereClause: whereClause,
         whereArguments: whereArguments,
       );

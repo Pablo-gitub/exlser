@@ -94,6 +94,8 @@ class DatasetLoadedState extends DatasetState {
   final List<Map<String, dynamic>> rows;
   final DatasetViewMode viewMode;
   final int rowLimit;
+  final int pageIndex;
+  final int totalRowCount;
   final List<DatasetFilter> filters;
   final DatasetSort? sort;
   final DatasetAnalyticsState analyticsState;
@@ -106,10 +108,26 @@ class DatasetLoadedState extends DatasetState {
     required this.rows,
     required this.viewMode,
     required this.rowLimit,
+    required this.pageIndex,
+    required this.totalRowCount,
     this.filters = const [],
     this.sort,
     this.analyticsState = const DatasetAnalyticsIdleState(),
   });
+
+  int get pageCount {
+    if (totalRowCount <= 0) {
+      return 0;
+    }
+
+    return ((totalRowCount - 1) ~/ rowLimit) + 1;
+  }
+
+  int get pageNumber => pageCount == 0 ? 0 : pageIndex + 1;
+
+  bool get canGoToPreviousPage => pageIndex > 0;
+
+  bool get canGoToNextPage => pageIndex + 1 < pageCount;
 
   DatasetLoadedState copyWith({
     Dataset? dataset,
@@ -119,6 +137,8 @@ class DatasetLoadedState extends DatasetState {
     List<Map<String, dynamic>>? rows,
     DatasetViewMode? viewMode,
     int? rowLimit,
+    int? pageIndex,
+    int? totalRowCount,
     List<DatasetFilter>? filters,
     Object? sort = _sortNotProvided,
     DatasetAnalyticsState? analyticsState,
@@ -131,6 +151,8 @@ class DatasetLoadedState extends DatasetState {
       rows: rows ?? this.rows,
       viewMode: viewMode ?? this.viewMode,
       rowLimit: rowLimit ?? this.rowLimit,
+      pageIndex: pageIndex ?? this.pageIndex,
+      totalRowCount: totalRowCount ?? this.totalRowCount,
       filters: filters ?? this.filters,
       sort:
           identical(sort, _sortNotProvided) ? this.sort : sort as DatasetSort?,

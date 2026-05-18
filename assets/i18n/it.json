@@ -55,6 +55,12 @@
             "rows": "Righe",
             "loaded_rows": "Righe caricate",
             "initial_row_limit": "Sono mostrate le prime {count} righe.",
+            "rows_per_page": "Righe per pagina",
+            "pagination": {
+                "range": "Righe {from}-{to} di {total}",
+                "page": "Pagina {page} di {pages}",
+                "invalid_limit": "Inserisci un numero positivo."
+            },
             "select_sheet": "Foglio",
             "table_view": "Tabella",
             "card_view": "Schede",
@@ -103,7 +109,8 @@
                 "sheet_failed": "Impossibile caricare il foglio selezionato.",
                 "refresh_failed": "Impossibile aggiornare le righe.",
                 "filter_failed": "Impossibile applicare i filtri.",
-                "sort_failed": "Impossibile ordinare le righe."
+                "sort_failed": "Impossibile ordinare le righe.",
+                "pagination_failed": "Impossibile caricare la pagina richiesta."
             },
             "analytics": {
                 "title": "Analisi",

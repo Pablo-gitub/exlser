@@ -55,6 +55,12 @@
             "rows": "Rows",
             "loaded_rows": "Loaded rows",
             "initial_row_limit": "Showing the first {count} rows.",
+            "rows_per_page": "Rows per page",
+            "pagination": {
+                "range": "Rows {from}-{to} of {total}",
+                "page": "Page {page} of {pages}",
+                "invalid_limit": "Enter a positive number."
+            },
             "select_sheet": "Sheet",
             "table_view": "Table",
             "card_view": "Cards",
@@ -103,7 +109,8 @@
                 "sheet_failed": "Could not load the selected sheet.",
                 "refresh_failed": "Could not refresh rows.",
                 "filter_failed": "Could not apply filters.",
-                "sort_failed": "Could not sort rows."
+                "sort_failed": "Could not sort rows.",
+                "pagination_failed": "Could not load the requested page."
             },
             "analytics": {
                 "title": "Analytics",

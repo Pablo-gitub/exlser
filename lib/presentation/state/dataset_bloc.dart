@@ -19,7 +19,7 @@ import 'dataset_state.dart';
 import 'dataset_workspace_ui_state.dart';
 
 class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
-  static const int defaultRowLimit = 100;
+  static const int defaultRowLimit = DatasetWorkspaceUiState.defaultRowLimit;
 
   final OpenDatasetUseCase _openDataset;
   final SchemaRepository _schemaRepository;
@@ -46,6 +46,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     on<ChangeSheetEvent>(_onChangeSheet);
     on<RefreshResultsEvent>(_onRefreshResults);
     on<ChangeViewModeEvent>(_onChangeViewMode);
+    on<ChangeRowLimitEvent>(_onChangeRowLimit);
+    on<ChangePageEvent>(_onChangePage);
     on<AddFilterEvent>(_onAddFilter);
     on<RemoveFilterEvent>(_onRemoveFilter);
     on<ClearFiltersEvent>(_onClearFilters);
@@ -85,6 +87,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         tables: tables,
         activeTable: activeTable,
         viewMode: workspaceState.viewMode,
+        rowLimit: workspaceState.rowLimit,
+        pageIndex: workspaceState.pageIndex,
         filters: const [],
         sort: null,
         workspaceState: workspaceState,
@@ -120,6 +124,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         tables: currentState.tables,
         activeTable: nextTable,
         viewMode: currentState.viewMode,
+        rowLimit: currentState.rowLimit,
+        pageIndex: 0,
         filters: const [],
         sort: null,
       );
@@ -147,6 +153,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         tables: currentState.tables,
         activeTable: currentState.activeTable,
         viewMode: currentState.viewMode,
+        rowLimit: currentState.rowLimit,
+        pageIndex: currentState.pageIndex,
         filters: currentState.filters,
         sort: currentState.sort,
       ));
@@ -169,6 +177,44 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     await _persistWorkspaceState(nextState);
   }
 
+  Future<void> _onChangeRowLimit(
+    ChangeRowLimitEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState || event.rowLimit <= 0) {
+      return;
+    }
+
+    await _reloadCurrentTable(
+      emit: emit,
+      currentState: currentState,
+      filters: currentState.filters,
+      sort: currentState.sort,
+      rowLimit: event.rowLimit,
+      pageIndex: 0,
+      errorCode: 'pagination_failed',
+    );
+  }
+
+  Future<void> _onChangePage(
+    ChangePageEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+
+    await _reloadCurrentTable(
+      emit: emit,
+      currentState: currentState,
+      filters: currentState.filters,
+      sort: currentState.sort,
+      rowLimit: currentState.rowLimit,
+      pageIndex: event.pageIndex,
+      errorCode: 'pagination_failed',
+    );
+  }
+
   Future<void> _onAddFilter(
     AddFilterEvent event,
     Emitter<DatasetState> emit,
@@ -187,6 +233,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       currentState: currentState,
       filters: nextFilters,
       sort: currentState.sort,
+      rowLimit: currentState.rowLimit,
+      pageIndex: 0,
+      reloadAnalytics: true,
       errorCode: 'filter_failed',
     );
   }
@@ -208,6 +257,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       currentState: currentState,
       filters: nextFilters,
       sort: currentState.sort,
+      rowLimit: currentState.rowLimit,
+      pageIndex: 0,
+      reloadAnalytics: true,
       errorCode: 'filter_failed',
     );
   }
@@ -226,6 +278,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       currentState: currentState,
       filters: const [],
       sort: currentState.sort,
+      rowLimit: currentState.rowLimit,
+      pageIndex: 0,
+      reloadAnalytics: true,
       errorCode: 'filter_failed',
     );
   }
@@ -242,6 +297,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       currentState: currentState,
       filters: currentState.filters,
       sort: event.sort,
+      rowLimit: currentState.rowLimit,
+      pageIndex: currentState.pageIndex,
       errorCode: 'sort_failed',
     );
   }
@@ -258,6 +315,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       currentState: currentState,
       filters: currentState.filters,
       sort: _nextSort(currentState.sort, event.column),
+      rowLimit: currentState.rowLimit,
+      pageIndex: currentState.pageIndex,
       errorCode: 'sort_failed',
     );
   }
@@ -267,24 +326,41 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     required DatasetLoadedState currentState,
     required List<DatasetFilter> filters,
     required DatasetSort? sort,
+    required int rowLimit,
+    required int pageIndex,
+    bool reloadAnalytics = false,
     required String errorCode,
   }) async {
     emit(const DatasetLoadingState());
 
     try {
+      final totalRowCount = await _countRows(
+        activeTable: currentState.activeTable,
+        filters: filters,
+      );
+      final safePageIndex = _safePageIndex(
+        requestedPageIndex: pageIndex,
+        totalRowCount: totalRowCount,
+        rowLimit: rowLimit,
+      );
       final rows = await _loadRows(
         tableName: currentState.activeTable.sqlTableName,
         filters: filters,
         sort: sort,
+        rowLimit: rowLimit,
+        pageIndex: safePageIndex,
       );
 
-      final loadedAnalyticsState =
-          currentState.analyticsState is DatasetAnalyticsLoadedState
-              ? currentState.analyticsState as DatasetAnalyticsLoadedState
-              : null;
+      final loadedAnalyticsState = reloadAnalytics &&
+              currentState.analyticsState is DatasetAnalyticsLoadedState
+          ? currentState.analyticsState as DatasetAnalyticsLoadedState
+          : null;
 
       final nextState = currentState.copyWith(
         rows: _stripInternalColumns(rows),
+        rowLimit: rowLimit,
+        pageIndex: safePageIndex,
+        totalRowCount: totalRowCount,
         filters: filters,
         sort: sort,
         analyticsState: loadedAnalyticsState != null
@@ -318,6 +394,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     required List<DatasetTable> tables,
     required DatasetTable activeTable,
     required DatasetViewMode viewMode,
+    required int rowLimit,
+    required int pageIndex,
     required List<DatasetFilter> filters,
     required DatasetSort? sort,
     DatasetWorkspaceUiState? workspaceState,
@@ -325,10 +403,21 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     final columns = await _schemaRepository.getColumnsForTable(activeTable.id);
     final activeFilters = workspaceState?.restoreFilters(columns) ?? filters;
     final activeSort = workspaceState?.restoreSort(columns) ?? sort;
+    final totalRowCount = await _countRows(
+      activeTable: activeTable,
+      filters: activeFilters,
+    );
+    final safePageIndex = _safePageIndex(
+      requestedPageIndex: pageIndex,
+      totalRowCount: totalRowCount,
+      rowLimit: rowLimit,
+    );
     final rows = await _loadRows(
       tableName: activeTable.sqlTableName,
       filters: activeFilters,
       sort: activeSort,
+      rowLimit: rowLimit,
+      pageIndex: safePageIndex,
     );
 
     return DatasetLoadedState(
@@ -338,7 +427,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       columns: columns,
       rows: _stripInternalColumns(rows),
       viewMode: viewMode,
-      rowLimit: defaultRowLimit,
+      rowLimit: rowLimit,
+      pageIndex: safePageIndex,
+      totalRowCount: totalRowCount,
       filters: activeFilters,
       sort: activeSort,
     );
@@ -348,12 +439,16 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     required String tableName,
     required List<DatasetFilter> filters,
     required DatasetSort? sort,
+    required int rowLimit,
+    required int pageIndex,
   }) {
+    final offset = pageIndex * rowLimit;
+
     if (filters.isEmpty && sort == null) {
       return _fetchRows.call(
         tableName: tableName,
-        limit: defaultRowLimit,
-        offset: 0,
+        limit: rowLimit,
+        offset: offset,
       );
     }
 
@@ -361,9 +456,40 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       tableName: tableName,
       filters: filters,
       sort: sort,
-      limit: defaultRowLimit,
-      offset: 0,
+      limit: rowLimit,
+      offset: offset,
     );
+  }
+
+  Future<int> _countRows({
+    required DatasetTable activeTable,
+    required List<DatasetFilter> filters,
+  }) {
+    if (filters.isEmpty) {
+      return Future.value(activeTable.rowCount);
+    }
+
+    return _applyFilters.countRows(
+      tableName: activeTable.sqlTableName,
+      filters: filters,
+    );
+  }
+
+  int _safePageIndex({
+    required int requestedPageIndex,
+    required int totalRowCount,
+    required int rowLimit,
+  }) {
+    if (requestedPageIndex <= 0 || totalRowCount <= 0) {
+      return 0;
+    }
+
+    final lastPageIndex = (totalRowCount - 1) ~/ rowLimit;
+    if (requestedPageIndex > lastPageIndex) {
+      return lastPageIndex;
+    }
+
+    return requestedPageIndex;
   }
 
   DatasetSort? _nextSort(

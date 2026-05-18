@@ -20,6 +20,7 @@ class GetCategoryDistributionUseCase {
     required DatasetColumn xColumn,
     DatasetColumn? yColumn,
     AggregationType aggregationType = AggregationType.count,
+    ChartType? chartType,
     int limit = 20,
     String? whereClause,
     List<Object?>? whereArguments,
@@ -52,10 +53,11 @@ class GetCategoryDistributionUseCase {
       return CategoryPoint(label: label, value: value);
     }).toList();
 
-    final chartType = points.length <= 8 ? ChartType.pie : ChartType.bar;
+    final resolvedChartType =
+        chartType ?? (points.length <= 8 ? ChartType.pie : ChartType.bar);
 
     return CategoryChartData(
-      chartType: chartType,
+      chartType: resolvedChartType,
       xLabel: xColumn.originalName,
       yLabel: yColumn?.originalName ?? aggregationType.sqlFunction,
       points: points,
