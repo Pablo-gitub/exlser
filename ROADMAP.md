@@ -51,9 +51,30 @@ column names, and column types.
 
 ## Current Status
 
-The project is past the low-level import foundation. The import wizard can now
-create a real dataset after final confirmation. The next major work is making
-created datasets visible, reopenable, and readable from the UI.
+v0.1.0 (First Publishable Preview), v0.2.0 (Filtering and Sorting), and
+v0.4.0 (Basic Analytics) are complete. The next major work is Export (v0.3.0),
+which was deferred after analytics per the team's chosen delivery order.
+
+Analytics was implemented in five phases:
+- Value objects and domain entities (`ChartType`, `AggregationType`,
+  `ChartSuggestion`, `ColumnStatistics`).
+- Application DTOs (`ChartData`, `CategoryChartData`, `TimeSeriesChartData`,
+  `EmptyChartData`, `CategoryPoint`, `TimeSeriesPoint`).
+- Use cases: `SuggestChartsUseCase`, `GetColumnStatisticsUseCase`,
+  `GetCategoryDistributionUseCase`, `GetTimeSeriesUseCase`.
+- `AnalysisService` orchestrating the use cases.
+- BLoC extension with `LoadAnalyticsEvent`, `ChangeChartConfigEvent`,
+  and a `DatasetAnalyticsState` sealed hierarchy
+  (Idle / Loading / Loaded / Error).
+- Chart widgets: `PieChartWidget`, `DistributionChartWidget`,
+  `LineChartWidget` (fl_chart 1.x).
+- `AnalyticsSection` widget wired into `DatasetView` with column and
+  aggregation dropdowns.
+- Full test coverage for all new use cases and BLoC handlers.
+
+A boolean filter bug was also fixed in this cycle: boolean string values
+(`"true"`, `"yes"`, `"1"`, etc.) are now normalized to integer `1`/`0`
+during import so SQL integer comparisons work correctly.
 
 ### Completed Foundation
 
@@ -110,7 +131,7 @@ created datasets visible, reopenable, and readable from the UI.
 - [x] Riverpod providers for use cases.
 - [x] Riverpod providers for application services.
 - [x] Provider integration test with an in-memory database.
-- [x] Latest known full test run: `flutter test` passing with 241 tests.
+- [x] Latest known full test run: `flutter test` passing with 298 tests.
 - [x] Latest known analyzer state: `flutter analyze` passing with no issues.
 
 ### Existing UI Skeleton
@@ -394,24 +415,36 @@ Publish criteria:
 
 Goal: provide useful summaries and charts.
 
-- [ ] Define `ChartSuggestion` models with chart type, x/date column,
+- [x] Define `ChartSuggestion` models with chart type, x/date column,
       y/value column, category/group column, and aggregation function.
-- [ ] Implement `SuggestChartsUseCase` from confirmed dataset columns.
-- [ ] Automatically suggest an initial chart from column types.
-- [ ] Complete `AggregateColumnUseCase`.
-- [ ] Implement `AnalysisService`.
-- [ ] Wire aggregations to `QueryRepositoryImpl.aggregate`.
-- [ ] Add basic statistics for numeric columns.
-- [ ] Add distributions for categorical columns.
-- [ ] Connect `DistributionChart`.
-- [ ] Connect `PieChart`.
-- [ ] Connect `LineChart`.
-- [ ] Add bar/column chart support for high-cardinality categories.
+- [x] Implement `SuggestChartsUseCase` from confirmed dataset columns.
+- [x] Add `suggestAll()` to `SuggestChartsUseCase`: returns one `ChartSuggestion`
+      per supported chart type given the available columns.
+- [x] Complete `AggregateColumnUseCase`.
+- [x] Implement `AnalysisService`.
+- [x] Wire aggregations to `QueryRepositoryImpl.aggregate`.
+- [x] Add basic statistics for numeric columns (`GetColumnStatisticsUseCase`).
+- [x] Add distributions for categorical columns (`GetCategoryDistributionUseCase`).
+- [x] Connect `DistributionChart` (bar chart for high-cardinality categories).
+- [x] Connect `PieChart` (pie/donut for ≤8 categories).
+- [x] Connect `LineChart` (time series with area fill).
+- [x] Add bar/column chart support for high-cardinality categories.
 - [ ] Add scatter plot support for numeric-vs-numeric datasets.
-- [ ] Add analytics section to DatasetView.
-- [ ] Add chart controls for column selection, aggregation, chart type,
-      sorting, and top-N limits.
-- [ ] Respect active filters in analytics queries.
+- [x] Add multi-chart analytics panel to DatasetView.
+      - Auto-generate one chart per supported type on load.
+      - Each chart is independent with its own column and aggregation controls.
+      - Column selectors for each chart show only compatible column types
+        (e.g., date columns for line chart X axis, numeric columns for Y axis).
+      - A trash button removes individual charts.
+      - A "+" button adds a new chart for any supported type.
+- [x] Persist chart panel configuration in `uiStateJson` so charts are
+      restored when reopening a dataset.
+- [x] Respect active filters in all chart queries.
+- [ ] Add scatter plot support for numeric-vs-numeric datasets.
+
+Note: scatter plot is deferred to a future release. The `ChartType.scatter`
+value and `SuggestChartsUseCase` support it structurally, but the
+`ScatterChart` widget is not yet implemented.
 
 ### Automatic Chart Suggestion Rules
 
@@ -516,15 +549,35 @@ surface and the suggested chart panel can appear above or below it. A more BI-
 oriented workspace can move toward a chart panel plus table workspace after the
 read-only and filtering flows are stable.
 
+### Automatic Chart Suggestion and Column Compatibility
+
+Each chart type only accepts specific column types for its axes:
+
+| Chart type  | X axis column types            | Y axis column types     | Y required? |
+|-------------|-------------------------------|-------------------------|-------------|
+| `line`      | `date`                        | `integer`, `real`       | yes         |
+| `bar`       | `text`, `boolean`, `date`     | `integer`, `real`       | no          |
+| `pie`       | `text`, `boolean`             | `integer`, `real`       | no          |
+| `scatter`   | `integer`, `real`             | `integer`, `real`       | yes         |
+
+Column selectors in each chart card show only the columns that match
+the allowed types for that axis and chart type.
+
+`suggestAll(columns)` returns one `ChartSuggestion` per chart type for
+which the column set has at least the required columns. The auto-populated
+analytics panel shows one card per returned suggestion.
+
 ### Milestone Reached: v0.4.0 - Basic Analytics
 
 Publish criteria:
 
-- [ ] The user can see basic aggregations and suggested charts for the opened
-      dataset.
-- [ ] The first chart is selected automatically from column types.
-- [ ] The user can change chart columns and aggregation from dropdown controls.
-- [ ] Analytics respects the selected sheet and active filters.
+- [x] The user can see one chart card per supported chart type on open.
+- [x] Each chart card is independent with its own column and aggregation controls.
+- [x] Column dropdowns in each card show only compatible columns for that chart type.
+- [x] The user can add additional charts with a "+" button.
+- [x] The user can delete individual charts with a trash button.
+- [x] Chart panel configuration is persisted in `uiStateJson`.
+- [x] Analytics respects the selected sheet and active filters.
 
 ## Path to Cross-Sheet and Multi-Dataset Analysis
 
@@ -623,13 +676,15 @@ These are not part of the first publishable release:
 
 Immediate next step:
 
-- [ ] Path to the First Publishable Preview - Step 4: Add Final Confirmation and Dataset Creation.
+- [ ] Path to Export (v0.3.0) — deferred after analytics, now the priority.
 
 Practical order:
 
-1. Show final summary from `confirmedImport`.
-2. Call `SaveUploadedFileUseCase` with the selected save mode.
-3. Call `CreateDatasetService.createDataset` only on Finish.
-4. Use the real `CreatedDatasetResult.datasetId`.
-5. Clear the Home selected file after success.
-6. Navigate to `DatasetView` with the real dataset id.
+1. Decide export scope: full dataset, current sheet, or filtered results.
+2. Complete `ExportCsvUseCase`.
+3. Complete `ExportExcelUseCase` and `ExportPdfUseCase`.
+4. Implement `ExportDataService` orchestrating the use cases.
+5. Add export dialog triggered from `DatasetView`.
+6. Integrate `file_saver` and/or share sheet (handle web vs native).
+7. Write export use case and service tests.
+8. Ship v0.3.0.
