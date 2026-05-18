@@ -1,30 +1,25 @@
-/// Executes aggregation operations on dataset columns.
-///
-/// Supported operations include:
-/// - COUNT
-/// - SUM
-/// - AVG
-/// - MIN
-/// - MAX
-///
-/// Responsibilities:
-/// - execute aggregation queries
-///
-/// Dependencies:
-/// - QueryRepository
-///
-/// Expected flow:
-/// 1. Receive tableName
-/// 2. Receive column definition
-/// 3. Receive aggregation function
-/// 4. Execute repository.aggregate()
-/// 5. Return aggregation result
+import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/repositories/query_repository.dart';
+import 'package:exel_category/domain/value_objects/aggregation_type.dart';
+
 class AggregateColumnUseCase {
+  final QueryRepository repository;
 
-  // TODO:
-  // - inject QueryRepository
-  // - implement call(tableName, column, function)
-  // - execute aggregation query
-  // - return result
+  const AggregateColumnUseCase({required this.repository});
 
+  Future<num?> call({
+    required String tableName,
+    required DatasetColumn column,
+    required AggregationType aggregationType,
+  }) async {
+    final result = await repository.aggregate(
+      tableName: tableName,
+      column: column,
+      function: aggregationType.sqlFunction,
+    );
+
+    if (result == null) return null;
+    if (result is num) return result;
+    return num.tryParse(result.toString());
+  }
 }
