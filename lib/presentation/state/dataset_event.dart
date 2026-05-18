@@ -1,3 +1,7 @@
+import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/value_objects/dataset_filter.dart';
+import 'package:exel_category/domain/value_objects/dataset_sort.dart';
+
 import 'dataset_state.dart';
 
 abstract class DatasetEvent {
@@ -24,4 +28,32 @@ class ChangeViewModeEvent extends DatasetEvent {
   final DatasetViewMode viewMode;
 
   const ChangeViewModeEvent(this.viewMode);
+}
+
+class AddFilterEvent extends DatasetEvent {
+  final DatasetFilter filter;
+
+  const AddFilterEvent(this.filter);
+}
+
+class RemoveFilterEvent extends DatasetEvent {
+  final String filterId;
+
+  const RemoveFilterEvent(this.filterId);
+}
+
+class ClearFiltersEvent extends DatasetEvent {
+  const ClearFiltersEvent();
+}
+
+class ChangeSortEvent extends DatasetEvent {
+  final DatasetSort? sort;
+
+  const ChangeSortEvent(this.sort);
+}
+
+class ToggleSortColumnEvent extends DatasetEvent {
+  final DatasetColumn column;
+
+  const ToggleSortColumnEvent(this.column);
 }

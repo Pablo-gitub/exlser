@@ -3,8 +3,13 @@ import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
 import 'package:exel_category/domain/repositories/schema_repository.dart';
 import 'package:exel_category/domain/usecases/dataset/open_dataset_usecase.dart';
+import 'package:exel_category/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
+import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
 import 'package:exel_category/domain/usecases/query/fetch_rows_usecase.dart';
 import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exel_category/domain/value_objects/dataset_filter.dart';
+import 'package:exel_category/domain/value_objects/dataset_sort.dart';
+import 'package:exel_category/domain/value_objects/filter_operator.dart';
 import 'package:exel_category/presentation/state/dataset_bloc.dart';
 import 'package:exel_category/presentation/state/dataset_event.dart';
 import 'package:exel_category/presentation/state/dataset_state.dart';
@@ -17,21 +22,46 @@ class MockSchemaRepository extends Mock implements SchemaRepository {}
 
 class MockFetchRowsUseCase extends Mock implements FetchRowsUseCase {}
 
+class MockApplyFiltersUseCase extends Mock implements ApplyFiltersUseCase {}
+
+class MockUpdateDatasetUiStateUseCase extends Mock
+    implements UpdateDatasetUiStateUseCase {}
+
 void main() {
+  setUpAll(() {
+    registerFallbackValue(<DatasetFilter>[]);
+    registerFallbackValue(
+      DatasetSort(
+        column: _column(),
+        direction: SortDirection.ascending,
+      ),
+    );
+  });
+
   group('DatasetBloc', () {
     late MockOpenDatasetUseCase openDataset;
     late MockSchemaRepository schemaRepository;
     late MockFetchRowsUseCase fetchRows;
+    late MockApplyFiltersUseCase applyFilters;
+    late MockUpdateDatasetUiStateUseCase updateDatasetUiState;
     late DatasetBloc bloc;
 
     setUp(() {
       openDataset = MockOpenDatasetUseCase();
       schemaRepository = MockSchemaRepository();
       fetchRows = MockFetchRowsUseCase();
+      applyFilters = MockApplyFiltersUseCase();
+      updateDatasetUiState = MockUpdateDatasetUiStateUseCase();
+      when(() => updateDatasetUiState.call(
+            datasetId: any(named: 'datasetId'),
+            uiStateJson: any(named: 'uiStateJson'),
+          )).thenAnswer((_) async {});
       bloc = DatasetBloc(
         openDataset: openDataset,
         schemaRepository: schemaRepository,
         fetchRows: fetchRows,
+        applyFilters: applyFilters,
+        updateDatasetUiState: updateDatasetUiState,
       );
     });
 
@@ -73,6 +103,69 @@ void main() {
         {'product': 'book'},
       ]);
       expect(state.viewMode, DatasetViewMode.table);
+    });
+
+    test('should restore persisted workspace state', () async {
+      final firstTable = _table(id: 10, name: 'Sheet1', tableName: 'tbl_1');
+      final secondTable = _table(id: 11, name: 'Sheet2', tableName: 'tbl_2');
+      final brandColumn = _column(tableId: 11, dbName: 'brand');
+      final dataset = _dataset(
+        uiStateJson: '''
+{
+  "activeTableId": 11,
+  "viewMode": "cards",
+  "filters": [
+    {
+      "columnDbName": "brand",
+      "operator": "contains",
+      "value": "van"
+    }
+  ],
+  "sort": {
+    "columnDbName": "brand",
+    "direction": "descending"
+  }
+}
+''',
+      );
+
+      when(() => openDataset.call(1)).thenAnswer((_) async => dataset);
+      when(() => schemaRepository.getTablesForDataset(1)).thenAnswer(
+        (_) async => [firstTable, secondTable],
+      );
+      when(() => schemaRepository.getColumnsForTable(11)).thenAnswer(
+        (_) async => [brandColumn],
+      );
+      when(() => applyFilters.call(
+            tableName: 'tbl_2',
+            filters: any(named: 'filters'),
+            sort: any(named: 'sort'),
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 0,
+          )).thenAnswer(
+        (_) async => [
+          {'id': 1, 'brand': 'Vans'},
+        ],
+      );
+
+      final loadedState = bloc.stream.firstWhere(
+        (state) => state is DatasetLoadedState,
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+
+      final state = await loadedState as DatasetLoadedState;
+
+      expect(state.activeTable.id, 11);
+      expect(state.viewMode, DatasetViewMode.cards);
+      expect(state.filters.single.column.dbName, 'brand');
+      expect(state.filters.single.operator, FilterOperator.contains);
+      expect(state.filters.single.value, 'van');
+      expect(state.sort?.column.dbName, 'brand');
+      expect(state.sort?.direction, SortDirection.descending);
+      expect(state.rows, [
+        {'brand': 'Vans'},
+      ]);
     });
 
     test('should expose empty state when dataset has no tables', () async {
@@ -188,11 +281,144 @@ void main() {
       final state = await changedState as DatasetLoadedState;
 
       expect(state.viewMode, DatasetViewMode.cards);
+      verify(() => updateDatasetUiState.call(
+            datasetId: 1,
+            uiStateJson: any(named: 'uiStateJson'),
+          )).called(1);
       verifyNever(() => fetchRows.call(
             tableName: 'tbl_1',
             limit: DatasetBloc.defaultRowLimit,
             offset: 0,
           ));
+    });
+
+    test('should apply filters through query use case', () async {
+      final dataset = _dataset();
+      final column = _column();
+      final filter = DatasetFilter(
+        column: column,
+        operator: FilterOperator.contains,
+        value: 'pen',
+      );
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [column],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => applyFilters.call(
+            tableName: 'tbl_1',
+            filters: any(named: 'filters'),
+            sort: any(named: 'sort'),
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 0,
+          )).thenAnswer(
+        (_) async => [
+          {'id': 2, 'product': 'pen'},
+        ],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((state) => state is DatasetLoadedState);
+
+      final filteredState = bloc.stream.firstWhere(
+        (state) =>
+            state is DatasetLoadedState &&
+            state.filters.isNotEmpty &&
+            state.rows.single['product'] == 'pen',
+      );
+
+      bloc.add(AddFilterEvent(filter));
+
+      final state = await filteredState as DatasetLoadedState;
+
+      expect(state.filters.single, filter);
+      expect(state.rows, [
+        {'product': 'pen'},
+      ]);
+
+      final captured = verify(() => applyFilters.call(
+            tableName: 'tbl_1',
+            filters: captureAny(named: 'filters'),
+            sort: null,
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 0,
+          )).captured;
+
+      expect(captured.single, [filter]);
+      verify(() => updateDatasetUiState.call(
+            datasetId: 1,
+            uiStateJson: any(named: 'uiStateJson'),
+          )).called(1);
+    });
+
+    test('should toggle sorting by column', () async {
+      final dataset = _dataset();
+      final column = _column();
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [column],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => applyFilters.call(
+            tableName: 'tbl_1',
+            filters: any(named: 'filters'),
+            sort: any(named: 'sort'),
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 0,
+          )).thenAnswer(
+        (_) async => [
+          {'id': 2, 'product': 'pen'},
+        ],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((state) => state is DatasetLoadedState);
+
+      final sortedState = bloc.stream.firstWhere(
+        (state) =>
+            state is DatasetLoadedState &&
+            state.sort?.direction == SortDirection.ascending,
+      );
+
+      bloc.add(ToggleSortColumnEvent(column));
+
+      final state = await sortedState as DatasetLoadedState;
+
+      expect(state.sort?.column.dbName, column.dbName);
+      expect(state.sort?.direction, SortDirection.ascending);
+      expect(state.rows, [
+        {'product': 'pen'},
+      ]);
+
+      final captured = verify(() => applyFilters.call(
+            tableName: 'tbl_1',
+            filters: const [],
+            sort: captureAny(named: 'sort'),
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 0,
+          )).captured;
+
+      final sort = captured.single as DatasetSort;
+      expect(sort.column.dbName, column.dbName);
+      expect(sort.direction, SortDirection.ascending);
+      verify(() => updateDatasetUiState.call(
+            datasetId: 1,
+            uiStateJson: any(named: 'uiStateJson'),
+          )).called(1);
     });
   });
 }
@@ -218,13 +444,16 @@ void _mockWorkspaceLoad({
       )).thenAnswer((_) async => rows);
 }
 
-Dataset _dataset() {
-  return const Dataset(
+Dataset _dataset({
+  String? uiStateJson,
+}) {
+  return Dataset(
     id: 1,
     name: 'Sales',
     sourceFileName: 'sales.csv',
     createdAt: 1000,
     lastOpenedAt: 2000,
+    uiStateJson: uiStateJson,
   );
 }
 

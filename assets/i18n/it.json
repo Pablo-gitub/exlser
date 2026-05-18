@@ -21,7 +21,10 @@
         "cancel": "Annulla",
         "delete": "Elimina",
         "refresh": "Aggiorna",
-        "open": "Apri"
+        "open": "Apri",
+        "add": "Aggiungi",
+        "clear": "Svuota",
+        "apply": "Applica"
     },
     "menu": {
         "home": "Home",
@@ -57,10 +60,50 @@
             "card_view": "Schede",
             "no_tables": "Questo dataset non ha fogli da mostrare.",
             "no_rows": "Nessuna riga disponibile per questo foglio.",
+            "filters": {
+                "title": "Filtri",
+                "column": "Colonna",
+                "operator": "Operatore",
+                "value": "Valore",
+                "second_value": "Secondo valore",
+                "add": "Aggiungi filtro",
+                "active": "Filtri attivi",
+                "clear": "Svuota filtri",
+                "invalid_value": "Inserisci un valore valido per il tipo della colonna selezionata.",
+                "advanced": "Avanzati",
+                "text_value": "Cerca testo",
+                "from": "Da",
+                "to": "A",
+                "range": "Intervallo",
+                "no_range": "Nessun valore numerico disponibile nelle righe caricate.",
+                "true_value": "Vero",
+                "false_value": "Falso",
+                "operator_labels": {
+                    "contains": "contiene",
+                    "equals": "uguale a",
+                    "not_equals": "diverso da",
+                    "starts_with": "inizia con",
+                    "ends_with": "finisce con",
+                    "greater_than": "maggiore di",
+                    "greater_or_equal": "maggiore o uguale a",
+                    "less_than": "minore di",
+                    "less_or_equal": "minore o uguale a",
+                    "between": "tra",
+                    "on": "il giorno",
+                    "before": "prima di",
+                    "after": "dopo",
+                    "is_empty": "è vuoto",
+                    "is_not_empty": "non è vuoto",
+                    "is_true": "è vero",
+                    "is_false": "è falso"
+                }
+            },
             "error": {
                 "load_failed": "Impossibile caricare il workspace del dataset.",
                 "sheet_failed": "Impossibile caricare il foglio selezionato.",
-                "refresh_failed": "Impossibile aggiornare le righe."
+                "refresh_failed": "Impossibile aggiornare le righe.",
+                "filter_failed": "Impossibile applicare i filtri.",
+                "sort_failed": "Impossibile ordinare le righe."
             }
         }
     },

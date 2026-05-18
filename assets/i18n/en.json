@@ -21,7 +21,10 @@
         "cancel": "Cancel",
         "delete": "Delete",
         "refresh": "Refresh",
-        "open": "Open"
+        "open": "Open",
+        "add": "Add",
+        "clear": "Clear",
+        "apply": "Apply"
     },
     "menu": {
         "home": "Home",
@@ -57,10 +60,50 @@
             "card_view": "Cards",
             "no_tables": "This dataset has no sheets to display.",
             "no_rows": "No rows available for this sheet.",
+            "filters": {
+                "title": "Filters",
+                "column": "Column",
+                "operator": "Operator",
+                "value": "Value",
+                "second_value": "Second value",
+                "add": "Add filter",
+                "active": "Active filters",
+                "clear": "Clear filters",
+                "invalid_value": "Enter a valid value for the selected column type.",
+                "advanced": "Advanced",
+                "text_value": "Search text",
+                "from": "From",
+                "to": "To",
+                "range": "Range",
+                "no_range": "No numeric values are available in the loaded rows.",
+                "true_value": "True",
+                "false_value": "False",
+                "operator_labels": {
+                    "contains": "contains",
+                    "equals": "equals",
+                    "not_equals": "does not equal",
+                    "starts_with": "starts with",
+                    "ends_with": "ends with",
+                    "greater_than": "greater than",
+                    "greater_or_equal": "greater than or equal",
+                    "less_than": "less than",
+                    "less_or_equal": "less than or equal",
+                    "between": "between",
+                    "on": "on",
+                    "before": "before",
+                    "after": "after",
+                    "is_empty": "is empty",
+                    "is_not_empty": "is not empty",
+                    "is_true": "is true",
+                    "is_false": "is false"
+                }
+            },
             "error": {
                 "load_failed": "Could not load the dataset workspace.",
                 "sheet_failed": "Could not load the selected sheet.",
-                "refresh_failed": "Could not refresh rows."
+                "refresh_failed": "Could not refresh rows.",
+                "filter_failed": "Could not apply filters.",
+                "sort_failed": "Could not sort rows."
             }
         }
     },

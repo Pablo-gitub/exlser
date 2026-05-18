@@ -7,7 +7,10 @@ import 'package:exel_category/domain/usecases/dataset/delete_dataset_usecase.dar
 import 'package:exel_category/domain/usecases/dataset/get_datasets_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/open_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/register_dataset_file_usecase.dart';
+import 'package:exel_category/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
+import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
 import 'package:exel_category/domain/usecases/query/fetch_rows_usecase.dart';
+import 'package:exel_category/domain/usecases/query/get_distinct_values_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/build_dynamic_table_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/create_dataset_table_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/infer_schema_usecase.dart';
@@ -77,6 +80,13 @@ final deleteDatasetUseCaseProvider = Provider<DeleteDatasetUseCase>((ref) {
   );
 });
 
+final updateDatasetUiStateUseCaseProvider =
+    Provider<UpdateDatasetUiStateUseCase>((ref) {
+  return UpdateDatasetUiStateUseCase(
+    repository: ref.watch(datasetsRepositoryProvider),
+  );
+});
+
 final createDatasetTableUseCaseProvider =
     Provider<CreateDatasetTableUseCase>((ref) {
   return CreateDatasetTableUseCase(
@@ -105,6 +115,19 @@ final insertRowsUseCaseProvider = Provider<InsertRowsUseCase>((ref) {
 
 final fetchRowsUseCaseProvider = Provider<FetchRowsUseCase>((ref) {
   return FetchRowsUseCase(
+    repository: ref.watch(queryRepositoryProvider),
+  );
+});
+
+final applyFiltersUseCaseProvider = Provider<ApplyFiltersUseCase>((ref) {
+  return ApplyFiltersUseCase(
+    repository: ref.watch(queryRepositoryProvider),
+  );
+});
+
+final getDistinctValuesUseCaseProvider =
+    Provider<GetDistinctValuesUseCase>((ref) {
+  return GetDistinctValuesUseCase(
     repository: ref.watch(queryRepositoryProvider),
   );
 });

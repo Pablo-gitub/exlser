@@ -16,6 +16,9 @@ class AppStrings {
   static const String delete = 'common.delete';
   static const String refresh = 'common.refresh';
   static const String open = 'common.open';
+  static const String add = 'common.add';
+  static const String clear = 'common.clear';
+  static const String apply = 'common.apply';
 
   static const String home = 'menu.home';
   static const String works = 'menu.works';
@@ -56,6 +59,78 @@ class AppStrings {
       'dataset.workspace.error.sheet_failed';
   static const String datasetWorkspaceRefreshFailed =
       'dataset.workspace.error.refresh_failed';
+  static const String datasetWorkspaceFilterFailed =
+      'dataset.workspace.error.filter_failed';
+  static const String datasetWorkspaceSortFailed =
+      'dataset.workspace.error.sort_failed';
+  static const String datasetWorkspaceFiltersTitle =
+      'dataset.workspace.filters.title';
+  static const String datasetWorkspaceFiltersColumn =
+      'dataset.workspace.filters.column';
+  static const String datasetWorkspaceFiltersOperator =
+      'dataset.workspace.filters.operator';
+  static const String datasetWorkspaceFiltersValue =
+      'dataset.workspace.filters.value';
+  static const String datasetWorkspaceFiltersSecondValue =
+      'dataset.workspace.filters.second_value';
+  static const String datasetWorkspaceFiltersAdd =
+      'dataset.workspace.filters.add';
+  static const String datasetWorkspaceFiltersActive =
+      'dataset.workspace.filters.active';
+  static const String datasetWorkspaceFiltersClear =
+      'dataset.workspace.filters.clear';
+  static const String datasetWorkspaceFiltersInvalidValue =
+      'dataset.workspace.filters.invalid_value';
+  static const String datasetWorkspaceFiltersAdvanced =
+      'dataset.workspace.filters.advanced';
+  static const String datasetWorkspaceFiltersTextValue =
+      'dataset.workspace.filters.text_value';
+  static const String datasetWorkspaceFiltersFrom =
+      'dataset.workspace.filters.from';
+  static const String datasetWorkspaceFiltersTo =
+      'dataset.workspace.filters.to';
+  static const String datasetWorkspaceFiltersRange =
+      'dataset.workspace.filters.range';
+  static const String datasetWorkspaceFiltersNoRange =
+      'dataset.workspace.filters.no_range';
+  static const String datasetWorkspaceFiltersTrueValue =
+      'dataset.workspace.filters.true_value';
+  static const String datasetWorkspaceFiltersFalseValue =
+      'dataset.workspace.filters.false_value';
+  static const String datasetWorkspaceFilterContains =
+      'dataset.workspace.filters.operator_labels.contains';
+  static const String datasetWorkspaceFilterEquals =
+      'dataset.workspace.filters.operator_labels.equals';
+  static const String datasetWorkspaceFilterNotEquals =
+      'dataset.workspace.filters.operator_labels.not_equals';
+  static const String datasetWorkspaceFilterStartsWith =
+      'dataset.workspace.filters.operator_labels.starts_with';
+  static const String datasetWorkspaceFilterEndsWith =
+      'dataset.workspace.filters.operator_labels.ends_with';
+  static const String datasetWorkspaceFilterGreaterThan =
+      'dataset.workspace.filters.operator_labels.greater_than';
+  static const String datasetWorkspaceFilterGreaterOrEqual =
+      'dataset.workspace.filters.operator_labels.greater_or_equal';
+  static const String datasetWorkspaceFilterLessThan =
+      'dataset.workspace.filters.operator_labels.less_than';
+  static const String datasetWorkspaceFilterLessOrEqual =
+      'dataset.workspace.filters.operator_labels.less_or_equal';
+  static const String datasetWorkspaceFilterBetween =
+      'dataset.workspace.filters.operator_labels.between';
+  static const String datasetWorkspaceFilterOn =
+      'dataset.workspace.filters.operator_labels.on';
+  static const String datasetWorkspaceFilterBefore =
+      'dataset.workspace.filters.operator_labels.before';
+  static const String datasetWorkspaceFilterAfter =
+      'dataset.workspace.filters.operator_labels.after';
+  static const String datasetWorkspaceFilterIsEmpty =
+      'dataset.workspace.filters.operator_labels.is_empty';
+  static const String datasetWorkspaceFilterIsNotEmpty =
+      'dataset.workspace.filters.operator_labels.is_not_empty';
+  static const String datasetWorkspaceFilterIsTrue =
+      'dataset.workspace.filters.operator_labels.is_true';
+  static const String datasetWorkspaceFilterIsFalse =
+      'dataset.workspace.filters.operator_labels.is_false';
 
   static const String languageEnglish = 'settings.language_english';
   static const String languageItalian = 'settings.language_italian';
