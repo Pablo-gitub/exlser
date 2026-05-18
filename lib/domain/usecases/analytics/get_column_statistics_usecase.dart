@@ -22,18 +22,27 @@ class GetColumnStatisticsUseCase {
     final col = column.dbName;
     final where = whereClause != null ? 'WHERE $whereClause' : '';
 
-    final statsQuery = '''
-      SELECT
-        COUNT(*) AS total_count,
-        COUNT($col) AS non_null_count,
-        COUNT(DISTINCT $col) AS distinct_count,
-        MIN(CAST($col AS REAL)) AS min_val,
-        MAX(CAST($col AS REAL)) AS max_val,
-        AVG(CAST($col AS REAL)) AS avg_val,
-        SUM(CAST($col AS REAL)) AS sum_val
-      FROM $tableName
-      $where
-    ''';
+    final statsQuery = column.isNumeric
+        ? '''
+          SELECT
+            COUNT(*) AS total_count,
+            COUNT($col) AS non_null_count,
+            COUNT(DISTINCT $col) AS distinct_count,
+            MIN(CAST($col AS REAL)) AS min_val,
+            MAX(CAST($col AS REAL)) AS max_val,
+            AVG(CAST($col AS REAL)) AS avg_val,
+            SUM(CAST($col AS REAL)) AS sum_val
+          FROM $tableName
+          $where
+        '''
+        : '''
+          SELECT
+            COUNT(*) AS total_count,
+            COUNT($col) AS non_null_count,
+            COUNT(DISTINCT $col) AS distinct_count
+          FROM $tableName
+          $where
+        ''';
 
     final result = await repository.executeRawQuery(
       statsQuery,
@@ -54,18 +63,15 @@ class GetColumnStatisticsUseCase {
     final nonNull = _toInt(row['non_null_count']) ?? 0;
     final distinct = _toInt(row['distinct_count']) ?? 0;
 
-    final minVal = _toNum(row['min_val']);
-    final maxVal = _toNum(row['max_val']);
-
     return ColumnStatistics(
       column: column,
       totalRows: total,
       nullCount: total - nonNull,
       distinctCount: distinct,
-      min: minVal,
-      max: maxVal,
-      avg: _toNum(row['avg_val']),
-      sum: _toNum(row['sum_val']),
+      min: column.isNumeric ? _toNum(row['min_val']) : null,
+      max: column.isNumeric ? _toNum(row['max_val']) : null,
+      avg: column.isNumeric ? _toNum(row['avg_val']) : null,
+      sum: column.isNumeric ? _toNum(row['sum_val']) : null,
     );
   }
 

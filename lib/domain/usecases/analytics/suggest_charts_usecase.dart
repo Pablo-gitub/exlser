@@ -26,9 +26,6 @@ class SuggestChartsUseCase {
     final pie = _suggestPie(columns);
     if (pie != null) suggestions.add(pie);
 
-    final scatter = _suggestScatter(columns);
-    if (scatter != null) suggestions.add(scatter);
-
     return suggestions;
   }
 
@@ -74,17 +71,6 @@ class SuggestChartsUseCase {
     );
   }
 
-  ChartSuggestion? _suggestScatter(List<DatasetColumn> columns) {
-    final numerics = columns.where((c) => c.isNumeric).toList();
-    if (numerics.length < 2) return null;
-    return ChartSuggestion(
-      chartType: ChartType.scatter,
-      xColumn: numerics.first,
-      yColumn: numerics[1],
-      aggregationType: AggregationType.count,
-    );
-  }
-
   /// Returns the single best suggestion using priority order.
   ChartSuggestion call(List<DatasetColumn> columns) {
     if (columns.isEmpty) return const ChartSuggestion.none();
@@ -112,15 +98,6 @@ class SuggestChartsUseCase {
         xColumn: textColumns.first,
         yColumn: numericColumns.first,
         aggregationType: AggregationType.sum,
-      );
-    }
-
-    if (numericColumns.length >= 2) {
-      return ChartSuggestion(
-        chartType: ChartType.scatter,
-        xColumn: numericColumns.first,
-        yColumn: numericColumns[1],
-        aggregationType: AggregationType.count,
       );
     }
 

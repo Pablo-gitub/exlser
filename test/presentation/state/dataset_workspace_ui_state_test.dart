@@ -83,6 +83,17 @@ void main() {
       expect(stored.toChartSuggestion(columns), isNull);
     });
 
+    test('toChartSuggestion returns null for unsupported chart type', () {
+      const stored = StoredAnalyticsChart(
+        id: 'chart_0',
+        chartTypeName: 'scatter',
+        xColumnDbName: 'amount',
+        yColumnDbName: 'amount',
+      );
+
+      expect(stored.toChartSuggestion(columns), isNull);
+    });
+
     test('toChartSuggestion sets null yColumn when yColumnDbName missing', () {
       const stored = StoredAnalyticsChart(
         id: 'chart_0',

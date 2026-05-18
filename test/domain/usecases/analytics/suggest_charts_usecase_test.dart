@@ -1,3 +1,4 @@
+import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/usecases/analytics/suggest_charts_usecase.dart';
 import 'package:exel_category/domain/value_objects/aggregation_type.dart';
@@ -47,15 +48,14 @@ void main() {
       expect(result.chartType, ChartType.line);
     });
 
-    test('suggests scatter chart for 2+ numeric columns (no date or text)', () {
+    test('returns none for numeric-only columns until scatter is implemented',
+        () {
       final columns = [
         _col('x', ColumnType.integer),
         _col('y', ColumnType.real),
       ];
       final result = useCase(columns);
-      expect(result.chartType, ChartType.scatter);
-      expect(result.xColumn?.dbName, 'x');
-      expect(result.yColumn?.dbName, 'y');
+      expect(result.chartType, ChartType.none);
     });
 
     test('suggests bar chart for boolean-only columns', () {
@@ -89,6 +89,28 @@ void main() {
       final columns = [_col('category', ColumnType.text)];
       final result = useCase(columns);
       expect(result.hasChart, isTrue);
+    });
+
+    test('hasChart is false for unsupported scatter suggestions', () {
+      final result = ChartSuggestion(
+        chartType: ChartType.scatter,
+        xColumn: _col('x', ColumnType.integer),
+        yColumn: _col('y', ColumnType.real),
+      );
+
+      expect(result.hasChart, isFalse);
+    });
+
+    test('suggestAll excludes unsupported scatter charts', () {
+      final columns = [
+        _col('x', ColumnType.integer),
+        _col('y', ColumnType.real),
+      ];
+
+      final result = useCase.suggestAll(columns);
+
+      expect(
+          result.map((s) => s.chartType), isNot(contains(ChartType.scatter)));
     });
   });
 }

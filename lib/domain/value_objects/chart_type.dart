@@ -27,6 +27,9 @@ enum ChartType {
   bool get requiresYColumn =>
       this == ChartType.line || this == ChartType.scatter;
 
+  bool get isImplemented =>
+      this == ChartType.line || this == ChartType.bar || this == ChartType.pie;
+
   String get label => switch (this) {
         ChartType.line => 'Line',
         ChartType.bar => 'Bar',

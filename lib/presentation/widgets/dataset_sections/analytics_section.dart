@@ -33,7 +33,7 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
   void _showAddChartDialog() {
     final columns = widget.state.columns;
     final availableTypes = ChartType.values
-        .where((t) => t != ChartType.none)
+        .where((t) => t.isImplemented)
         .where(
           (t) =>
               columns.any((c) => t.validXColumnTypes.contains(c.declaredType)),

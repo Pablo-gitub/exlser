@@ -24,21 +24,29 @@ class ChartSuggestion {
         groupColumn = null,
         aggregationType = AggregationType.count;
 
-  bool get hasChart => chartType != ChartType.none;
+  bool get hasChart => chartType.isImplemented;
 
   ChartSuggestion copyWith({
     ChartType? chartType,
-    DatasetColumn? xColumn,
-    DatasetColumn? yColumn,
-    DatasetColumn? groupColumn,
+    Object? xColumn = _notProvided,
+    Object? yColumn = _notProvided,
+    Object? groupColumn = _notProvided,
     AggregationType? aggregationType,
   }) {
     return ChartSuggestion(
       chartType: chartType ?? this.chartType,
-      xColumn: xColumn ?? this.xColumn,
-      yColumn: yColumn ?? this.yColumn,
-      groupColumn: groupColumn ?? this.groupColumn,
+      xColumn: identical(xColumn, _notProvided)
+          ? this.xColumn
+          : xColumn as DatasetColumn?,
+      yColumn: identical(yColumn, _notProvided)
+          ? this.yColumn
+          : yColumn as DatasetColumn?,
+      groupColumn: identical(groupColumn, _notProvided)
+          ? this.groupColumn
+          : groupColumn as DatasetColumn?,
       aggregationType: aggregationType ?? this.aggregationType,
     );
   }
 }
+
+const Object _notProvided = Object();

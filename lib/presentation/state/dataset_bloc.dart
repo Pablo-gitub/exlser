@@ -124,8 +124,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         sort: null,
       );
 
-      emit(nextState);
-      await _persistWorkspaceState(nextState);
+      final persistedState = _attachWorkspaceStateJson(nextState);
+      emit(persistedState);
+      await _persistWorkspaceState(persistedState);
     } catch (_) {
       emit(const DatasetErrorState('sheet_failed'));
     }
@@ -161,7 +162,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     final currentState = state;
     if (currentState is! DatasetLoadedState) return;
 
-    final nextState = currentState.copyWith(viewMode: event.viewMode);
+    final nextState = _attachWorkspaceStateJson(
+      currentState.copyWith(viewMode: event.viewMode),
+    );
     emit(nextState);
     await _persistWorkspaceState(nextState);
   }
@@ -275,14 +278,36 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         sort: sort,
       );
 
+      final loadedAnalyticsState =
+          currentState.analyticsState is DatasetAnalyticsLoadedState
+              ? currentState.analyticsState as DatasetAnalyticsLoadedState
+              : null;
+
       final nextState = currentState.copyWith(
         rows: _stripInternalColumns(rows),
         filters: filters,
         sort: sort,
+        analyticsState: loadedAnalyticsState != null
+            ? const DatasetAnalyticsLoadingState()
+            : currentState.analyticsState,
       );
 
+      if (loadedAnalyticsState == null) {
+        final persistedState = _attachWorkspaceStateJson(nextState);
+        emit(persistedState);
+        await _persistWorkspaceState(persistedState);
+        return;
+      }
+
       emit(nextState);
-      await _persistWorkspaceState(nextState);
+
+      final reloadedState = await _loadAnalyticsForState(
+        nextState,
+        charts: loadedAnalyticsState.charts,
+      );
+      final persistedState = _attachWorkspaceStateJson(reloadedState);
+      emit(persistedState);
+      await _persistWorkspaceState(persistedState);
     } catch (_) {
       emit(DatasetErrorState(errorCode));
     }
@@ -391,6 +416,16 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     return tables.first;
   }
 
+  DatasetLoadedState _attachWorkspaceStateJson(DatasetLoadedState state) {
+    final uiStateJson = DatasetWorkspaceUiState.fromLoadedState(
+      state,
+    ).toJsonString();
+
+    return state.copyWith(
+      dataset: state.dataset.copyWith(uiStateJson: uiStateJson),
+    );
+  }
+
   Future<void> _persistWorkspaceState(DatasetLoadedState state) async {
     try {
       await _updateDatasetUiState.call(
@@ -404,35 +439,33 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     }
   }
 
-  Future<void> _onLoadAnalytics(
-    LoadAnalyticsEvent event,
-    Emitter<DatasetState> emit,
-  ) async {
-    final currentState = state;
-    if (currentState is! DatasetLoadedState) return;
-
-    emit(currentState.copyWith(
-      analyticsState: const DatasetAnalyticsLoadingState(),
-    ));
-
+  Future<DatasetLoadedState> _loadAnalyticsForState(
+    DatasetLoadedState currentState, {
+    List<AnalyticsChart>? charts,
+  }) async {
     try {
-      final workspaceState = DatasetWorkspaceUiState.fromJsonString(
-        currentState.dataset.uiStateJson,
-      );
-
       List<String> ids;
       List<ChartSuggestion> suggestions;
 
-      if (workspaceState.charts.isNotEmpty) {
-        final restored = [
-          for (final stored in workspaceState.charts)
-            (stored.id, stored.toChartSuggestion(currentState.columns)),
-        ].where((pair) => pair.$2 != null).toList();
-        ids = [for (final p in restored) p.$1];
-        suggestions = [for (final p in restored) p.$2!];
+      if (charts != null) {
+        ids = [for (final chart in charts) chart.id];
+        suggestions = [for (final chart in charts) chart.suggestion];
       } else {
-        suggestions = _analysisService.suggestAllCharts(currentState.columns);
-        ids = List.generate(suggestions.length, (i) => 'chart_$i');
+        final workspaceState = DatasetWorkspaceUiState.fromJsonString(
+          currentState.dataset.uiStateJson,
+        );
+
+        if (workspaceState.charts.isNotEmpty) {
+          final restored = [
+            for (final stored in workspaceState.charts)
+              (stored.id, stored.toChartSuggestion(currentState.columns)),
+          ].where((pair) => pair.$2 != null).toList();
+          ids = [for (final p in restored) p.$1];
+          suggestions = [for (final p in restored) p.$2!];
+        } else {
+          suggestions = _analysisService.suggestAllCharts(currentState.columns);
+          ids = List.generate(suggestions.length, (i) => 'chart_$i');
+        }
       }
 
       final whereClause = _applyFilters.buildWhereClause(currentState.filters);
@@ -447,7 +480,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
           ),
       ]);
 
-      final charts = [
+      final loadedCharts = [
         for (int i = 0; i < suggestions.length; i++)
           AnalyticsChart(
             id: ids[i],
@@ -456,15 +489,33 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
           ),
       ];
 
-      final nextState = currentState.copyWith(
-        analyticsState: DatasetAnalyticsLoadedState(charts: charts),
+      return currentState.copyWith(
+        analyticsState: DatasetAnalyticsLoadedState(charts: loadedCharts),
       );
-      emit(nextState);
-      await _persistWorkspaceState(nextState);
     } catch (_) {
-      emit(currentState.copyWith(
+      return currentState.copyWith(
         analyticsState: const DatasetAnalyticsErrorState('analytics_failed'),
-      ));
+      );
+    }
+  }
+
+  Future<void> _onLoadAnalytics(
+    LoadAnalyticsEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+
+    emit(currentState.copyWith(
+      analyticsState: const DatasetAnalyticsLoadingState(),
+    ));
+
+    final loadedState = await _loadAnalyticsForState(currentState);
+    final nextState = _attachWorkspaceStateJson(loadedState);
+    emit(nextState);
+
+    if (nextState.analyticsState is DatasetAnalyticsLoadedState) {
+      await _persistWorkspaceState(nextState);
     }
   }
 
@@ -527,8 +578,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final nextState = latest.copyWith(
         analyticsState: latestAnalytics.copyWith(charts: loadedCharts),
       );
-      emit(nextState);
-      await _persistWorkspaceState(nextState);
+      final persistedState = _attachWorkspaceStateJson(nextState);
+      emit(persistedState);
+      await _persistWorkspaceState(persistedState);
     } catch (_) {
       final latest = state;
       if (latest is! DatasetLoadedState) return;
@@ -539,9 +591,11 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         for (final c in latestAnalytics.charts)
           if (c.id == id) c.copyWith(isLoading: false) else c,
       ];
-      emit(latest.copyWith(
+      final nextState = _attachWorkspaceStateJson(latest.copyWith(
         analyticsState: latestAnalytics.copyWith(charts: errorCharts),
       ));
+      emit(nextState);
+      await _persistWorkspaceState(nextState);
     }
   }
 
@@ -561,8 +615,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     final nextState = currentState.copyWith(
       analyticsState: analyticsState.copyWith(charts: remaining),
     );
-    emit(nextState);
-    await _persistWorkspaceState(nextState);
+    final persistedState = _attachWorkspaceStateJson(nextState);
+    emit(persistedState);
+    await _persistWorkspaceState(persistedState);
   }
 
   Future<void> _onUpdateChartConfig(
@@ -613,8 +668,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final nextState = latest.copyWith(
         analyticsState: latestAnalytics.copyWith(charts: loadedCharts),
       );
-      emit(nextState);
-      await _persistWorkspaceState(nextState);
+      final persistedState = _attachWorkspaceStateJson(nextState);
+      emit(persistedState);
+      await _persistWorkspaceState(persistedState);
     } catch (_) {
       final latest = state;
       if (latest is! DatasetLoadedState) return;
@@ -625,9 +681,11 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         for (final c in latestAnalytics.charts)
           if (c.id == event.chartId) c.copyWith(isLoading: false) else c,
       ];
-      emit(latest.copyWith(
+      final nextState = _attachWorkspaceStateJson(latest.copyWith(
         analyticsState: latestAnalytics.copyWith(charts: errorCharts),
       ));
+      emit(nextState);
+      await _persistWorkspaceState(nextState);
     }
   }
 }

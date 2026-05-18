@@ -3,6 +3,7 @@ import 'package:exel_category/application/services/analysis_service.dart';
 import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/value_objects/chart_type.dart';
+import 'package:exel_category/domain/value_objects/aggregation_type.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
 import 'package:exel_category/domain/repositories/schema_repository.dart';
@@ -291,6 +292,7 @@ void main() {
       final state = await changedState as DatasetLoadedState;
 
       expect(state.viewMode, DatasetViewMode.cards);
+      expect(state.dataset.uiStateJson, contains('"viewMode":"cards"'));
       verify(() => updateDatasetUiState.call(
             datasetId: 1,
             uiStateJson: any(named: 'uiStateJson'),
@@ -366,6 +368,111 @@ void main() {
             datasetId: 1,
             uiStateJson: any(named: 'uiStateJson'),
           )).called(1);
+    });
+
+    test('should reload loaded analytics when filters change', () async {
+      final dataset = _dataset();
+      final column = _column();
+      final filter = DatasetFilter(
+        column: column,
+        operator: FilterOperator.contains,
+        value: 'pen',
+      );
+      final suggestion = ChartSuggestion(
+        chartType: ChartType.bar,
+        xColumn: column,
+      );
+      const initialChartData = CategoryChartData(
+        chartType: ChartType.bar,
+        xLabel: 'product',
+        yLabel: 'COUNT',
+        points: [CategoryPoint(label: 'book', value: 1)],
+        aggregationType: AggregationType.count,
+      );
+      const filteredChartData = CategoryChartData(
+        chartType: ChartType.bar,
+        xLabel: 'product',
+        yLabel: 'COUNT',
+        points: [CategoryPoint(label: 'pen', value: 1)],
+        aggregationType: AggregationType.count,
+      );
+      var chartLoadCount = 0;
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [column],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => analysisService.suggestAllCharts(any()))
+          .thenReturn([suggestion]);
+      when(() => applyFilters.buildWhereClause(any())).thenAnswer(
+        (invocation) {
+          final filters =
+              invocation.positionalArguments.first as List<DatasetFilter>;
+          if (filters.isEmpty) return null;
+          return (sql: 'product LIKE ?', arguments: ['%pen%']);
+        },
+      );
+      when(() => analysisService.loadChartData(
+            tableName: any(named: 'tableName'),
+            suggestion: any(named: 'suggestion'),
+            whereClause: any(named: 'whereClause'),
+            whereArguments: any(named: 'whereArguments'),
+          )).thenAnswer((_) async {
+        chartLoadCount += 1;
+        return chartLoadCount == 1 ? initialChartData : filteredChartData;
+      });
+      when(() => applyFilters.call(
+            tableName: 'tbl_1',
+            filters: any(named: 'filters'),
+            sort: any(named: 'sort'),
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 0,
+          )).thenAnswer(
+        (_) async => [
+          {'id': 2, 'product': 'pen'},
+        ],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((state) => state is DatasetLoadedState);
+      bloc.add(const LoadAnalyticsEvent());
+      await bloc.stream.firstWhere(
+        (state) =>
+            state is DatasetLoadedState &&
+            state.analyticsState is DatasetAnalyticsLoadedState,
+      );
+
+      bloc.add(AddFilterEvent(filter));
+
+      final filteredAnalyticsState = await bloc.stream.firstWhere((state) {
+        if (state is! DatasetLoadedState || state.filters.isEmpty) {
+          return false;
+        }
+        final analytics = state.analyticsState;
+        if (analytics is! DatasetAnalyticsLoadedState) {
+          return false;
+        }
+        return analytics.charts.single.chartData == filteredChartData;
+      }) as DatasetLoadedState;
+
+      final analytics =
+          filteredAnalyticsState.analyticsState as DatasetAnalyticsLoadedState;
+      expect(filteredAnalyticsState.rows, [
+        {'product': 'pen'},
+      ]);
+      expect(analytics.charts.single.chartData, filteredChartData);
+      expect(
+        filteredAnalyticsState.dataset.uiStateJson,
+        contains('"filters"'),
+      );
+      expect(chartLoadCount, 2);
     });
 
     test('should toggle sorting by column', () async {

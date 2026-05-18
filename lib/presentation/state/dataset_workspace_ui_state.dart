@@ -171,7 +171,7 @@ class StoredAnalyticsChart {
       (t) => t.name == chartTypeName,
       orElse: () => ChartType.none,
     );
-    if (chartType == ChartType.none) return null;
+    if (!chartType.isImplemented) return null;
 
     final xColumn =
         xColumnDbName != null ? _findColumn(columns, xColumnDbName!) : null;

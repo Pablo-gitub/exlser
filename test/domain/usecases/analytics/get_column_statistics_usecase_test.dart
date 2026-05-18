@@ -113,6 +113,34 @@ void main() {
 
       expect(captured[0], isNot(contains('WHERE')));
     });
+
+    test('does not cast non-numeric columns to numeric statistics', () async {
+      final column = _col('brand', ColumnType.text);
+      when(() => repository.executeRawQuery(any(), any()))
+          .thenAnswer((_) async => [
+                {
+                  'total_count': 4,
+                  'non_null_count': 3,
+                  'distinct_count': 2,
+                }
+              ]);
+
+      final stats = await useCase(tableName: 'my_table', column: column);
+
+      final captured =
+          verify(() => repository.executeRawQuery(captureAny(), any()))
+              .captured;
+
+      expect(captured[0], isNot(contains('CAST')));
+      expect(stats.totalRows, 4);
+      expect(stats.nullCount, 1);
+      expect(stats.distinctCount, 2);
+      expect(stats.min, isNull);
+      expect(stats.max, isNull);
+      expect(stats.avg, isNull);
+      expect(stats.sum, isNull);
+      expect(stats.hasNumericStats, isFalse);
+    });
   });
 }
 
