@@ -21,12 +21,10 @@ import 'package:flutter/material.dart';
 /// - QueryRepository executes new query
 /// - UI state is persisted
 class FiltersSection extends StatelessWidget {
-
   const FiltersSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     /// TODO
     /// Dynamically generate filter widgets based on column types
 

@@ -19,12 +19,12 @@ void main() {
 
     // Insert dataset
     final id = await database.into(database.datasets).insert(
-      DatasetsCompanion.insert(
-        name: 'Test Dataset',
-        sourceFileName: 'test.xlsx',
-        createdAt: now,
-      ),
-    );
+          DatasetsCompanion.insert(
+            name: 'Test Dataset',
+            sourceFileName: 'test.xlsx',
+            createdAt: now,
+          ),
+        );
 
     // Retrieve dataset
     final result = await (database.select(database.datasets)

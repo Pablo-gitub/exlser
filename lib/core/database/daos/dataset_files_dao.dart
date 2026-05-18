@@ -8,7 +8,6 @@ part 'dataset_files_dao.g.dart';
 @DriftAccessor(tables: [DatasetFiles])
 class DatasetFilesDao extends DatabaseAccessor<AppDatabase>
     with _$DatasetFilesDaoMixin {
-
   DatasetFilesDao(super.db);
 
   /// Creates file metadata for a dataset
@@ -34,15 +33,13 @@ class DatasetFilesDao extends DatabaseAccessor<AppDatabase>
 
   /// Get file metadata by datasetId
   Future<DatasetFile?> getByDatasetId(int datasetId) {
-    return (select(datasetFiles)
-          ..where((t) => t.datasetId.equals(datasetId)))
+    return (select(datasetFiles)..where((t) => t.datasetId.equals(datasetId)))
         .getSingleOrNull();
   }
 
   /// Delete file metadata by datasetId
   Future<int> deleteByDatasetId(int datasetId) {
-    return (delete(datasetFiles)
-          ..where((t) => t.datasetId.equals(datasetId)))
+    return (delete(datasetFiles)..where((t) => t.datasetId.equals(datasetId)))
         .go();
   }
 

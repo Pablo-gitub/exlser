@@ -5,26 +5,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 /// Mock repository used to isolate the use case behavior.
-class MockDatasetsRepository extends Mock
-    implements DatasetsRepository {}
+class MockDatasetsRepository extends Mock implements DatasetsRepository {}
 
 /// Fake entity required by mocktail when using `any()`.
 class FakeDataset extends Fake implements Dataset {}
 
 void main() {
-
   /// Register fallback values required by mocktail.
   setUpAll(() {
     registerFallbackValue(FakeDataset());
   });
 
   group('CreateDatasetUseCase', () {
-
     late MockDatasetsRepository repository;
     late CreateDatasetUseCase useCase;
 
     setUp(() {
-
       /// Fresh repository instance before each test.
       repository = MockDatasetsRepository();
 
@@ -37,11 +33,9 @@ void main() {
     test(
       'should create dataset correctly',
       () async {
-
         /// Arrange
         /// Repository returns persisted dataset with generated id.
-        when(() => repository.createDataset(any()))
-            .thenAnswer(
+        when(() => repository.createDataset(any())).thenAnswer(
           (_) async => Dataset(
             id: 1,
             name: 'Sales Report',
@@ -87,12 +81,11 @@ void main() {
 
         expect(result.name, 'Sales Report');
 
-        final captured =
-            verify(
-              () => repository.createDataset(
-                captureAny(),
-              ),
-            ).captured.single as Dataset;
+        final captured = verify(
+          () => repository.createDataset(
+            captureAny(),
+          ),
+        ).captured.single as Dataset;
 
         expect(captured.name, 'Sales Report');
       },

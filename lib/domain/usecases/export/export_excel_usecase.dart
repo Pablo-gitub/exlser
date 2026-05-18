@@ -14,11 +14,9 @@
 /// 3. Build Excel file
 /// 4. Return file or file path
 class ExportExcelUseCase {
-
   // TODO:
   // - inject QueryRepository
   // - retrieve dataset rows
   // - build Excel workbook
   // - export file via infrastructure service
-
 }

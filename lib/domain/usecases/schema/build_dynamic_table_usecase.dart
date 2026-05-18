@@ -19,7 +19,6 @@ import 'package:exel_category/domain/repositories/schema_repository.dart';
 /// 3. Validate schema
 /// 4. Call repository.createDynamicTable()
 class BuildDynamicTableUseCase {
-
   final SchemaRepository repository;
 
   const BuildDynamicTableUseCase({
@@ -31,7 +30,6 @@ class BuildDynamicTableUseCase {
     required DatasetTable table,
     required List<DatasetColumn> columns,
   }) async {
-
     /// Prevent creation of empty tables.
     if (columns.isEmpty) {
       throw Exception(

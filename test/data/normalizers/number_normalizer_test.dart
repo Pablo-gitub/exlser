@@ -3,7 +3,6 @@ import 'package:exel_category/data/adapters/normalizers/number_normalizer.dart';
 
 void main() {
   group('NumberNormalizer', () {
-
     late NumberNormalizer normalizer;
 
     setUp(() {
@@ -70,6 +69,5 @@ void main() {
         expect(normalizer.tryNormalize("   "), null);
       },
     );
-
   });
 }

@@ -1,5 +1,6 @@
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/repositories/schema_repository.dart';
+
 /// Persists column metadata for a dataset table.
 ///
 /// Columns are inferred from the imported dataset and then stored

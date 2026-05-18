@@ -17,7 +17,6 @@
 /// "select"         -> "select_column"
 ///
 class SqlNameSanitizer {
-
   /// List of common SQL reserved keywords.
   static const _reservedWords = {
     "select",
@@ -41,7 +40,6 @@ class SqlNameSanitizer {
 
   /// Converts an arbitrary string into a SQL-safe identifier.
   static String sanitize(String input) {
-
     var name = input.toLowerCase();
 
     /// Replace spaces with underscores
@@ -68,5 +66,4 @@ class SqlNameSanitizer {
 
     return name;
   }
-
 }

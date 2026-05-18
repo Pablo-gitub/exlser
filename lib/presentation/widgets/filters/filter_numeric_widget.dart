@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 /// UI example:
 /// range slider or two numeric inputs.
 class FilterNumericWidget extends StatelessWidget {
-
   final String columnName;
 
   const FilterNumericWidget({
@@ -21,7 +20,6 @@ class FilterNumericWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     /// TODO
     /// Render numeric range selector
 

@@ -4,13 +4,10 @@ import 'package:exel_category/domain/value_objects/column_type.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-
   group('DynamicTableBuilder', () {
-
     late DynamicTableBuilder builder;
 
     setUp(() {
-
       /// Fresh builder instance before each test.
       builder = const DynamicTableBuilder();
     });
@@ -18,7 +15,6 @@ void main() {
     test(
       'should generate valid CREATE TABLE SQL',
       () {
-
         /// Arrange
         final columns = [
           DatasetColumn(
@@ -60,7 +56,6 @@ void main() {
     test(
       'should correctly map all ColumnType values',
       () {
-
         /// Arrange
         final columns = [
           DatasetColumn(
@@ -133,7 +128,6 @@ void main() {
     test(
       'should correctly handle nullable columns',
       () {
-
         /// Arrange
         final columns = [
           DatasetColumn(
@@ -170,7 +164,6 @@ void main() {
     test(
       'should throw exception when columns list is empty',
       () {
-
         /// Act & Assert
         expect(
           () => builder.buildCreateTableSql(

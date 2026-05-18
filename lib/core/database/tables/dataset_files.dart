@@ -6,8 +6,7 @@ class DatasetFiles extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   /// Foreign key to datasets
-  IntColumn get datasetId =>
-      integer().references(Datasets, #id).unique()();
+  IntColumn get datasetId => integer().references(Datasets, #id).unique()();
 
   /// Storage mode:
   /// path, pathAndCopy, webTemporary, webPersisted

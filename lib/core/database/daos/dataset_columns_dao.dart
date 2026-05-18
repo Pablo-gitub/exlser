@@ -20,7 +20,6 @@ part 'dataset_columns_dao.g.dart';
 @DriftAccessor(tables: [DatasetColumns])
 class DatasetColumnsDao extends DatabaseAccessor<AppDatabase>
     with _$DatasetColumnsDaoMixin {
-
   DatasetColumnsDao(super.db);
 
   /// Inserts metadata for a column.
@@ -71,8 +70,6 @@ class DatasetColumnsDao extends DatabaseAccessor<AppDatabase>
 
   /// Deletes a specific column by id.
   Future<int> deleteColumnById(int columnId) {
-    return (delete(datasetColumns)
-          ..where((t) => t.id.equals(columnId)))
-        .go();
+    return (delete(datasetColumns)..where((t) => t.id.equals(columnId))).go();
   }
 }

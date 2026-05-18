@@ -32,14 +32,11 @@ class SettingsView extends StatelessWidget {
                 maxWidth: 500,
               ),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     AppStrings.languageLabel.tr(),
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(
                     height: AppSpacing.m,

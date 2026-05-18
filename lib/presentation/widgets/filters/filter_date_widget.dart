@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 ///
 /// Values must respect available range.
 class FilterDateWidget extends StatelessWidget {
-
   final String columnName;
 
   const FilterDateWidget({
@@ -20,7 +19,6 @@ class FilterDateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     /// TODO
     /// Implement date range picker
 

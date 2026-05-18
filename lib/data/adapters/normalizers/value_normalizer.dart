@@ -20,7 +20,6 @@
 /// "true" → true
 /// "2024-01-14" → DateTime
 abstract class ValueNormalizer<T> {
-
   /// Attempts to normalize a raw textual value.
   ///
   /// Returns:

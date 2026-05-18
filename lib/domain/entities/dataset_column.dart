@@ -57,7 +57,7 @@ class DatasetColumn {
   bool get isDate => declaredType == ColumnType.date;
 
   bool get isNumeric =>
-    declaredType == ColumnType.integer || declaredType == ColumnType.real;
+      declaredType == ColumnType.integer || declaredType == ColumnType.real;
 
   bool get supportsRangeQuery => isNumeric || isDate;
 }

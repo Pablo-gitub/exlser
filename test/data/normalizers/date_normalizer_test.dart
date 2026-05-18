@@ -2,9 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:exel_category/data/adapters/normalizers/date_normalizer.dart';
 
 void main() {
-
   group('DateNormalizer', () {
-
     late DateNormalizer normalizer;
 
     setUp(() {
@@ -71,6 +69,5 @@ void main() {
         expect(normalizer.tryNormalize(" "), null);
       },
     );
-
   });
 }

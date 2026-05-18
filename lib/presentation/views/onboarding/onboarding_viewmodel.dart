@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../router/router_notifier.dart';
 
-final onboardingViewModelProvider =
-    Provider.autoDispose<OnboardingViewModel>(
+final onboardingViewModelProvider = Provider.autoDispose<OnboardingViewModel>(
   (ref) => OnboardingViewModel(ref),
 );
 

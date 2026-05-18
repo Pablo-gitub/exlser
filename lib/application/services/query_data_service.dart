@@ -9,7 +9,6 @@
 /// - Aggregate values
 /// - Retrieve distinct column values
 class QueryDataService {
-
   /// TODO:
   /// Implement query orchestration:
   ///

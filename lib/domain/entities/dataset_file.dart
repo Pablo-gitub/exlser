@@ -54,6 +54,7 @@ class DatasetFile {
   bool get isExternalReference => originalPath != null;
 
   /// True if file is usable offline (copied)
-  bool get isPersistent => storageMode == DatasetFileStorageMode.pathAndCopy ||
+  bool get isPersistent =>
+      storageMode == DatasetFileStorageMode.pathAndCopy ||
       storageMode == DatasetFileStorageMode.webPersisted;
 }

@@ -21,7 +21,6 @@ class AppDrawer extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 24),
-
             ListTile(
               leading: const Icon(Icons.home),
               title: Text(AppStrings.home.tr()),
@@ -30,7 +29,6 @@ class AppDrawer extends StatelessWidget {
                 context.go(AppRoutes.homePath);
               },
             ),
-
             ListTile(
               leading: const Icon(Icons.folder_copy),
               title: Text(AppStrings.works.tr()),
@@ -39,7 +37,6 @@ class AppDrawer extends StatelessWidget {
                 context.go(AppRoutes.datasetListPath);
               },
             ),
-
             ListTile(
               leading: const Icon(Icons.settings),
               title: Text(AppStrings.settings.tr()),

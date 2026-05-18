@@ -26,7 +26,6 @@ import 'value_normalizer.dart';
 /// If the value cannot be interpreted as a boolean,
 /// the method returns `null`.
 class BooleanNormalizer implements ValueNormalizer<bool> {
-
   /// Set of textual representations interpreted as TRUE.
   static const _trueValues = {
     'true',
@@ -43,7 +42,6 @@ class BooleanNormalizer implements ValueNormalizer<bool> {
 
   @override
   bool? tryNormalize(String value) {
-
     /// Remove whitespace and normalize casing.
     final normalized = value.trim().toLowerCase();
 

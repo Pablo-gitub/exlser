@@ -10,8 +10,7 @@ import 'package:flutter/material.dart';
 /// Future:
 /// - support drawer opening
 /// - support responsive layouts
-class AppTopBar extends StatelessWidget
-    implements PreferredSizeWidget {
+class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
 
@@ -41,6 +40,5 @@ class AppTopBar extends StatelessWidget
   }
 
   @override
-  Size get preferredSize =>
-      const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

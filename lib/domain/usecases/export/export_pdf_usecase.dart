@@ -13,11 +13,9 @@
 /// 3. Build PDF document
 /// 4. return generated file
 class ExportPdfUseCase {
-
   // TODO:
   // - inject QueryRepository
   // - retrieve dataset rows
   // - build PDF table
   // - export document
-
 }

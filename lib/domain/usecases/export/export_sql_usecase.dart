@@ -20,12 +20,10 @@
 /// 4. Generate SQL CREATE TABLE statements
 /// 5. Return SQL script
 class ExportSqlUseCase {
-
   // TODO:
   // - inject SchemaRepository
   // - retrieve dataset tables
   // - retrieve column metadata
   // - generate SQL schema
   // - return SQL script
-
 }

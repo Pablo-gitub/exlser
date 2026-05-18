@@ -23,8 +23,7 @@ void main() {
     ];
     final columns = ['A'];
 
-    when(() => repo.exportToPdf(data, columns))
-        .thenAnswer((_) async {});
+    when(() => repo.exportToPdf(data, columns)).thenAnswer((_) async {});
 
     await usecase(ExportParams(filteredData: data, columnOrder: columns));
 

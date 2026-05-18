@@ -95,10 +95,8 @@ class _WebFileDropAreaState extends ConsumerState<_WebFileDropArea> {
                   onDropFile: (file) async {
                     if (controller == null) return;
 
-                    final name =
-                        await controller!.getFilename(file);
-                    final bytes =
-                        await controller!.getFileData(file);
+                    final name = await controller!.getFilename(file);
+                    final bytes = await controller!.getFileData(file);
 
                     ref.read(homeViewModelProvider).selectFileFromWeb(
                           name: name,

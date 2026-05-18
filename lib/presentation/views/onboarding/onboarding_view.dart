@@ -9,12 +9,10 @@ class OnboardingView extends ConsumerStatefulWidget {
   const OnboardingView({super.key});
 
   @override
-  ConsumerState<OnboardingView> createState() =>
-      _OnboardingViewState();
+  ConsumerState<OnboardingView> createState() => _OnboardingViewState();
 }
 
-class _OnboardingViewState
-    extends ConsumerState<OnboardingView> {
+class _OnboardingViewState extends ConsumerState<OnboardingView> {
   late final OnboardingViewModel viewModel;
 
   @override
@@ -63,9 +61,7 @@ class _OnboardingViewState
                   return Center(
                     child: Text(
                       viewModel.pages[index],
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall,
+                      style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
                   );
@@ -73,8 +69,7 @@ class _OnboardingViewState
               ),
             ),
             Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
                   onPressed: viewModel.canGoBack
@@ -95,9 +90,7 @@ class _OnboardingViewState
                     setState(() {});
                   },
                   child: Text(
-                    isLastPage
-                        ? AppStrings.start.tr()
-                        : AppStrings.next.tr(),
+                    isLastPage ? AppStrings.start.tr() : AppStrings.next.tr(),
                   ),
                 ),
               ],

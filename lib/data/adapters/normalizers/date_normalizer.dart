@@ -25,14 +25,12 @@
 ///
 /// More complex parsing rules can be added in the future if needed.
 class DateNormalizer {
-
   /// Attempts to normalize a textual date representation into `DateTime`.
   ///
   /// Returns:
   /// - `DateTime` if parsing succeeds
   /// - `null` if the value cannot be interpreted as a valid date
   DateTime? tryNormalize(String value) {
-
     /// Remove surrounding whitespace
     final trimmed = value.trim();
 
@@ -58,27 +56,21 @@ class DateNormalizer {
     /// Example:
     /// 14/01/2024
     if (trimmed.contains('/')) {
-
       final parts = trimmed.split('/');
 
       if (parts.length == 3) {
-
         final day = int.tryParse(parts[0]);
         final month = int.tryParse(parts[1]);
         final year = int.tryParse(parts[2]);
 
         if (day != null && month != null && year != null) {
-
           try {
             return DateTime(year, month, day);
           } catch (_) {
             return null;
           }
-
         }
-
       }
-
     }
 
     /// If all parsing attempts fail,

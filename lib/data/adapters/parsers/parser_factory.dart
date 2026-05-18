@@ -9,7 +9,6 @@ import 'package:exel_category/data/adapters/parsers/spreadsheet_parser.dart';
 /// - Excel (.xlsx)
 /// - CSV (.csv)
 class ParserFactory {
-
   /// Returns the correct parser instance
   /// based on file extension.
   ///
@@ -18,9 +17,7 @@ class ParserFactory {
   SpreadsheetParser createParser(
     String fileExtension,
   ) {
-
     switch (fileExtension.toLowerCase()) {
-
       case 'csv':
         return CsvParser();
 

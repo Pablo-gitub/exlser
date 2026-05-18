@@ -727,74 +727,72 @@ void main() {
   });
 
   group('executeRawQuery', () {
+    test('should execute raw query and return result', () async {
+      /// ---------------- ARRANGE ----------------
 
-  test('should execute raw query and return result', () async {
-    /// ---------------- ARRANGE ----------------
+      final expectedRows = [
+        {'id': 1, 'name': 'test'},
+      ];
 
-    final expectedRows = [
-      {'id': 1, 'name': 'test'},
-    ];
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => expectedRows);
 
-    when(() => datasource.query(
-      any(),
-      arguments: any(named: 'arguments'),
-    )).thenAnswer((_) async => expectedRows);
+      /// ---------------- ACT ----------------
 
-    /// ---------------- ACT ----------------
-
-    final result = await repository.executeRawQuery(
-      'SELECT * FROM test_table',
-      null,
-    );
-
-    /// ---------------- ASSERT ----------------
-
-    expect(result, expectedRows);
-
-    verify(() => datasource.query(
-      'SELECT * FROM test_table',
-      arguments: null,
-    )).called(1);
-  });
-
-  test('should pass arguments correctly', () async {
-    when(() => datasource.query(
-      any(),
-      arguments: any(named: 'arguments'),
-    )).thenAnswer((_) async => []);
-
-    await repository.executeRawQuery(
-      'SELECT * FROM test_table WHERE id = ?',
-      [1],
-    );
-
-    verify(() => datasource.query(
-      'SELECT * FROM test_table WHERE id = ?',
-      arguments: [1],
-    )).called(1);
-  });
-
-  test('should throw when SQL is empty', () async {
-    expect(
-      () => repository.executeRawQuery('', null),
-      throwsException,
-    );
-  });
-
-  test('should propagate datasource errors', () async {
-    when(() => datasource.query(
-      any(),
-      arguments: any(named: 'arguments'),
-    )).thenThrow(Exception('DB error'));
-
-    expect(
-      () => repository.executeRawQuery(
-        'SELECT * FROM test',
+      final result = await repository.executeRawQuery(
+        'SELECT * FROM test_table',
         null,
-      ),
-      throwsException,
-    );
-  });
+      );
 
-});
+      /// ---------------- ASSERT ----------------
+
+      expect(result, expectedRows);
+
+      verify(() => datasource.query(
+            'SELECT * FROM test_table',
+            arguments: null,
+          )).called(1);
+    });
+
+    test('should pass arguments correctly', () async {
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenAnswer((_) async => []);
+
+      await repository.executeRawQuery(
+        'SELECT * FROM test_table WHERE id = ?',
+        [1],
+      );
+
+      verify(() => datasource.query(
+            'SELECT * FROM test_table WHERE id = ?',
+            arguments: [1],
+          )).called(1);
+    });
+
+    test('should throw when SQL is empty', () async {
+      expect(
+        () => repository.executeRawQuery('', null),
+        throwsException,
+      );
+    });
+
+    test('should propagate datasource errors', () async {
+      when(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          )).thenThrow(Exception('DB error'));
+
+      expect(
+        () => repository.executeRawQuery(
+          'SELECT * FROM test',
+          null,
+        ),
+        throwsException,
+      );
+    });
+  });
 }

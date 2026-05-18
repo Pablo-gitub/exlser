@@ -2,9 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:exel_category/data/adapters/sanitizers/sql_name_sanitizer.dart';
 
 void main() {
-
   group("SqlNameSanitizer", () {
-
     test("should convert name to lowercase", () {
       final result = SqlNameSanitizer.sanitize("ProductName");
       expect(result, "productname");
@@ -54,7 +52,5 @@ void main() {
       final result = SqlNameSanitizer.sanitize("Column 1");
       expect(result, "column_1");
     });
-
   });
-
 }

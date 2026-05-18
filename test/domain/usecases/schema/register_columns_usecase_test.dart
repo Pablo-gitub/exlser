@@ -6,15 +6,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 /// Mock repository used to isolate use case behavior.
-class MockSchemaRepository extends Mock
-    implements SchemaRepository {}
+class MockSchemaRepository extends Mock implements SchemaRepository {}
 
 /// Fake entity required by mocktail when using `any()`.
-class FakeDatasetColumn extends Fake
-    implements DatasetColumn {}
+class FakeDatasetColumn extends Fake implements DatasetColumn {}
 
 void main() {
-
   /// Register fallback values required by mocktail.
   setUpAll(() {
     registerFallbackValue(FakeDatasetColumn());
@@ -22,12 +19,10 @@ void main() {
   });
 
   group('RegisterColumnsUseCase', () {
-
     late MockSchemaRepository repository;
     late RegisterColumnsUseCase useCase;
 
     setUp(() {
-
       /// Fresh mocked repository before each test.
       repository = MockSchemaRepository();
 
@@ -40,7 +35,6 @@ void main() {
     test(
       'should register columns correctly',
       () async {
-
         /// Arrange
         final columns = [
           DatasetColumn(
@@ -85,7 +79,6 @@ void main() {
     test(
       'should assign datasetTableId to all columns',
       () async {
-
         /// Arrange
         final columns = [
           DatasetColumn(
@@ -111,12 +104,11 @@ void main() {
         );
 
         /// Assert
-        final captured =
-            verify(
-              () => repository.createColumns(
-                captureAny(),
-              ),
-            ).captured.first as List<DatasetColumn>;
+        final captured = verify(
+          () => repository.createColumns(
+            captureAny(),
+          ),
+        ).captured.first as List<DatasetColumn>;
 
         expect(
           captured.first.datasetTableId,
@@ -128,7 +120,6 @@ void main() {
     test(
       'should preserve column metadata',
       () async {
-
         /// Arrange
         final columns = [
           DatasetColumn(
@@ -154,12 +145,11 @@ void main() {
         );
 
         /// Assert
-        final captured =
-            verify(
-              () => repository.createColumns(
-                captureAny(),
-              ),
-            ).captured.first as List<DatasetColumn>;
+        final captured = verify(
+          () => repository.createColumns(
+            captureAny(),
+          ),
+        ).captured.first as List<DatasetColumn>;
 
         expect(
           captured.first.originalName,

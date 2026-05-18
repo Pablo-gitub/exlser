@@ -8,12 +8,10 @@ import 'package:flutter/material.dart';
 /// Sheet1 -> ds_12_sheet_1
 /// Sheet2 -> ds_12_sheet_2
 class SheetSelectorSection extends StatelessWidget {
-
   const SheetSelectorSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     /// TODO
     /// Dropdown with available sheets
 

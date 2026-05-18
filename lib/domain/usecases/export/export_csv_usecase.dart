@@ -20,12 +20,10 @@
 /// 4. Serialize rows into CSV format
 /// 5. Return CSV string or file reference
 class ExportCsvUseCase {
-
   // TODO:
   // - inject QueryRepository
   // - retrieve rows from dataset table
   // - extract column headers
   // - serialize rows into CSV format
   // - return generated CSV
-
 }

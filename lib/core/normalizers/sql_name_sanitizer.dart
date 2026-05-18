@@ -3,14 +3,39 @@
 /// Prevents SQL injection, syntax errors, and handles
 /// common issues found in dynamic Excel/CSV headers.
 class SqlNameSanitizer {
-  
   /// SQLite restricted keywords that could break dynamic queries
   /// if used as table or column names without quotes.
   static const _reservedKeywords = {
-    'select', 'table', 'where', 'order', 'group', 'by', 'insert',
-    'update', 'delete', 'from', 'into', 'values', 'index', 'create',
-    'drop', 'alter', 'limit', 'offset', 'and', 'or', 'not', 'null',
-    'as', 'join', 'inner', 'left', 'right', 'outer', 'on', 'having'
+    'select',
+    'table',
+    'where',
+    'order',
+    'group',
+    'by',
+    'insert',
+    'update',
+    'delete',
+    'from',
+    'into',
+    'values',
+    'index',
+    'create',
+    'drop',
+    'alter',
+    'limit',
+    'offset',
+    'and',
+    'or',
+    'not',
+    'null',
+    'as',
+    'join',
+    'inner',
+    'left',
+    'right',
+    'outer',
+    'on',
+    'having'
   };
 
   /// Sanitizes a column name dynamically generated from an Excel header.

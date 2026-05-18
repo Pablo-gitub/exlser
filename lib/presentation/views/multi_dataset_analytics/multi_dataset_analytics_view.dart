@@ -17,7 +17,6 @@ import 'multi_dataset_analytics_viewmodel.dart';
 /// This page is accessed from DatasetView via
 /// "Analyze across sheets".
 class MultiDatasetAnalyticsView extends StatefulWidget {
-
   final int datasetId;
 
   const MultiDatasetAnalyticsView({
@@ -30,9 +29,7 @@ class MultiDatasetAnalyticsView extends StatefulWidget {
       _MultiDatasetAnalyticsViewState();
 }
 
-class _MultiDatasetAnalyticsViewState
-    extends State<MultiDatasetAnalyticsView> {
-
+class _MultiDatasetAnalyticsViewState extends State<MultiDatasetAnalyticsView> {
   late MultiDatasetAnalyticsViewModel viewModel;
 
   @override
@@ -47,7 +44,6 @@ class _MultiDatasetAnalyticsViewState
 
   @override
   Widget build(BuildContext context) {
-
     /// TODO:
     /// Build UI allowing selection of:
     /// - sheets involved

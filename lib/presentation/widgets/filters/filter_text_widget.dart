@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 /// Allows selecting values via checkbox list.
 /// Values come from QueryRepository.getDistinctValues().
 class FilterTextWidget extends StatelessWidget {
-
   final String columnName;
 
   const FilterTextWidget({
@@ -17,7 +16,6 @@ class FilterTextWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     /// TODO
     /// Fetch distinct values
     /// Render checkbox list

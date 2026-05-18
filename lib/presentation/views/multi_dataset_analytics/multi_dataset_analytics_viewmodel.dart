@@ -8,7 +8,6 @@
 /// Analytics operations will be delegated to:
 /// Application Layer → AnalysisService.
 class MultiDatasetAnalyticsViewModel {
-
   /// Selected sheets for the operation.
   List<String> selectedSheets = [];
 

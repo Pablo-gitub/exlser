@@ -6,8 +6,7 @@ class DatasetTables extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   /// Foreign key to Datasets.id
-  IntColumn get datasetId =>
-      integer().references(Datasets, #id)();
+  IntColumn get datasetId => integer().references(Datasets, #id)();
 
   /// Original sheet name inside Excel file
   TextColumn get sheetNameOriginal => text()();
