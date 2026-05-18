@@ -56,6 +56,7 @@ class DatasetsRepositoryImpl implements DatasetsRepository {
       sourceFileHash: dataset.sourceFileHash,
       createdAt: dataset.createdAt,
       lastOpenedAt: dataset.lastOpenedAt,
+      uiStateJson: dataset.uiStateJson,
     );
 
     return dataset.copyWith(
@@ -115,6 +116,23 @@ class DatasetsRepositoryImpl implements DatasetsRepository {
     }
   }
 
+  @override
+  Future<void> updateDatasetUiState({
+    required int datasetId,
+    required String uiStateJson,
+  }) async {
+    _validateId(datasetId);
+
+    final updated = await dao.updateUiState(
+      datasetId: datasetId,
+      uiStateJson: uiStateJson,
+    );
+
+    if (!updated) {
+      throw StateError('Dataset not found: $datasetId');
+    }
+  }
+
   domain.Dataset _mapRow(db.Dataset row) {
     return domain.Dataset(
       id: row.id,
@@ -123,6 +141,7 @@ class DatasetsRepositoryImpl implements DatasetsRepository {
       sourceFileHash: row.sourceFileHash,
       createdAt: row.createdAt,
       lastOpenedAt: row.lastOpenedAt,
+      uiStateJson: row.uiStateJson,
     );
   }
 

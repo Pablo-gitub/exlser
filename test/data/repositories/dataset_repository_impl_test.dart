@@ -103,6 +103,42 @@ void main() {
       expect(updated?.lastOpenedAt, 3000);
     });
 
+    test('updates dataset ui state', () async {
+      final created = await repository.createDataset(
+        const domain.Dataset(
+          id: 0,
+          name: 'Workspace',
+          sourceFileName: 'workspace.xlsx',
+          createdAt: 1000,
+        ),
+      );
+
+      await repository.updateDatasetUiState(
+        datasetId: created.id,
+        uiStateJson: '{"viewMode":"cards"}',
+      );
+
+      final updated = await repository.getDatasetById(created.id);
+
+      expect(updated?.uiStateJson, '{"viewMode":"cards"}');
+    });
+
+    test('preserves dataset ui state on create', () async {
+      final created = await repository.createDataset(
+        const domain.Dataset(
+          id: 0,
+          name: 'Workspace',
+          sourceFileName: 'workspace.xlsx',
+          createdAt: 1000,
+          uiStateJson: '{"activeTableId":10}',
+        ),
+      );
+
+      final persisted = await repository.getDatasetById(created.id);
+
+      expect(persisted?.uiStateJson, '{"activeTableId":10}');
+    });
+
     test('deletes a dataset', () async {
       final created = await repository.createDataset(
         const domain.Dataset(

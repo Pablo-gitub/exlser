@@ -10,6 +10,7 @@ class Dataset {
   final String? sourceFileHash;
   final int createdAt;
   final int? lastOpenedAt;
+  final String? uiStateJson;
 
   const Dataset({
     required this.id,
@@ -18,6 +19,7 @@ class Dataset {
     this.sourceFileHash,
     required this.createdAt,
     this.lastOpenedAt,
+    this.uiStateJson,
   });
 
   Dataset copyWith({
@@ -27,6 +29,7 @@ class Dataset {
     String? sourceFileHash,
     int? createdAt,
     int? lastOpenedAt,
+    String? uiStateJson,
   }) {
     return Dataset(
       id: id ?? this.id,
@@ -35,6 +38,7 @@ class Dataset {
       sourceFileHash: sourceFileHash ?? this.sourceFileHash,
       createdAt: createdAt ?? this.createdAt,
       lastOpenedAt: lastOpenedAt ?? this.lastOpenedAt,
+      uiStateJson: uiStateJson ?? this.uiStateJson,
     );
   }
 

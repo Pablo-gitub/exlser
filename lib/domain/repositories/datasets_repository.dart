@@ -7,7 +7,6 @@ import 'package:exel_category/domain/entities/dataset.dart';
 /// This repository handles creation, retrieval and updates
 /// of dataset metadata.
 abstract class DatasetsRepository {
-
   /// Returns all datasets stored in the system.
   Future<List<Dataset>> getAllDatasets();
 
@@ -27,4 +26,10 @@ abstract class DatasetsRepository {
 
   /// Updates the last opened timestamp of a dataset.
   Future<void> markDatasetOpened(int datasetId);
+
+  /// Updates the serialized UI state for a dataset workspace.
+  Future<void> updateDatasetUiState({
+    required int datasetId,
+    required String uiStateJson,
+  });
 }
