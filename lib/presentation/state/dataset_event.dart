@@ -1,4 +1,6 @@
+import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/value_objects/chart_type.dart';
 import 'package:exel_category/domain/value_objects/dataset_filter.dart';
 import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 
@@ -56,4 +58,30 @@ class ToggleSortColumnEvent extends DatasetEvent {
   final DatasetColumn column;
 
   const ToggleSortColumnEvent(this.column);
+}
+
+class LoadAnalyticsEvent extends DatasetEvent {
+  const LoadAnalyticsEvent();
+}
+
+class AddChartEvent extends DatasetEvent {
+  final ChartType chartType;
+
+  const AddChartEvent(this.chartType);
+}
+
+class RemoveChartEvent extends DatasetEvent {
+  final String chartId;
+
+  const RemoveChartEvent(this.chartId);
+}
+
+class UpdateChartConfigEvent extends DatasetEvent {
+  final String chartId;
+  final ChartSuggestion suggestion;
+
+  const UpdateChartConfigEvent({
+    required this.chartId,
+    required this.suggestion,
+  });
 }

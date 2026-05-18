@@ -1,4 +1,8 @@
+import 'package:exel_category/application/dto/chart_data.dart';
+import 'package:exel_category/application/services/analysis_service.dart';
+import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
+import 'package:exel_category/domain/value_objects/chart_type.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
 import 'package:exel_category/domain/repositories/schema_repository.dart';
@@ -27,6 +31,8 @@ class MockApplyFiltersUseCase extends Mock implements ApplyFiltersUseCase {}
 class MockUpdateDatasetUiStateUseCase extends Mock
     implements UpdateDatasetUiStateUseCase {}
 
+class MockAnalysisService extends Mock implements AnalysisService {}
+
 void main() {
   setUpAll(() {
     registerFallbackValue(<DatasetFilter>[]);
@@ -36,6 +42,7 @@ void main() {
         direction: SortDirection.ascending,
       ),
     );
+    registerFallbackValue(const ChartSuggestion.none());
   });
 
   group('DatasetBloc', () {
@@ -44,6 +51,7 @@ void main() {
     late MockFetchRowsUseCase fetchRows;
     late MockApplyFiltersUseCase applyFilters;
     late MockUpdateDatasetUiStateUseCase updateDatasetUiState;
+    late MockAnalysisService analysisService;
     late DatasetBloc bloc;
 
     setUp(() {
@@ -52,6 +60,7 @@ void main() {
       fetchRows = MockFetchRowsUseCase();
       applyFilters = MockApplyFiltersUseCase();
       updateDatasetUiState = MockUpdateDatasetUiStateUseCase();
+      analysisService = MockAnalysisService();
       when(() => updateDatasetUiState.call(
             datasetId: any(named: 'datasetId'),
             uiStateJson: any(named: 'uiStateJson'),
@@ -62,6 +71,7 @@ void main() {
         fetchRows: fetchRows,
         applyFilters: applyFilters,
         updateDatasetUiState: updateDatasetUiState,
+        analysisService: analysisService,
       );
     });
 
@@ -419,6 +429,205 @@ void main() {
             datasetId: 1,
             uiStateJson: any(named: 'uiStateJson'),
           )).called(1);
+    });
+
+    test('LoadAnalyticsEvent transitions to DatasetAnalyticsLoadedState',
+        () async {
+      final dataset = _dataset();
+      final column = _column();
+      final suggestion = ChartSuggestion.none();
+      const chartData = EmptyChartData();
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [column],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => analysisService.suggestAllCharts(any()))
+          .thenReturn([suggestion]);
+      when(() => applyFilters.buildWhereClause(any())).thenReturn(null);
+      when(() => analysisService.loadChartData(
+            tableName: any(named: 'tableName'),
+            suggestion: any(named: 'suggestion'),
+            whereClause: any(named: 'whereClause'),
+            whereArguments: any(named: 'whereArguments'),
+          )).thenAnswer((_) async => chartData);
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
+
+      bloc.add(const LoadAnalyticsEvent());
+
+      final analyticsLoaded = await bloc.stream.firstWhere(
+        (s) =>
+            s is DatasetLoadedState &&
+            s.analyticsState is DatasetAnalyticsLoadedState,
+      ) as DatasetLoadedState;
+
+      final analytics =
+          analyticsLoaded.analyticsState as DatasetAnalyticsLoadedState;
+      expect(analytics.charts.length, 1);
+      expect(analytics.charts.first.id, 'chart_0');
+      expect(analytics.charts.first.suggestion, suggestion);
+      expect(analytics.charts.first.chartData, chartData);
+    });
+
+    test('LoadAnalyticsEvent emits error state on failure', () async {
+      final dataset = _dataset();
+      final column = _column();
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [column],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => analysisService.suggestAllCharts(any()))
+          .thenThrow(Exception('boom'));
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
+
+      bloc.add(const LoadAnalyticsEvent());
+
+      final errorState = await bloc.stream.firstWhere(
+        (s) =>
+            s is DatasetLoadedState &&
+            s.analyticsState is DatasetAnalyticsErrorState,
+      ) as DatasetLoadedState;
+
+      final analytics = errorState.analyticsState as DatasetAnalyticsErrorState;
+      expect(analytics.code, 'analytics_failed');
+    });
+
+    test('UpdateChartConfigEvent reloads chart with new suggestion', () async {
+      final dataset = _dataset();
+      final column = _column();
+      final initialSuggestion = ChartSuggestion.none();
+      final newSuggestion = ChartSuggestion(
+        chartType: ChartType.bar,
+        xColumn: column,
+      );
+      const updatedChartData = EmptyChartData();
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [column],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => analysisService.suggestAllCharts(any()))
+          .thenReturn([initialSuggestion]);
+      when(() => applyFilters.buildWhereClause(any())).thenReturn(null);
+      when(() => analysisService.loadChartData(
+            tableName: any(named: 'tableName'),
+            suggestion: any(named: 'suggestion'),
+            whereClause: any(named: 'whereClause'),
+            whereArguments: any(named: 'whereArguments'),
+          )).thenAnswer((_) async => updatedChartData);
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
+
+      bloc.add(const LoadAnalyticsEvent());
+      await bloc.stream.firstWhere(
+        (s) =>
+            s is DatasetLoadedState &&
+            s.analyticsState is DatasetAnalyticsLoadedState,
+      );
+
+      bloc.add(UpdateChartConfigEvent(
+        chartId: 'chart_0',
+        suggestion: newSuggestion,
+      ));
+
+      final updatedState = await bloc.stream.firstWhere(
+        (s) {
+          if (s is! DatasetLoadedState) return false;
+          final a = s.analyticsState;
+          if (a is! DatasetAnalyticsLoadedState) return false;
+          return a.charts.any(
+            (c) =>
+                c.id == 'chart_0' &&
+                c.suggestion == newSuggestion &&
+                !c.isLoading,
+          );
+        },
+      ) as DatasetLoadedState;
+
+      final analytics =
+          updatedState.analyticsState as DatasetAnalyticsLoadedState;
+      final chart = analytics.charts.firstWhere((c) => c.id == 'chart_0');
+      expect(chart.suggestion, newSuggestion);
+      expect(chart.chartData, updatedChartData);
+    });
+
+    test('RemoveChartEvent removes chart from loaded state', () async {
+      final dataset = _dataset();
+      final column = _column();
+      final suggestion = ChartSuggestion.none();
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [column],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => analysisService.suggestAllCharts(any()))
+          .thenReturn([suggestion]);
+      when(() => applyFilters.buildWhereClause(any())).thenReturn(null);
+      when(() => analysisService.loadChartData(
+            tableName: any(named: 'tableName'),
+            suggestion: any(named: 'suggestion'),
+            whereClause: any(named: 'whereClause'),
+            whereArguments: any(named: 'whereArguments'),
+          )).thenAnswer((_) async => const EmptyChartData());
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
+
+      bloc.add(const LoadAnalyticsEvent());
+      await bloc.stream.firstWhere(
+        (s) =>
+            s is DatasetLoadedState &&
+            s.analyticsState is DatasetAnalyticsLoadedState,
+      );
+
+      bloc.add(const RemoveChartEvent('chart_0'));
+
+      final afterRemove = await bloc.stream.firstWhere(
+        (s) {
+          if (s is! DatasetLoadedState) return false;
+          final a = s.analyticsState;
+          if (a is! DatasetAnalyticsLoadedState) return false;
+          return a.charts.isEmpty;
+        },
+      ) as DatasetLoadedState;
+
+      final analytics =
+          afterRemove.analyticsState as DatasetAnalyticsLoadedState;
+      expect(analytics.charts, isEmpty);
     });
   });
 }

@@ -198,6 +198,31 @@ class AppStrings {
   static const String importFileStorageWebTemporary =
       'import.confirmation.storage.web_temporary';
 
+  static const String datasetWorkspaceAnalyticsTitle =
+      'dataset.workspace.analytics.title';
+  static const String datasetWorkspaceAnalyticsNoChart =
+      'dataset.workspace.analytics.no_chart';
+  static const String datasetWorkspaceAnalyticsError =
+      'dataset.workspace.analytics.error';
+  static const String datasetWorkspaceAnalyticsAggregation =
+      'dataset.workspace.analytics.aggregation';
+  static const String datasetWorkspaceAnalyticsXColumn =
+      'dataset.workspace.analytics.x_column';
+  static const String datasetWorkspaceAnalyticsYColumn =
+      'dataset.workspace.analytics.y_column';
+  static const String datasetWorkspaceAnalyticsAggCount =
+      'dataset.workspace.analytics.agg.count';
+  static const String datasetWorkspaceAnalyticsAggSum =
+      'dataset.workspace.analytics.agg.sum';
+  static const String datasetWorkspaceAnalyticsAggAvg =
+      'dataset.workspace.analytics.agg.avg';
+  static const String datasetWorkspaceAnalyticsAggMin =
+      'dataset.workspace.analytics.agg.min';
+  static const String datasetWorkspaceAnalyticsAggMax =
+      'dataset.workspace.analytics.agg.max';
+  static const String datasetWorkspaceAnalyticsAddChart =
+      'dataset.workspace.analytics.add_chart';
+
   /// Import errors
   static const String importNoExtension = 'import.error.no_extension';
   static const String importUnsupportedFormat =

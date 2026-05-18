@@ -104,6 +104,22 @@
                 "refresh_failed": "Could not refresh rows.",
                 "filter_failed": "Could not apply filters.",
                 "sort_failed": "Could not sort rows."
+            },
+            "analytics": {
+                "title": "Analytics",
+                "no_chart": "No chart available for the current data types.",
+                "error": "Could not load analytics.",
+                "aggregation": "Aggregation",
+                "x_column": "X axis",
+                "y_column": "Y axis",
+                "add_chart": "Add chart",
+                "agg": {
+                    "count": "Count",
+                    "sum": "Sum",
+                    "avg": "Average",
+                    "min": "Minimum",
+                    "max": "Maximum"
+                }
             }
         }
     },

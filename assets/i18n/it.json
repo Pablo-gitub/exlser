@@ -104,6 +104,22 @@
                 "refresh_failed": "Impossibile aggiornare le righe.",
                 "filter_failed": "Impossibile applicare i filtri.",
                 "sort_failed": "Impossibile ordinare le righe."
+            },
+            "analytics": {
+                "title": "Analisi",
+                "no_chart": "Nessun grafico disponibile per i tipi di dati presenti.",
+                "error": "Impossibile caricare l'analisi.",
+                "aggregation": "Aggregazione",
+                "x_column": "Asse X",
+                "y_column": "Asse Y",
+                "add_chart": "Aggiungi grafico",
+                "agg": {
+                    "count": "Conteggio",
+                    "sum": "Somma",
+                    "avg": "Media",
+                    "min": "Minimo",
+                    "max": "Massimo"
+                }
             }
         }
     },

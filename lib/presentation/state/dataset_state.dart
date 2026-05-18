@@ -1,3 +1,5 @@
+import 'package:exel_category/application/dto/chart_data.dart';
+import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
@@ -7,6 +9,61 @@ import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 enum DatasetViewMode {
   table,
   cards,
+}
+
+class AnalyticsChart {
+  final String id;
+  final ChartSuggestion suggestion;
+  final ChartData chartData;
+  final bool isLoading;
+
+  const AnalyticsChart({
+    required this.id,
+    required this.suggestion,
+    this.chartData = const EmptyChartData(),
+    this.isLoading = false,
+  });
+
+  AnalyticsChart copyWith({
+    ChartSuggestion? suggestion,
+    ChartData? chartData,
+    bool? isLoading,
+  }) {
+    return AnalyticsChart(
+      id: id,
+      suggestion: suggestion ?? this.suggestion,
+      chartData: chartData ?? this.chartData,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+}
+
+sealed class DatasetAnalyticsState {
+  const DatasetAnalyticsState();
+}
+
+class DatasetAnalyticsIdleState extends DatasetAnalyticsState {
+  const DatasetAnalyticsIdleState();
+}
+
+class DatasetAnalyticsLoadingState extends DatasetAnalyticsState {
+  const DatasetAnalyticsLoadingState();
+}
+
+class DatasetAnalyticsLoadedState extends DatasetAnalyticsState {
+  final List<AnalyticsChart> charts;
+
+  const DatasetAnalyticsLoadedState({required this.charts});
+
+  DatasetAnalyticsLoadedState copyWith({List<AnalyticsChart>? charts}) {
+    return DatasetAnalyticsLoadedState(charts: charts ?? this.charts);
+  }
+}
+
+class DatasetAnalyticsErrorState extends DatasetAnalyticsState {
+  final String code;
+
+  const DatasetAnalyticsErrorState(this.code);
 }
 
 sealed class DatasetState {
@@ -39,6 +96,7 @@ class DatasetLoadedState extends DatasetState {
   final int rowLimit;
   final List<DatasetFilter> filters;
   final DatasetSort? sort;
+  final DatasetAnalyticsState analyticsState;
 
   const DatasetLoadedState({
     required this.dataset,
@@ -50,6 +108,7 @@ class DatasetLoadedState extends DatasetState {
     required this.rowLimit,
     this.filters = const [],
     this.sort,
+    this.analyticsState = const DatasetAnalyticsIdleState(),
   });
 
   DatasetLoadedState copyWith({
@@ -62,6 +121,7 @@ class DatasetLoadedState extends DatasetState {
     int? rowLimit,
     List<DatasetFilter>? filters,
     Object? sort = _sortNotProvided,
+    DatasetAnalyticsState? analyticsState,
   }) {
     return DatasetLoadedState(
       dataset: dataset ?? this.dataset,
@@ -74,6 +134,7 @@ class DatasetLoadedState extends DatasetState {
       filters: filters ?? this.filters,
       sort:
           identical(sort, _sortNotProvided) ? this.sort : sort as DatasetSort?,
+      analyticsState: analyticsState ?? this.analyticsState,
     );
   }
 }

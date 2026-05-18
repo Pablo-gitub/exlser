@@ -1,11 +1,15 @@
+import 'package:exel_category/application/dto/chart_data.dart';
+import 'package:exel_category/application/services/analysis_service.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
+import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/repositories/schema_repository.dart';
 import 'package:exel_category/domain/usecases/dataset/open_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
 import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
 import 'package:exel_category/domain/usecases/query/fetch_rows_usecase.dart';
+import 'package:exel_category/domain/value_objects/aggregation_type.dart';
 import 'package:exel_category/domain/value_objects/dataset_filter.dart';
 import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,6 +26,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
   final FetchRowsUseCase _fetchRows;
   final ApplyFiltersUseCase _applyFilters;
   final UpdateDatasetUiStateUseCase _updateDatasetUiState;
+  final AnalysisService _analysisService;
 
   DatasetBloc({
     required OpenDatasetUseCase openDataset,
@@ -29,11 +34,13 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     required FetchRowsUseCase fetchRows,
     required ApplyFiltersUseCase applyFilters,
     required UpdateDatasetUiStateUseCase updateDatasetUiState,
+    required AnalysisService analysisService,
   })  : _openDataset = openDataset,
         _schemaRepository = schemaRepository,
         _fetchRows = fetchRows,
         _applyFilters = applyFilters,
         _updateDatasetUiState = updateDatasetUiState,
+        _analysisService = analysisService,
         super(const DatasetInitialState()) {
     on<LoadDatasetEvent>(_onLoadDataset);
     on<ChangeSheetEvent>(_onChangeSheet);
@@ -44,6 +51,10 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     on<ClearFiltersEvent>(_onClearFilters);
     on<ChangeSortEvent>(_onChangeSort);
     on<ToggleSortColumnEvent>(_onToggleSortColumn);
+    on<LoadAnalyticsEvent>(_onLoadAnalytics);
+    on<AddChartEvent>(_onAddChart);
+    on<RemoveChartEvent>(_onRemoveChart);
+    on<UpdateChartConfigEvent>(_onUpdateChartConfig);
   }
 
   Future<void> _onLoadDataset(
@@ -390,6 +401,233 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       );
     } catch (_) {
       // Workspace state persistence should never block row browsing.
+    }
+  }
+
+  Future<void> _onLoadAnalytics(
+    LoadAnalyticsEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+
+    emit(currentState.copyWith(
+      analyticsState: const DatasetAnalyticsLoadingState(),
+    ));
+
+    try {
+      final workspaceState = DatasetWorkspaceUiState.fromJsonString(
+        currentState.dataset.uiStateJson,
+      );
+
+      List<String> ids;
+      List<ChartSuggestion> suggestions;
+
+      if (workspaceState.charts.isNotEmpty) {
+        final restored = [
+          for (final stored in workspaceState.charts)
+            (stored.id, stored.toChartSuggestion(currentState.columns)),
+        ].where((pair) => pair.$2 != null).toList();
+        ids = [for (final p in restored) p.$1];
+        suggestions = [for (final p in restored) p.$2!];
+      } else {
+        suggestions = _analysisService.suggestAllCharts(currentState.columns);
+        ids = List.generate(suggestions.length, (i) => 'chart_$i');
+      }
+
+      final whereClause = _applyFilters.buildWhereClause(currentState.filters);
+
+      final chartsData = await Future.wait([
+        for (final suggestion in suggestions)
+          _analysisService.loadChartData(
+            tableName: currentState.activeTable.sqlTableName,
+            suggestion: suggestion,
+            whereClause: whereClause?.sql,
+            whereArguments: whereClause?.arguments,
+          ),
+      ]);
+
+      final charts = [
+        for (int i = 0; i < suggestions.length; i++)
+          AnalyticsChart(
+            id: ids[i],
+            suggestion: suggestions[i],
+            chartData: chartsData[i],
+          ),
+      ];
+
+      final nextState = currentState.copyWith(
+        analyticsState: DatasetAnalyticsLoadedState(charts: charts),
+      );
+      emit(nextState);
+      await _persistWorkspaceState(nextState);
+    } catch (_) {
+      emit(currentState.copyWith(
+        analyticsState: const DatasetAnalyticsErrorState('analytics_failed'),
+      ));
+    }
+  }
+
+  Future<void> _onAddChart(
+    AddChartEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+    final analyticsState = currentState.analyticsState;
+    if (analyticsState is! DatasetAnalyticsLoadedState) return;
+
+    final validXCols = currentState.columns
+        .where(
+          (c) => event.chartType.validXColumnTypes.contains(c.declaredType),
+        )
+        .toList();
+    if (validXCols.isEmpty) return;
+
+    final validYCols = currentState.columns.where((c) => c.isNumeric).toList();
+
+    final suggestion = ChartSuggestion(
+      chartType: event.chartType,
+      xColumn: validXCols.first,
+      yColumn: validYCols.isNotEmpty ? validYCols.first : null,
+      aggregationType: AggregationType.count,
+    );
+
+    final id = DateTime.now().microsecondsSinceEpoch.toString();
+    final newChart =
+        AnalyticsChart(id: id, suggestion: suggestion, isLoading: true);
+
+    emit(currentState.copyWith(
+      analyticsState: analyticsState.copyWith(
+        charts: [...analyticsState.charts, newChart],
+      ),
+    ));
+
+    try {
+      final whereClause = _applyFilters.buildWhereClause(currentState.filters);
+      final chartData = await _analysisService.loadChartData(
+        tableName: currentState.activeTable.sqlTableName,
+        suggestion: suggestion,
+        whereClause: whereClause?.sql,
+        whereArguments: whereClause?.arguments,
+      );
+
+      final latest = state;
+      if (latest is! DatasetLoadedState) return;
+      final latestAnalytics = latest.analyticsState;
+      if (latestAnalytics is! DatasetAnalyticsLoadedState) return;
+
+      final loadedCharts = [
+        for (final c in latestAnalytics.charts)
+          if (c.id == id)
+            c.copyWith(chartData: chartData, isLoading: false)
+          else
+            c,
+      ];
+      final nextState = latest.copyWith(
+        analyticsState: latestAnalytics.copyWith(charts: loadedCharts),
+      );
+      emit(nextState);
+      await _persistWorkspaceState(nextState);
+    } catch (_) {
+      final latest = state;
+      if (latest is! DatasetLoadedState) return;
+      final latestAnalytics = latest.analyticsState;
+      if (latestAnalytics is! DatasetAnalyticsLoadedState) return;
+
+      final errorCharts = [
+        for (final c in latestAnalytics.charts)
+          if (c.id == id) c.copyWith(isLoading: false) else c,
+      ];
+      emit(latest.copyWith(
+        analyticsState: latestAnalytics.copyWith(charts: errorCharts),
+      ));
+    }
+  }
+
+  Future<void> _onRemoveChart(
+    RemoveChartEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+    final analyticsState = currentState.analyticsState;
+    if (analyticsState is! DatasetAnalyticsLoadedState) return;
+
+    final remaining = [
+      for (final c in analyticsState.charts)
+        if (c.id != event.chartId) c,
+    ];
+    final nextState = currentState.copyWith(
+      analyticsState: analyticsState.copyWith(charts: remaining),
+    );
+    emit(nextState);
+    await _persistWorkspaceState(nextState);
+  }
+
+  Future<void> _onUpdateChartConfig(
+    UpdateChartConfigEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+    final analyticsState = currentState.analyticsState;
+    if (analyticsState is! DatasetAnalyticsLoadedState) return;
+
+    final loadingCharts = [
+      for (final c in analyticsState.charts)
+        if (c.id == event.chartId)
+          c.copyWith(
+            suggestion: event.suggestion,
+            isLoading: true,
+            chartData: const EmptyChartData(),
+          )
+        else
+          c,
+    ];
+    emit(currentState.copyWith(
+      analyticsState: analyticsState.copyWith(charts: loadingCharts),
+    ));
+
+    try {
+      final whereClause = _applyFilters.buildWhereClause(currentState.filters);
+      final chartData = await _analysisService.loadChartData(
+        tableName: currentState.activeTable.sqlTableName,
+        suggestion: event.suggestion,
+        whereClause: whereClause?.sql,
+        whereArguments: whereClause?.arguments,
+      );
+
+      final latest = state;
+      if (latest is! DatasetLoadedState) return;
+      final latestAnalytics = latest.analyticsState;
+      if (latestAnalytics is! DatasetAnalyticsLoadedState) return;
+
+      final loadedCharts = [
+        for (final c in latestAnalytics.charts)
+          if (c.id == event.chartId)
+            c.copyWith(chartData: chartData, isLoading: false)
+          else
+            c,
+      ];
+      final nextState = latest.copyWith(
+        analyticsState: latestAnalytics.copyWith(charts: loadedCharts),
+      );
+      emit(nextState);
+      await _persistWorkspaceState(nextState);
+    } catch (_) {
+      final latest = state;
+      if (latest is! DatasetLoadedState) return;
+      final latestAnalytics = latest.analyticsState;
+      if (latestAnalytics is! DatasetAnalyticsLoadedState) return;
+
+      final errorCharts = [
+        for (final c in latestAnalytics.charts)
+          if (c.id == event.chartId) c.copyWith(isLoading: false) else c,
+      ];
+      emit(latest.copyWith(
+        analyticsState: latestAnalytics.copyWith(charts: errorCharts),
+      ));
     }
   }
 }

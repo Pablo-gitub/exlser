@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/entities/chart_suggestion.dart';
+import 'package:exel_category/domain/value_objects/aggregation_type.dart';
+import 'package:exel_category/domain/value_objects/chart_type.dart';
 import 'package:exel_category/domain/value_objects/dataset_filter.dart';
 import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 import 'package:exel_category/domain/value_objects/filter_operator.dart';
@@ -12,17 +15,27 @@ class DatasetWorkspaceUiState {
   final DatasetViewMode viewMode;
   final List<StoredDatasetFilter> filters;
   final StoredDatasetSort? sort;
+  final List<StoredAnalyticsChart> charts;
 
   const DatasetWorkspaceUiState({
     this.activeTableId,
     this.viewMode = DatasetViewMode.table,
     this.filters = const [],
     this.sort,
+    this.charts = const [],
   });
 
   factory DatasetWorkspaceUiState.fromLoadedState(
     DatasetLoadedState state,
   ) {
+    final analyticsState = state.analyticsState;
+    final charts = analyticsState is DatasetAnalyticsLoadedState
+        ? [
+            for (final chart in analyticsState.charts)
+              StoredAnalyticsChart.fromAnalyticsChart(chart),
+          ]
+        : <StoredAnalyticsChart>[];
+
     return DatasetWorkspaceUiState(
       activeTableId: state.activeTable.id,
       viewMode: state.viewMode,
@@ -33,6 +46,7 @@ class DatasetWorkspaceUiState {
       sort: state.sort == null
           ? null
           : StoredDatasetSort.fromDatasetSort(state.sort!),
+      charts: charts,
     );
   }
 
@@ -55,6 +69,7 @@ class DatasetWorkspaceUiState {
 
   factory DatasetWorkspaceUiState.fromJson(Map<String, dynamic> json) {
     final filtersJson = json['filters'];
+    final chartsJson = json['charts'];
 
     return DatasetWorkspaceUiState(
       activeTableId:
@@ -70,6 +85,13 @@ class DatasetWorkspaceUiState {
       sort: json['sort'] is Map<String, dynamic>
           ? StoredDatasetSort.fromJson(json['sort'] as Map<String, dynamic>)
           : null,
+      charts: chartsJson is List
+          ? [
+              for (final chartJson in chartsJson)
+                if (chartJson is Map<String, dynamic>)
+                  StoredAnalyticsChart.fromJson(chartJson),
+            ]
+          : const [],
     );
   }
 
@@ -81,6 +103,8 @@ class DatasetWorkspaceUiState {
       'viewMode': viewMode.name,
       'filters': [for (final filter in filters) filter.toJson()],
       if (sort != null) 'sort': sort!.toJson(),
+      if (charts.isNotEmpty)
+        'charts': [for (final chart in charts) chart.toJson()],
     };
   }
 
@@ -94,6 +118,79 @@ class DatasetWorkspaceUiState {
 
   DatasetSort? restoreSort(List<DatasetColumn> columns) {
     return sort?.toDatasetSort(columns);
+  }
+}
+
+class StoredAnalyticsChart {
+  final String id;
+  final String chartTypeName;
+  final String? xColumnDbName;
+  final String? yColumnDbName;
+  final String aggregationTypeName;
+
+  const StoredAnalyticsChart({
+    required this.id,
+    required this.chartTypeName,
+    this.xColumnDbName,
+    this.yColumnDbName,
+    this.aggregationTypeName = 'count',
+  });
+
+  factory StoredAnalyticsChart.fromAnalyticsChart(AnalyticsChart chart) {
+    return StoredAnalyticsChart(
+      id: chart.id,
+      chartTypeName: chart.suggestion.chartType.name,
+      xColumnDbName: chart.suggestion.xColumn?.dbName,
+      yColumnDbName: chart.suggestion.yColumn?.dbName,
+      aggregationTypeName: chart.suggestion.aggregationType.name,
+    );
+  }
+
+  factory StoredAnalyticsChart.fromJson(Map<String, dynamic> json) {
+    return StoredAnalyticsChart(
+      id: json['id']?.toString() ?? '',
+      chartTypeName: json['chartType']?.toString() ?? 'bar',
+      xColumnDbName: json['xColumn']?.toString(),
+      yColumnDbName: json['yColumn']?.toString(),
+      aggregationTypeName: json['aggregation']?.toString() ?? 'count',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'chartType': chartTypeName,
+      if (xColumnDbName != null) 'xColumn': xColumnDbName,
+      if (yColumnDbName != null) 'yColumn': yColumnDbName,
+      'aggregation': aggregationTypeName,
+    };
+  }
+
+  ChartSuggestion? toChartSuggestion(List<DatasetColumn> columns) {
+    final chartType = ChartType.values.firstWhere(
+      (t) => t.name == chartTypeName,
+      orElse: () => ChartType.none,
+    );
+    if (chartType == ChartType.none) return null;
+
+    final xColumn =
+        xColumnDbName != null ? _findColumn(columns, xColumnDbName!) : null;
+    if (xColumn == null) return null;
+
+    final yColumn =
+        yColumnDbName != null ? _findColumn(columns, yColumnDbName!) : null;
+
+    final aggregationType = AggregationType.values.firstWhere(
+      (a) => a.name == aggregationTypeName,
+      orElse: () => AggregationType.count,
+    );
+
+    return ChartSuggestion(
+      chartType: chartType,
+      xColumn: xColumn,
+      yColumn: yColumn,
+      aggregationType: aggregationType,
+    );
   }
 }
 

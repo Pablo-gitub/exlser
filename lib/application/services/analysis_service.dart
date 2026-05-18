@@ -1,17 +1,90 @@
-/// Application service responsible for analytical operations
-/// on datasets.
-///
-/// Future responsibilities:
-/// - Statistical summaries
-/// - Distribution analysis
-/// - Regression preparation
-/// - Chart data generation
-class AnalysisService {
+import 'package:exel_category/application/dto/chart_data.dart';
+import 'package:exel_category/domain/entities/chart_suggestion.dart';
+import 'package:exel_category/domain/entities/column_statistics.dart';
+import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/usecases/analytics/get_category_distribution_usecase.dart';
+import 'package:exel_category/domain/usecases/analytics/get_column_statistics_usecase.dart';
+import 'package:exel_category/domain/usecases/analytics/get_time_series_usecase.dart';
+import 'package:exel_category/domain/usecases/analytics/suggest_charts_usecase.dart';
+import 'package:exel_category/domain/value_objects/chart_type.dart';
 
-  /// TODO:
-  /// Implement analytical pipelines:
-  ///
-  /// 1. Retrieve column data
-  /// 2. Perform statistical analysis
-  /// 3. Prepare chart-ready datasets
+/// Orchestrates analytical operations on dataset tables.
+///
+/// Responsibilities:
+/// - suggest the initial chart from column types
+/// - load chart data for the active suggestion and filters
+/// - compute column statistics on demand
+class AnalysisService {
+  final SuggestChartsUseCase suggestChartsUseCase;
+  final GetColumnStatisticsUseCase getColumnStatisticsUseCase;
+  final GetCategoryDistributionUseCase getCategoryDistributionUseCase;
+  final GetTimeSeriesUseCase getTimeSeriesUseCase;
+
+  const AnalysisService({
+    required this.suggestChartsUseCase,
+    required this.getCategoryDistributionUseCase,
+    required this.getColumnStatisticsUseCase,
+    required this.getTimeSeriesUseCase,
+  });
+
+  ChartSuggestion suggestChart(List<DatasetColumn> columns) =>
+      suggestChartsUseCase(columns);
+
+  List<ChartSuggestion> suggestAllCharts(List<DatasetColumn> columns) =>
+      suggestChartsUseCase.suggestAll(columns);
+
+  Future<ColumnStatistics> getColumnStatistics({
+    required String tableName,
+    required DatasetColumn column,
+    String? whereClause,
+    List<Object?>? whereArguments,
+  }) {
+    return getColumnStatisticsUseCase(
+      tableName: tableName,
+      column: column,
+      whereClause: whereClause,
+      whereArguments: whereArguments,
+    );
+  }
+
+  Future<ChartData> loadChartData({
+    required String tableName,
+    required ChartSuggestion suggestion,
+    String? whereClause,
+    List<Object?>? whereArguments,
+  }) async {
+    if (!suggestion.hasChart) return const EmptyChartData();
+
+    final xCol = suggestion.xColumn;
+    final yCol = suggestion.yColumn;
+    final agg = suggestion.aggregationType;
+
+    if (suggestion.chartType == ChartType.line &&
+        xCol != null &&
+        yCol != null) {
+      return getTimeSeriesUseCase(
+        tableName: tableName,
+        xColumn: xCol,
+        yColumn: yCol,
+        aggregationType: agg,
+        whereClause: whereClause,
+        whereArguments: whereArguments,
+      );
+    }
+
+    if ((suggestion.chartType == ChartType.bar ||
+            suggestion.chartType == ChartType.pie) &&
+        xCol != null) {
+      return getCategoryDistributionUseCase(
+        tableName: tableName,
+        xColumn: xCol,
+        yColumn: yCol,
+        aggregationType: agg,
+        whereClause: whereClause,
+        whereArguments: whereArguments,
+      );
+    }
+
+    return const EmptyChartData();
+  }
 }
