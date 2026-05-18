@@ -332,28 +332,40 @@ Publish criteria:
 
 Goal: make dataset browsing useful beyond read-only viewing.
 
-- [ ] Define UI/domain filter models for text, number, date, and boolean values.
-- [ ] Complete `ApplyFiltersUseCase`.
-- [ ] Complete `GetDistinctValuesUseCase`.
-- [ ] Wire `QueryRepositoryImpl.queryWithFilter`.
-- [ ] Wire `QueryRepositoryImpl.queryWithFilterAndOrder`.
-- [ ] Extend Dataset BLoC with update filter, clear filter, and sort column events.
-- [ ] Implement `FilterTextWidget`.
-- [ ] Implement `FilterNumericWidget`.
-- [ ] Implement `FilterDateWidget`.
-- [ ] Add boolean filter UI.
-- [ ] Persist workspace UI state in `uiStateJson`.
-- [ ] Restore filters, active sheet, and view mode when reopening a dataset.
-- [ ] Add tests for composed SQL filters.
-- [ ] Add BLoC tests for filtering and sorting.
+- [x] Define UI/domain filter models for text, number, date, and boolean values.
+- [x] Define `DatasetSort` and sort direction models.
+- [x] Complete `ApplyFiltersUseCase`.
+- [x] Complete `GetDistinctValuesUseCase`.
+- [x] Wire `QueryRepositoryImpl.queryWithFilter`.
+- [x] Wire `QueryRepositoryImpl.queryWithFilterAndOrder`.
+- [x] Extend Dataset BLoC with add filter, remove filter, clear filters, and sort column events.
+- [x] Implement a guided filter panel with column selection, type-specific controls, and active filter chips.
+- [x] Add text filter UI using a simple contains search by default.
+- [x] Add numeric filter UI using a range selector based on loaded values.
+- [x] Add date filter UI using a from/to range.
+- [x] Add boolean filter UI using a true/false selector.
+- [x] Keep SQL-style operators behind an advanced-mode toggle.
+- [x] Add sortable table headers.
+- [x] Add localized filter, sort, and error messages.
+- [x] Persist workspace UI state in `uiStateJson`.
+- [x] Restore filters, active sheet, and view mode when reopening a dataset.
+- [x] Add tests for composed SQL filters.
+- [x] Add BLoC tests for filtering and sorting.
+
+Future filtering enhancements:
+
+- [ ] Add global search across all visible columns.
+- [ ] Add distinct value suggestions for text and boolean filters.
+- [ ] Add min/max assistance for numeric and date filters.
+- [ ] Add a desktop/web advanced column-filter row inspired by DevExpress.
 
 ### Milestone Reached: v0.2.0 - Filtering and Sorting
 
 Publish criteria:
 
-- [ ] The user can filter text, numbers, dates, and booleans.
-- [ ] The user can sort by column.
-- [ ] Workspace state is restored when reopening a dataset.
+- [x] The user can filter text, numbers, dates, and booleans.
+- [x] The user can sort by column.
+- [x] Workspace state is restored when reopening a dataset.
 
 ## Path to Export
 
