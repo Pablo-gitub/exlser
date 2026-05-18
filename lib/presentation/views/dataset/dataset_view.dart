@@ -9,6 +9,7 @@ import 'package:exel_category/presentation/state/dataset_bloc.dart';
 import 'package:exel_category/presentation/state/dataset_event.dart';
 import 'package:exel_category/presentation/state/dataset_state.dart';
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_card_view.dart';
+import 'package:exel_category/presentation/widgets/dataset_views/dataset_filter_panel.dart';
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_table_view.dart';
 import 'package:exel_category/presentation/widgets/layout/app_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,8 @@ class DatasetView extends ConsumerWidget {
         openDataset: ref.read(openDatasetUseCaseProvider),
         schemaRepository: ref.read(schemaRepositoryProvider),
         fetchRows: ref.read(fetchRowsUseCaseProvider),
+        applyFilters: ref.read(applyFiltersUseCaseProvider),
+        updateDatasetUiState: ref.read(updateDatasetUiStateUseCaseProvider),
       )..add(LoadDatasetEvent(datasetId)),
       child: AppScaffold(
         title: AppStrings.datasetWorkspaceTitle.tr(),
@@ -85,12 +88,33 @@ class _LoadedWorkspace extends StatelessWidget {
             activeTable: state.activeTable,
           ),
           const SizedBox(height: 16),
+          DatasetFilterPanel(
+            columns: state.columns,
+            rows: state.rows,
+            filters: state.filters,
+            onAddFilter: (filter) {
+              context.read<DatasetBloc>().add(AddFilterEvent(filter));
+            },
+            onRemoveFilter: (filterId) {
+              context.read<DatasetBloc>().add(RemoveFilterEvent(filterId));
+            },
+            onClearFilters: () {
+              context.read<DatasetBloc>().add(const ClearFiltersEvent());
+            },
+          ),
+          const SizedBox(height: 16),
           if (state.rows.isEmpty)
             _NoRowsMessage(columns: state.columns)
           else if (state.viewMode == DatasetViewMode.table)
             DatasetTableView(
               columns: state.columns,
               rows: state.rows,
+              sort: state.sort,
+              onSortColumn: (column) {
+                context.read<DatasetBloc>().add(
+                      ToggleSortColumnEvent(column),
+                    );
+              },
             )
           else
             DatasetCardView(
@@ -145,13 +169,6 @@ class _DatasetHeader extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            IconButton(
-              tooltip: AppStrings.refresh.tr(),
-              onPressed: () {
-                context.read<DatasetBloc>().add(const RefreshResultsEvent());
-              },
-              icon: const Icon(Icons.refresh),
             ),
           ],
         ),
@@ -404,6 +421,10 @@ class _WorkspaceError extends StatelessWidget {
 
 String _workspaceErrorMessage(String code) {
   switch (code) {
+    case 'filter_failed':
+      return AppStrings.datasetWorkspaceFilterFailed;
+    case 'sort_failed':
+      return AppStrings.datasetWorkspaceSortFailed;
     case 'sheet_failed':
       return AppStrings.datasetWorkspaceSheetFailed;
     case 'refresh_failed':
