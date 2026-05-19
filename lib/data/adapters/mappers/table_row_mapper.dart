@@ -27,19 +27,30 @@ class TableRowMapper {
       return [];
     }
 
-    /// Extract header row.
-    final headers = rows.first.map((e) => e.toString()).toList();
+    // Extract header row and ignore columns without a header.
+    final headers = <({int index, String name})>[];
+    for (int i = 0; i < rows.first.length; i++) {
+      final header = rows.first[i]?.toString().trim() ?? '';
+      if (header.isNotEmpty) {
+        headers.add((index: i, name: header));
+      }
+    }
 
-    /// Extract data rows.
+    if (headers.isEmpty) {
+      return [];
+    }
+
+    // Extract data rows.
     final dataRows = rows.skip(1);
 
     return dataRows.map((row) {
       final Map<String, dynamic> rowMap = {};
 
-      for (int i = 0; i < headers.length; i++) {
-        final key = headers[i];
+      for (final header in headers) {
+        final key = header.name;
 
-        final value = i < row.length ? row[i]?.toString() : null;
+        final value =
+            header.index < row.length ? row[header.index]?.toString() : null;
 
         rowMap[key] = value;
       }

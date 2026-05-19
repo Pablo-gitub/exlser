@@ -32,7 +32,9 @@ class HeaderDetector {
     for (int i = 0; i < rows.length; i++) {
       final row = rows[i];
 
-      final hasValue = row.any((cell) => cell.trim().isNotEmpty);
+      final hasValue = row.any(
+        (cell) => cell?.toString().trim().isNotEmpty ?? false,
+      );
 
       if (hasValue) {
         return rows.sublist(i);
