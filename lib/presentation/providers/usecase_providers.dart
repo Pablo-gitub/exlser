@@ -13,6 +13,10 @@ import 'package:exel_category/domain/usecases/dataset/get_datasets_usecase.dart'
 import 'package:exel_category/domain/usecases/dataset/open_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/register_dataset_file_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
+import 'package:exel_category/domain/usecases/export/export_csv_usecase.dart';
+import 'package:exel_category/domain/usecases/export/export_excel_usecase.dart';
+import 'package:exel_category/domain/usecases/export/export_pdf_usecase.dart';
+import 'package:exel_category/domain/usecases/export/export_sql_usecase.dart';
 import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
 import 'package:exel_category/domain/usecases/query/fetch_rows_usecase.dart';
 import 'package:exel_category/domain/usecases/query/get_distinct_values_usecase.dart';
@@ -159,6 +163,22 @@ final getTimeSeriesUseCaseProvider = Provider<GetTimeSeriesUseCase>((ref) {
   return GetTimeSeriesUseCase(
     repository: ref.watch(queryRepositoryProvider),
   );
+});
+
+final exportCsvUseCaseProvider = Provider<ExportCsvUseCase>((ref) {
+  return const ExportCsvUseCase();
+});
+
+final exportExcelUseCaseProvider = Provider<ExportExcelUseCase>((ref) {
+  return const ExportExcelUseCase();
+});
+
+final exportPdfUseCaseProvider = Provider<ExportPdfUseCase>((ref) {
+  return const ExportPdfUseCase();
+});
+
+final exportSqlUseCaseProvider = Provider<ExportSqlUseCase>((ref) {
+  return const ExportSqlUseCase();
 });
 
 final analysisServiceProvider = Provider<AnalysisService>((ref) {

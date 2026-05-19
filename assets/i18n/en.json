@@ -24,7 +24,8 @@
         "open": "Open",
         "add": "Add",
         "clear": "Clear",
-        "apply": "Apply"
+        "apply": "Apply",
+        "close": "Close"
     },
     "menu": {
         "home": "Home",
@@ -112,6 +113,16 @@
                 "sort_failed": "Could not sort rows.",
                 "pagination_failed": "Could not load the requested page."
             },
+            "export": {
+                "tooltip": "Export dataset",
+                "excel": "Export Excel",
+                "csv": "Export CSV",
+                "pdf": "Export PDF",
+                "sql": "Export SQL",
+                "started": "Exporting dataset...",
+                "success": "Export ready: {count} file(s).",
+                "failed": "Could not export this dataset."
+            },
             "analytics": {
                 "title": "Analytics",
                 "no_chart": "No chart available for the current data types.",
@@ -126,6 +137,16 @@
                     "avg": "Average",
                     "min": "Minimum",
                     "max": "Maximum"
+                },
+                "aggregation_info": {
+                    "tooltip": "What do aggregations mean?",
+                    "title": "Aggregations",
+                    "intro": "Aggregation controls how multiple rows are combined before the chart is drawn. If each group contains one row, sum, average, minimum, and maximum can look identical.",
+                    "count": "Number of rows in each group.",
+                    "sum": "Total of the selected numeric values.",
+                    "avg": "Mean value for each group.",
+                    "min": "Lowest value found in each group.",
+                    "max": "Highest value found in each group."
                 }
             }
         }

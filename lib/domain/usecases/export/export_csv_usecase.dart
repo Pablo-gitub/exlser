@@ -1,29 +1,50 @@
-/// Exports dataset rows into a CSV file.
-///
-/// CSV (Comma Separated Values) is one of the most widely supported
-/// formats for data exchange. This use case allows exporting dataset
-/// contents into a portable text format that can be imported into
-/// spreadsheets, databases or analytics tools.
-///
-/// Responsibilities:
-/// - retrieve dataset rows
-/// - serialize rows into CSV format
-/// - return the generated CSV content or file
-///
-/// Dependencies:
-/// - QueryRepository
-///
-/// Expected flow:
-/// 1. Receive dataset table name
-/// 2. Retrieve rows via QueryRepository
-/// 3. Extract column headers
-/// 4. Serialize rows into CSV format
-/// 5. Return CSV string or file reference
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:csv/csv.dart' as csv;
+import 'package:exel_category/domain/entities/exported_file.dart';
+import 'package:exel_category/domain/usecases/export/export_dataset_data.dart';
+import 'package:exel_category/domain/value_objects/export_format.dart';
+
 class ExportCsvUseCase {
-  // TODO:
-  // - inject QueryRepository
-  // - retrieve rows from dataset table
-  // - extract column headers
-  // - serialize rows into CSV format
-  // - return generated CSV
+  const ExportCsvUseCase();
+
+  List<ExportedFile> call(ExportDatasetData data) {
+    return [
+      for (final table in data.tables)
+        ExportedFile(
+          name: _fileBaseName(data.dataset.name, table.table.sheetNameOriginal),
+          extension: ExportFormat.csv.extension,
+          mimeType: 'text/csv',
+          format: ExportFormat.csv,
+          bytes: Uint8List.fromList(utf8.encode(_toCsv(table))),
+        ),
+    ];
+  }
+
+  String _toCsv(ExportTableData table) {
+    final csvRows = <List<dynamic>>[
+      table.columns.map((column) => column.originalName).toList(),
+      for (final row in table.rows)
+        table.columns.map((column) => row[column.dbName]).toList(),
+    ];
+
+    return csv.csv.encode(csvRows);
+  }
+
+  String _fileBaseName(String datasetName, String sheetName) {
+    final dataset = _sanitizeFilePart(datasetName, fallback: 'dataset');
+    final sheet = _sanitizeFilePart(sheetName, fallback: 'sheet');
+    return '${dataset}_$sheet';
+  }
+
+  String _sanitizeFilePart(String value, {required String fallback}) {
+    final sanitized = value
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+
+    return sanitized.isEmpty ? fallback : sanitized;
+  }
 }

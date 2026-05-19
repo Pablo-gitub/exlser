@@ -313,38 +313,137 @@ class _AggregationDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 180),
-      child: DropdownButtonFormField<AggregationType>(
-        key: ValueKey(selected),
-        decoration: InputDecoration(
-          labelText: AppStrings.datasetWorkspaceAnalyticsAggregation.tr(),
-          border: const OutlineInputBorder(),
-          isDense: true,
-        ),
-        initialValue: selected,
-        items: [
-          DropdownMenuItem(
-            value: AggregationType.count,
-            child: Text(AppStrings.datasetWorkspaceAnalyticsAggCount.tr()),
+      constraints: const BoxConstraints(maxWidth: 230),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: DropdownButtonFormField<AggregationType>(
+              key: ValueKey(selected),
+              decoration: InputDecoration(
+                labelText: AppStrings.datasetWorkspaceAnalyticsAggregation.tr(),
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+              initialValue: selected,
+              items: [
+                DropdownMenuItem(
+                  value: AggregationType.count,
+                  child:
+                      Text(AppStrings.datasetWorkspaceAnalyticsAggCount.tr()),
+                ),
+                DropdownMenuItem(
+                  value: AggregationType.sum,
+                  child: Text(AppStrings.datasetWorkspaceAnalyticsAggSum.tr()),
+                ),
+                DropdownMenuItem(
+                  value: AggregationType.avg,
+                  child: Text(AppStrings.datasetWorkspaceAnalyticsAggAvg.tr()),
+                ),
+                DropdownMenuItem(
+                  value: AggregationType.min,
+                  child: Text(AppStrings.datasetWorkspaceAnalyticsAggMin.tr()),
+                ),
+                DropdownMenuItem(
+                  value: AggregationType.max,
+                  child: Text(AppStrings.datasetWorkspaceAnalyticsAggMax.tr()),
+                ),
+              ],
+              onChanged: onChanged,
+            ),
           ),
-          DropdownMenuItem(
-            value: AggregationType.sum,
-            child: Text(AppStrings.datasetWorkspaceAnalyticsAggSum.tr()),
-          ),
-          DropdownMenuItem(
-            value: AggregationType.avg,
-            child: Text(AppStrings.datasetWorkspaceAnalyticsAggAvg.tr()),
-          ),
-          DropdownMenuItem(
-            value: AggregationType.min,
-            child: Text(AppStrings.datasetWorkspaceAnalyticsAggMin.tr()),
-          ),
-          DropdownMenuItem(
-            value: AggregationType.max,
-            child: Text(AppStrings.datasetWorkspaceAnalyticsAggMax.tr()),
+          const SizedBox(width: 4),
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip:
+                AppStrings.datasetWorkspaceAnalyticsAggregationInfoTooltip.tr(),
+            onPressed: () => _showAggregationInfo(context),
           ),
         ],
-        onChanged: onChanged,
+      ),
+    );
+  }
+
+  void _showAggregationInfo(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          AppStrings.datasetWorkspaceAnalyticsAggregationInfoTitle.tr(),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppStrings.datasetWorkspaceAnalyticsAggregationInfoIntro.tr(),
+              ),
+              const SizedBox(height: 12),
+              _AggregationInfoText(
+                label: AppStrings.datasetWorkspaceAnalyticsAggCount.tr(),
+                description: AppStrings
+                    .datasetWorkspaceAnalyticsAggregationInfoCount
+                    .tr(),
+              ),
+              _AggregationInfoText(
+                label: AppStrings.datasetWorkspaceAnalyticsAggSum.tr(),
+                description:
+                    AppStrings.datasetWorkspaceAnalyticsAggregationInfoSum.tr(),
+              ),
+              _AggregationInfoText(
+                label: AppStrings.datasetWorkspaceAnalyticsAggAvg.tr(),
+                description:
+                    AppStrings.datasetWorkspaceAnalyticsAggregationInfoAvg.tr(),
+              ),
+              _AggregationInfoText(
+                label: AppStrings.datasetWorkspaceAnalyticsAggMin.tr(),
+                description:
+                    AppStrings.datasetWorkspaceAnalyticsAggregationInfoMin.tr(),
+              ),
+              _AggregationInfoText(
+                label: AppStrings.datasetWorkspaceAnalyticsAggMax.tr(),
+                description:
+                    AppStrings.datasetWorkspaceAnalyticsAggregationInfoMax.tr(),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(AppStrings.close.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AggregationInfoText extends StatelessWidget {
+  final String label;
+  final String description;
+
+  const _AggregationInfoText({
+    required this.label,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: RichText(
+        text: TextSpan(
+          style: Theme.of(context).textTheme.bodyMedium,
+          children: [
+            TextSpan(
+              text: '$label: ',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            TextSpan(text: description),
+          ],
+        ),
       ),
     );
   }

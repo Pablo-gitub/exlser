@@ -19,6 +19,7 @@ class AppStrings {
   static const String add = 'common.add';
   static const String clear = 'common.clear';
   static const String apply = 'common.apply';
+  static const String close = 'common.close';
 
   static const String home = 'menu.home';
   static const String works = 'menu.works';
@@ -73,6 +74,22 @@ class AppStrings {
       'dataset.workspace.error.sort_failed';
   static const String datasetWorkspacePaginationFailed =
       'dataset.workspace.error.pagination_failed';
+  static const String datasetWorkspaceExportTooltip =
+      'dataset.workspace.export.tooltip';
+  static const String datasetWorkspaceExportExcel =
+      'dataset.workspace.export.excel';
+  static const String datasetWorkspaceExportCsv =
+      'dataset.workspace.export.csv';
+  static const String datasetWorkspaceExportPdf =
+      'dataset.workspace.export.pdf';
+  static const String datasetWorkspaceExportSql =
+      'dataset.workspace.export.sql';
+  static const String datasetWorkspaceExportStarted =
+      'dataset.workspace.export.started';
+  static const String datasetWorkspaceExportSuccess =
+      'dataset.workspace.export.success';
+  static const String datasetWorkspaceExportFailed =
+      'dataset.workspace.export.failed';
   static const String datasetWorkspaceFiltersTitle =
       'dataset.workspace.filters.title';
   static const String datasetWorkspaceFiltersColumn =
@@ -216,6 +233,22 @@ class AppStrings {
       'dataset.workspace.analytics.error';
   static const String datasetWorkspaceAnalyticsAggregation =
       'dataset.workspace.analytics.aggregation';
+  static const String datasetWorkspaceAnalyticsAggregationInfoTooltip =
+      'dataset.workspace.analytics.aggregation_info.tooltip';
+  static const String datasetWorkspaceAnalyticsAggregationInfoTitle =
+      'dataset.workspace.analytics.aggregation_info.title';
+  static const String datasetWorkspaceAnalyticsAggregationInfoIntro =
+      'dataset.workspace.analytics.aggregation_info.intro';
+  static const String datasetWorkspaceAnalyticsAggregationInfoCount =
+      'dataset.workspace.analytics.aggregation_info.count';
+  static const String datasetWorkspaceAnalyticsAggregationInfoSum =
+      'dataset.workspace.analytics.aggregation_info.sum';
+  static const String datasetWorkspaceAnalyticsAggregationInfoAvg =
+      'dataset.workspace.analytics.aggregation_info.avg';
+  static const String datasetWorkspaceAnalyticsAggregationInfoMin =
+      'dataset.workspace.analytics.aggregation_info.min';
+  static const String datasetWorkspaceAnalyticsAggregationInfoMax =
+      'dataset.workspace.analytics.aggregation_info.max';
   static const String datasetWorkspaceAnalyticsXColumn =
       'dataset.workspace.analytics.x_column';
   static const String datasetWorkspaceAnalyticsYColumn =

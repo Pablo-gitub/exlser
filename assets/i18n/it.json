@@ -24,7 +24,8 @@
         "open": "Apri",
         "add": "Aggiungi",
         "clear": "Svuota",
-        "apply": "Applica"
+        "apply": "Applica",
+        "close": "Chiudi"
     },
     "menu": {
         "home": "Home",
@@ -112,6 +113,16 @@
                 "sort_failed": "Impossibile ordinare le righe.",
                 "pagination_failed": "Impossibile caricare la pagina richiesta."
             },
+            "export": {
+                "tooltip": "Esporta dataset",
+                "excel": "Esporta Excel",
+                "csv": "Esporta CSV",
+                "pdf": "Esporta PDF",
+                "sql": "Esporta SQL",
+                "started": "Esportazione dataset...",
+                "success": "Export pronto: {count} file.",
+                "failed": "Impossibile esportare questo dataset."
+            },
             "analytics": {
                 "title": "Analisi",
                 "no_chart": "Nessun grafico disponibile per i tipi di dati presenti.",
@@ -126,6 +137,16 @@
                     "avg": "Media",
                     "min": "Minimo",
                     "max": "Massimo"
+                },
+                "aggregation_info": {
+                    "tooltip": "Cosa indicano le aggregazioni?",
+                    "title": "Aggregazioni",
+                    "intro": "L'aggregazione decide come combinare più righe prima di disegnare il grafico. Se ogni gruppo contiene una sola riga, somma, media, minimo e massimo possono risultare identici.",
+                    "count": "Numero di righe in ogni gruppo.",
+                    "sum": "Totale dei valori numerici selezionati.",
+                    "avg": "Valore medio per ogni gruppo.",
+                    "min": "Valore più basso trovato in ogni gruppo.",
+                    "max": "Valore più alto trovato in ogni gruppo."
                 }
             }
         }

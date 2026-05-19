@@ -36,6 +36,7 @@ void main() {
     test('should resolve import and dataset creation services', () {
       expect(container.read(importDataServiceProvider), isNotNull);
       expect(container.read(createDatasetServiceProvider), isNotNull);
+      expect(container.read(exportDataServiceProvider), isNotNull);
       expect(container.read(saveUploadedFileUseCaseProvider), isNotNull);
       expect(container.read(openDatasetUseCaseProvider), isNotNull);
       expect(container.read(updateDatasetUiStateUseCaseProvider), isNotNull);

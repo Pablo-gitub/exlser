@@ -49,11 +49,10 @@ lib/
 │   ├── database/        # Drift database layer
 │   ├── errors/
 │   └── usecases/
-├── features/
-│   └── excel/
-│       ├── data/
-│       ├── domain/
-│       └── presentation/
+├── application/         # Import, creation, query, analytics, export services
+├── data/                # Datasources, adapters, repository implementations
+├── domain/              # Entities, repositories, use cases, value objects
+└── presentation/        # Views, widgets, providers, router, BLoC state
 
 ```
 
@@ -101,6 +100,20 @@ The chart panel will expose dropdown controls for alternative columns,
 aggregations, chart type, grouping, sorting, and top-N limits. More advanced
 regression and forecast views are planned after the first basic charting
 release.
+
+### Advanced Query Direction
+
+In addition to guided filters, a future workspace mode will allow advanced
+users to write and run explicit query-style searches against the current
+dataset. The goal is to support power-user exploration without replacing the
+safer filter UI:
+
+- typed filters for everyday usage;
+- global search for quick discovery;
+- advanced query editor for custom conditions and richer search logic.
+
+The query editor should remain constrained to dataset reads and validated
+against the imported schema before execution.
 
 ---
 
@@ -214,13 +227,15 @@ The first publishable preview focuses on the local import workflow:
 - see created datasets in the Works list
 - open a dataset in a read-only workspace
 - read imported rows in a table
+- paginate large tables
+- filter and sort rows
+- export datasets to Excel, CSV, PDF, or SQL
 - delete a dataset together with schema, rows, and file reference
 
 Not included in `v0.1.0`:
 
-- filtering and sorting
-- export
 - analytics and automatic charts
+- advanced query editor
 - cross-sheet or multi-dataset analysis
 
 Those features are tracked in [ROADMAP.md](ROADMAP.md).

@@ -1,9 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:exel_category/application/services/export_data_service.dart';
 import 'package:exel_category/core/constants/app_strings.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
+import 'package:exel_category/domain/entities/exported_file.dart';
+import 'package:exel_category/domain/value_objects/export_format.dart';
 import 'package:exel_category/presentation/providers/repository_providers.dart';
+import 'package:exel_category/presentation/providers/service_providers.dart';
 import 'package:exel_category/presentation/providers/usecase_providers.dart';
 import 'package:exel_category/presentation/state/dataset_bloc.dart';
 import 'package:exel_category/presentation/state/dataset_event.dart';
@@ -13,6 +17,7 @@ import 'package:exel_category/presentation/widgets/dataset_views/dataset_card_vi
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_filter_panel.dart';
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_table_view.dart';
 import 'package:exel_category/presentation/widgets/layout/app_scaffold.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,6 +44,11 @@ class DatasetView extends ConsumerWidget {
       )..add(LoadDatasetEvent(datasetId)),
       child: AppScaffold(
         title: AppStrings.datasetWorkspaceTitle.tr(),
+        actions: [
+          _DatasetExportAction(
+            exportDataService: ref.read(exportDataServiceProvider),
+          ),
+        ],
         body: BlocBuilder<DatasetBloc, DatasetState>(
           builder: (context, state) {
             return switch (state) {
@@ -57,6 +67,139 @@ class DatasetView extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+class _DatasetExportAction extends StatefulWidget {
+  final ExportDataService exportDataService;
+
+  const _DatasetExportAction({
+    required this.exportDataService,
+  });
+
+  @override
+  State<_DatasetExportAction> createState() => _DatasetExportActionState();
+}
+
+class _DatasetExportActionState extends State<_DatasetExportAction> {
+  bool _isExporting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DatasetBloc, DatasetState>(
+      builder: (context, state) {
+        final loadedState = state is DatasetLoadedState ? state : null;
+
+        if (_isExporting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+
+        return PopupMenuButton<ExportFormat>(
+          icon: const Icon(Icons.ios_share),
+          tooltip: AppStrings.datasetWorkspaceExportTooltip.tr(),
+          enabled: loadedState != null,
+          onSelected: loadedState == null
+              ? null
+              : (format) => _export(context, loadedState, format),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: ExportFormat.excel,
+              child: Text(AppStrings.datasetWorkspaceExportExcel.tr()),
+            ),
+            PopupMenuItem(
+              value: ExportFormat.csv,
+              child: Text(AppStrings.datasetWorkspaceExportCsv.tr()),
+            ),
+            PopupMenuItem(
+              value: ExportFormat.pdf,
+              child: Text(AppStrings.datasetWorkspaceExportPdf.tr()),
+            ),
+            PopupMenuItem(
+              value: ExportFormat.sql,
+              child: Text(AppStrings.datasetWorkspaceExportSql.tr()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _export(
+    BuildContext context,
+    DatasetLoadedState state,
+    ExportFormat format,
+  ) async {
+    setState(() {
+      _isExporting = true;
+    });
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(AppStrings.datasetWorkspaceExportStarted.tr()),
+      ),
+    );
+
+    try {
+      final files = await widget.exportDataService.exportDataset(
+        dataset: state.dataset,
+        format: format,
+      );
+
+      for (final file in files) {
+        await FileSaver.instance.saveFile(
+          name: file.name,
+          bytes: file.bytes,
+          ext: file.extension,
+          mimeType: _mimeTypeFor(file),
+          customMimeType: file.mimeType,
+        );
+      }
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            AppStrings.datasetWorkspaceExportSuccess.tr(
+              namedArgs: {'count': '${files.length}'},
+            ),
+          ),
+        ),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.datasetWorkspaceExportFailed.tr()),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isExporting = false;
+        });
+      }
+    }
+  }
+
+  MimeType _mimeTypeFor(ExportedFile file) {
+    switch (file.format) {
+      case ExportFormat.excel:
+        return MimeType.microsoftExcel;
+      case ExportFormat.csv:
+        return MimeType.csv;
+      case ExportFormat.pdf:
+        return MimeType.pdf;
+      case ExportFormat.sql:
+        return MimeType.custom;
+    }
   }
 }
 
