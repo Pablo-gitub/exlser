@@ -8,6 +8,23 @@ final onboardingViewModelProvider = Provider.autoDispose<OnboardingViewModel>(
   (ref) => OnboardingViewModel(ref),
 );
 
+enum OnboardingMediaType {
+  image,
+  video,
+}
+
+class OnboardingPageData {
+  final String titleKey;
+  final String assetPath;
+  final OnboardingMediaType mediaType;
+
+  const OnboardingPageData({
+    required this.titleKey,
+    required this.assetPath,
+    required this.mediaType,
+  });
+}
+
 /// ViewModel responsible for onboarding flow.
 ///
 /// Responsibilities:
@@ -19,11 +36,22 @@ class OnboardingViewModel {
 
   late final PageController pageController;
 
-  final List<String> pages = [
-    'Here I will create first onboarding',
-    'Here I will create second onboarding',
-    'Here I will create third onboarding',
-    'Here I will create fourth onboarding',
+  final List<OnboardingPageData> pages = const [
+    OnboardingPageData(
+      titleKey: 'onboarding.welcome.title',
+      assetPath: 'assets/images/logo_full_tagline_high.png',
+      mediaType: OnboardingMediaType.image,
+    ),
+    OnboardingPageData(
+      titleKey: 'onboarding.data.title',
+      assetPath: 'assets/preview_exlser.mp4',
+      mediaType: OnboardingMediaType.video,
+    ),
+    OnboardingPageData(
+      titleKey: 'onboarding.cross_platform.title',
+      assetPath: 'assets/exlser_crossplatform.png',
+      mediaType: OnboardingMediaType.image,
+    ),
   ];
 
   int currentPage = 0;

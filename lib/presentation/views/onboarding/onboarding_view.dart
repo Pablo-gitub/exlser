@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:exel_category/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:video_player/video_player.dart';
 
 import 'onboarding_viewmodel.dart';
 
@@ -37,7 +38,7 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
       appBar: AppBar(
         actions: [
           TextButton(
-            onPressed: viewModel.completeOnboarding,
+            onPressed: () async => viewModel.completeOnboarding(),
             child: Text(
               AppStrings.skip.tr(),
             ),
@@ -58,12 +59,8 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
                   });
                 },
                 itemBuilder: (context, index) {
-                  return Center(
-                    child: Text(
-                      viewModel.pages[index],
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
-                    ),
+                  return OnboardingPage(
+                    page: viewModel.pages[index],
                   );
                 },
               ),
@@ -97,6 +94,274 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class OnboardingPage extends StatelessWidget {
+  final OnboardingPageData page;
+
+  const OnboardingPage({
+    required this.page,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final mediaHeight =
+              (constraints.maxHeight * 0.68).clamp(220.0, 520.0);
+
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: mediaHeight,
+                width: double.infinity,
+                child: OnboardingMedia(page: page),
+              ),
+              const SizedBox(height: 28),
+              Text(
+                page.titleKey.tr(),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class OnboardingMedia extends StatelessWidget {
+  final OnboardingPageData page;
+
+  const OnboardingMedia({
+    required this.page,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    switch (page.mediaType) {
+      case OnboardingMediaType.image:
+        return Image.asset(
+          page.assetPath,
+          fit: BoxFit.contain,
+        );
+      case OnboardingMediaType.video:
+        return OnboardingVideoPreview(assetPath: page.assetPath);
+    }
+  }
+}
+
+class OnboardingVideoPreview extends StatefulWidget {
+  final String assetPath;
+
+  const OnboardingVideoPreview({
+    required this.assetPath,
+    super.key,
+  });
+
+  @override
+  State<OnboardingVideoPreview> createState() => _OnboardingVideoPreviewState();
+}
+
+class _OnboardingVideoPreviewState extends State<OnboardingVideoPreview> {
+  late final VideoPlayerController _controller;
+  late final Future<void> _initializeVideo;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = VideoPlayerController.asset(widget.assetPath);
+    _initializeVideo = _controller.initialize().then((_) {
+      if (!mounted) return;
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _initializeVideo,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Material(
+                  color: Colors.black,
+                  child: InkWell(
+                    onTap: () => showDialog<void>(
+                      context: context,
+                      useSafeArea: false,
+                      builder: (_) => FullscreenOnboardingVideoDialog(
+                        assetPath: widget.assetPath,
+                      ),
+                    ),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        VideoPlayer(_controller),
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.18),
+                          ),
+                        ),
+                        Center(
+                          child: Container(
+                            width: 76,
+                            height: 76,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.58),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 48,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 16,
+                          bottom: 16,
+                          child: FilledButton.icon(
+                            onPressed: () => showDialog<void>(
+                              context: context,
+                              useSafeArea: false,
+                              builder: (_) => FullscreenOnboardingVideoDialog(
+                                assetPath: widget.assetPath,
+                              ),
+                            ),
+                            icon: const Icon(Icons.play_arrow_rounded),
+                            label: Text(AppStrings.onboardingPlayPreview.tr()),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class FullscreenOnboardingVideoDialog extends StatefulWidget {
+  final String assetPath;
+
+  const FullscreenOnboardingVideoDialog({
+    required this.assetPath,
+    super.key,
+  });
+
+  @override
+  State<FullscreenOnboardingVideoDialog> createState() =>
+      _FullscreenOnboardingVideoDialogState();
+}
+
+class _FullscreenOnboardingVideoDialogState
+    extends State<FullscreenOnboardingVideoDialog> {
+  late final VideoPlayerController _controller;
+  late final Future<void> _initializeVideo;
+  bool _hasClosedAtEnd = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = VideoPlayerController.asset(widget.assetPath);
+    _initializeVideo = _controller.initialize().then((_) {
+      if (!mounted) return;
+      _controller
+        ..addListener(_closeWhenFinished)
+        ..play();
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller
+      ..removeListener(_closeWhenFinished)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _closeWhenFinished() {
+    final value = _controller.value;
+    if (_hasClosedAtEnd ||
+        !value.isInitialized ||
+        value.duration == Duration.zero) {
+      return;
+    }
+
+    if (value.position >= value.duration) {
+      _hasClosedAtEnd = true;
+      if (mounted) {
+        Navigator.of(context).maybePop();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog.fullscreen(
+      backgroundColor: Colors.black,
+      child: Stack(
+        children: [
+          Center(
+            child: FutureBuilder<void>(
+              future: _initializeVideo,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const CircularProgressIndicator();
+                }
+
+                return AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                );
+              },
+            ),
+          ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: SafeArea(
+              child: IconButton.filled(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.close),
+                tooltip: AppStrings.close.tr(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

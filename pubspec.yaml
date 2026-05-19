@@ -55,6 +55,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   shared_preferences: ^2.5.3
   desktop_drop: ^0.7.1
+  video_player: ^2.11.1
 
 dev_dependencies:
   flutter_test:

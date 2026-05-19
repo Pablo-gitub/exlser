@@ -10,7 +10,17 @@
     },
     "onboarding": {
         "title": "Benvenuto su ExlSer",
-        "button": "Inizia"
+        "button": "Inizia",
+        "welcome": {
+            "title": "Benvenuto su Exlser"
+        },
+        "data": {
+            "title": "Ottieni il massimo dai tuoi dati!"
+        },
+        "cross_platform": {
+            "title": "Tutta la potenza di Exlser, su ogni dispositivo"
+        },
+        "play_preview": "Guarda anteprima"
     },
     "common": {
         "skip": "Salta",

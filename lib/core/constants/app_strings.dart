@@ -6,6 +6,11 @@ class AppStrings {
 
   static const String onboardingTitle = 'onboarding.title';
   static const String onboardingButton = 'onboarding.button';
+  static const String onboardingWelcomeTitle = 'onboarding.welcome.title';
+  static const String onboardingDataTitle = 'onboarding.data.title';
+  static const String onboardingCrossPlatformTitle =
+      'onboarding.cross_platform.title';
+  static const String onboardingPlayPreview = 'onboarding.play_preview';
 
   static const String skip = 'common.skip';
   static const String previous = 'common.previous';
