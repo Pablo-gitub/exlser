@@ -7,12 +7,14 @@ import 'package:exel_category/domain/repositories/schema_repository.dart';
 import 'package:exel_category/domain/usecases/export/export_csv_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_dataset_data.dart';
 import 'package:exel_category/domain/usecases/export/export_excel_usecase.dart';
+import 'package:exel_category/domain/usecases/export/export_json_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_pdf_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_sql_usecase.dart';
 import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
 import 'package:exel_category/domain/value_objects/dataset_filter.dart';
 import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 import 'package:exel_category/domain/value_objects/export_format.dart';
+import 'package:exel_category/domain/value_objects/pdf_export_layout.dart';
 
 /// Application service responsible for exporting dataset data.
 ///
@@ -27,6 +29,7 @@ class ExportDataService {
   final ExportExcelUseCase exportExcelUseCase;
   final ExportPdfUseCase exportPdfUseCase;
   final ExportSqlUseCase exportSqlUseCase;
+  final ExportJsonUseCase exportJsonUseCase;
 
   const ExportDataService({
     required this.schemaRepository,
@@ -36,11 +39,13 @@ class ExportDataService {
     required this.exportExcelUseCase,
     required this.exportPdfUseCase,
     required this.exportSqlUseCase,
+    required this.exportJsonUseCase,
   });
 
   Future<List<ExportedFile>> exportDataset({
     required Dataset dataset,
     required ExportFormat format,
+    PdfExportLayout pdfLayout = PdfExportLayout.table,
   }) async {
     final data = await _loadDatasetData(dataset);
 
@@ -48,7 +53,11 @@ class ExportDataService {
       throw StateError('Cannot export dataset without tables');
     }
 
-    return _exportData(data, format);
+    return _exportData(
+      data,
+      format,
+      pdfLayout: pdfLayout,
+    );
   }
 
   Future<List<ExportedFile>> exportCurrentTable({
@@ -58,46 +67,107 @@ class ExportDataService {
     required List<DatasetFilter> filters,
     required DatasetSort? sort,
     required ExportFormat format,
+    PdfExportLayout pdfLayout = PdfExportLayout.table,
   }) async {
-    if (visibleColumns.isEmpty) {
-      throw StateError('Cannot export without visible columns');
+    return exportSelectedTables(
+      dataset: dataset,
+      selectedTables: [table],
+      visibleColumnsByTableId: {table.id: visibleColumns},
+      filtersByTableId: {table.id: filters},
+      sortByTableId: {table.id: sort},
+      format: format,
+      pdfLayout: pdfLayout,
+    );
+  }
+
+  Future<List<ExportedFile>> exportSelectedTables({
+    required Dataset dataset,
+    required List<DatasetTable> selectedTables,
+    required Map<int, List<DatasetColumn>> visibleColumnsByTableId,
+    Map<int, List<DatasetFilter>> filtersByTableId = const {},
+    Map<int, DatasetSort?> sortByTableId = const {},
+    required ExportFormat format,
+    PdfExportLayout pdfLayout = PdfExportLayout.table,
+  }) async {
+    if (selectedTables.isEmpty) {
+      throw StateError('Cannot export without selected sheets');
     }
 
-    final rows = filters.isEmpty && sort == null
-        ? await queryRepository.fetchRows(tableName: table.sqlTableName)
-        : await applyFiltersUseCase.call(
-            tableName: table.sqlTableName,
-            filters: filters,
-            sort: sort,
-          );
+    final exportTables = <ExportTableData>[];
+
+    for (final table in selectedTables) {
+      final columns = visibleColumnsByTableId[table.id] ??
+          await schemaRepository.getColumnsForTable(table.id);
+
+      if (columns.isEmpty) {
+        continue;
+      }
+
+      final filters = filtersByTableId[table.id] ?? const <DatasetFilter>[];
+      final sort = sortByTableId[table.id];
+      final rows = await _loadTableRows(
+        table: table,
+        filters: filters,
+        sort: sort,
+      );
+
+      exportTables.add(
+        ExportTableData(
+          table: table,
+          columns: columns,
+          rows: rows,
+        ),
+      );
+    }
 
     final data = ExportDatasetData(
       dataset: dataset,
-      tables: [
-        ExportTableData(
-          table: table,
-          columns: visibleColumns,
-          rows: rows,
-        ),
-      ],
+      tables: exportTables,
     );
 
-    return _exportData(data, format);
+    if (data.isEmpty) {
+      throw StateError('Cannot export dataset without readable sheets');
+    }
+
+    return _exportData(
+      data,
+      format,
+      pdfLayout: pdfLayout,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _loadTableRows({
+    required DatasetTable table,
+    required List<DatasetFilter> filters,
+    required DatasetSort? sort,
+  }) {
+    if (filters.isEmpty && sort == null) {
+      return queryRepository.fetchRows(tableName: table.sqlTableName);
+    }
+
+    return applyFiltersUseCase.call(
+      tableName: table.sqlTableName,
+      filters: filters,
+      sort: sort,
+    );
   }
 
   Future<List<ExportedFile>> _exportData(
     ExportDatasetData data,
-    ExportFormat format,
-  ) async {
+    ExportFormat format, {
+    PdfExportLayout pdfLayout = PdfExportLayout.table,
+  }) async {
     switch (format) {
       case ExportFormat.csv:
         return exportCsvUseCase(data);
       case ExportFormat.excel:
         return [exportExcelUseCase(data)];
       case ExportFormat.pdf:
-        return [await exportPdfUseCase(data)];
+        return [await exportPdfUseCase(data, layout: pdfLayout)];
       case ExportFormat.sql:
         return [exportSqlUseCase(data)];
+      case ExportFormat.json:
+        return [exportJsonUseCase(data)];
     }
   }
 

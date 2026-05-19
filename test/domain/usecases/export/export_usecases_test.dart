@@ -7,10 +7,12 @@ import 'package:exel_category/domain/entities/dataset_table.dart';
 import 'package:exel_category/domain/usecases/export/export_csv_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_dataset_data.dart';
 import 'package:exel_category/domain/usecases/export/export_excel_usecase.dart';
+import 'package:exel_category/domain/usecases/export/export_json_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_pdf_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_sql_usecase.dart';
 import 'package:exel_category/domain/value_objects/column_type.dart';
 import 'package:exel_category/domain/value_objects/export_format.dart';
+import 'package:exel_category/domain/value_objects/pdf_export_layout.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -42,6 +44,16 @@ void main() {
       expect(utf8.decode(result.bytes.take(4).toList()), '%PDF');
     });
 
+    test('exports PDF card layout bytes', () async {
+      final result = await const ExportPdfUseCase()(
+        _exportData(),
+        layout: PdfExportLayout.cards,
+      );
+
+      expect(result.extension, ExportFormat.pdf.extension);
+      expect(utf8.decode(result.bytes.take(4).toList()), '%PDF');
+    });
+
     test('exports SQL schema and rows', () {
       final result = const ExportSqlUseCase()(_exportData(
         rows: [
@@ -54,6 +66,17 @@ void main() {
       expect(sql, contains('CREATE TABLE "sales_2026"'));
       expect(sql, contains('"product" TEXT'));
       expect(sql, contains("'O''Hara'"));
+    });
+
+    test('exports JSON grouped by sheet name', () {
+      final result = const ExportJsonUseCase()(_exportData());
+      final json = jsonDecode(utf8.decode(result.bytes));
+
+      expect(result.extension, ExportFormat.json.extension);
+      expect(json['January'], isA<List<dynamic>>());
+      expect(json['January'].first['Product'], 'Vans');
+      expect(json['January'].first['Total'], 120.5);
+      expect(json['February'].first['Product'], 'Nike');
     });
   });
 }

@@ -2,6 +2,7 @@ import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/value_objects/aggregation_type.dart';
 import 'package:exel_category/domain/value_objects/chart_type.dart';
 import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exel_category/domain/value_objects/filter_operator.dart';
 import 'package:exel_category/presentation/state/dataset_workspace_ui_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -221,6 +222,63 @@ void main() {
       final json = state.toJson();
 
       expect(json['hiddenColumnDbNames'], ['cat']);
+    });
+
+    test('restores table-specific filters and hidden columns', () {
+      final state = DatasetWorkspaceUiState.fromJson({
+        'filters': [
+          {
+            'columnDbName': 'cat',
+            'operator': 'contains',
+            'value': 'legacy',
+          }
+        ],
+        'tableStates': {
+          '2': {
+            'hiddenColumnDbNames': ['amount'],
+            'filters': [
+              {
+                'columnDbName': 'cat',
+                'operator': 'startsWith',
+                'value': 'book',
+              }
+            ],
+          },
+        },
+      });
+
+      final restoreColumns = [
+        _col('cat', ColumnType.text),
+        _col('amount', ColumnType.real),
+      ];
+      final filters = state.restoreFilters(restoreColumns, tableId: 2);
+
+      expect(filters.single.column.dbName, 'cat');
+      expect(filters.single.operator, FilterOperator.startsWith);
+      expect(filters.single.value, 'book');
+      expect(
+        state.restoreHiddenColumnDbNames(restoreColumns, tableId: 2),
+        ['amount'],
+      );
+      expect(
+        state.restoreFilters(restoreColumns).single.value,
+        'legacy',
+      );
+    });
+
+    test('toJson includes table states when present', () {
+      const state = DatasetWorkspaceUiState(
+        tableStates: {
+          1: StoredTableWorkspaceState(
+            hiddenColumnDbNames: ['cat'],
+          ),
+        },
+      );
+
+      final json = state.toJson();
+
+      expect(json['tableStates'], isA<Map<String, dynamic>>());
+      expect(json['tableStates']['1']['hiddenColumnDbNames'], ['cat']);
     });
 
     test('chart round-trip through JSON preserves suggestion', () {

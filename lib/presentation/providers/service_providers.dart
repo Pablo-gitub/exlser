@@ -37,5 +37,6 @@ final exportDataServiceProvider = Provider<ExportDataService>((ref) {
     exportExcelUseCase: ref.watch(exportExcelUseCaseProvider),
     exportPdfUseCase: ref.watch(exportPdfUseCaseProvider),
     exportSqlUseCase: ref.watch(exportSqlUseCaseProvider),
+    exportJsonUseCase: ref.watch(exportJsonUseCaseProvider),
   );
 });

@@ -9,11 +9,13 @@
 /// - CSV
 /// - PDF
 /// - SQL
+/// - JSON
 enum ExportFormat {
   excel,
   csv,
   pdf,
-  sql;
+  sql,
+  json;
 
   /// Returns the file extension associated with the export format.
   String get extension {
@@ -26,6 +28,8 @@ enum ExportFormat {
         return 'pdf';
       case ExportFormat.sql:
         return 'sql';
+      case ExportFormat.json:
+        return 'json';
     }
   }
 
@@ -40,6 +44,8 @@ enum ExportFormat {
         return 'PDF';
       case ExportFormat.sql:
         return 'SQL';
+      case ExportFormat.json:
+        return 'JSON';
     }
   }
 }

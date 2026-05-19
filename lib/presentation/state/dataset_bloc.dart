@@ -120,6 +120,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     emit(const DatasetLoadingState());
 
     try {
+      final workspaceState = DatasetWorkspaceUiState.fromJsonString(
+        currentState.dataset.uiStateJson,
+      );
       final nextState = await _loadTableState(
         dataset: currentState.dataset,
         tables: currentState.tables,
@@ -129,6 +132,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         pageIndex: 0,
         filters: const [],
         sort: null,
+        workspaceState: workspaceState,
       );
 
       final persistedState = _attachWorkspaceStateJson(nextState);
@@ -149,6 +153,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     emit(const DatasetLoadingState());
 
     try {
+      final workspaceState = DatasetWorkspaceUiState.fromJsonString(
+        currentState.dataset.uiStateJson,
+      );
       emit(await _loadTableState(
         dataset: currentState.dataset,
         tables: currentState.tables,
@@ -158,6 +165,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         pageIndex: currentState.pageIndex,
         filters: currentState.filters,
         sort: currentState.sort,
+        workspaceState: workspaceState,
       ));
     } catch (_) {
       emit(const DatasetErrorState('refresh_failed'));
@@ -437,10 +445,16 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     DatasetWorkspaceUiState? workspaceState,
   }) async {
     final columns = await _schemaRepository.getColumnsForTable(activeTable.id);
-    final activeFilters = workspaceState?.restoreFilters(columns) ?? filters;
-    final activeSort = workspaceState?.restoreSort(columns) ?? sort;
-    final hiddenColumnDbNames =
-        workspaceState?.restoreHiddenColumnDbNames(columns) ?? const <String>[];
+    final activeFilters =
+        workspaceState?.restoreFilters(columns, tableId: activeTable.id) ??
+            filters;
+    final activeSort =
+        workspaceState?.restoreSort(columns, tableId: activeTable.id) ?? sort;
+    final hiddenColumnDbNames = workspaceState?.restoreHiddenColumnDbNames(
+          columns,
+          tableId: activeTable.id,
+        ) ??
+        const <String>[];
     final totalRowCount = await _countRows(
       activeTable: activeTable,
       filters: activeFilters,

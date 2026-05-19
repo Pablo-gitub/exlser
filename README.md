@@ -230,8 +230,13 @@ The first publishable preview focuses on the local import workflow:
 - paginate large tables
 - filter and sort rows
 - hide columns that are not relevant to the current analysis
-- export the selected sheet to Excel, CSV, PDF, or SQL using active filters, sorting, and visible columns
+- export selected sheets to Excel, CSV, PDF, SQL, or JSON
+- export the active sheet using active filters, sorting, and visible columns
+- export PDF as a table or as cards with row-level JSON QR codes
 - delete a dataset together with schema, rows, and file reference
+
+When exporting multiple sheets, each sheet uses its own persisted filter,
+sorting, and hidden-column state from the workspace UI state.
 
 Not included in `v0.1.0`:
 

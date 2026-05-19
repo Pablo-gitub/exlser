@@ -1,0 +1,4 @@
+enum PdfExportLayout {
+  table,
+  cards,
+}

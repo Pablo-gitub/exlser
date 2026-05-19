@@ -67,6 +67,10 @@
             "select_sheet": "Foglio",
             "table_view": "Tabella",
             "card_view": "Schede",
+            "qr": {
+                "tooltip": "QR code JSON della riga",
+                "unavailable": "Questa riga è troppo grande per un QR code."
+            },
             "no_tables": "Questo dataset non ha fogli da mostrare.",
             "no_rows": "Nessuna riga disponibile per questo foglio.",
             "filters": {
@@ -121,6 +125,16 @@
                 "csv": "Esporta CSV",
                 "pdf": "Esporta PDF",
                 "sql": "Esporta SQL",
+                "json": "Esporta JSON",
+                "dialog_title": "Esporta",
+                "sheets": "Fogli",
+                "current_sheet": "Foglio corrente",
+                "all_sheets": "Tutti i fogli",
+                "format": "Formato",
+                "pdf_layout": "Layout PDF",
+                "pdf_table": "Tabella",
+                "pdf_cards": "Card con QR",
+                "no_sheet_selected": "Seleziona almeno un foglio.",
                 "started": "Esportazione dataset...",
                 "success": "Export pronto: {count} file.",
                 "failed": "Impossibile esportare questo dataset."

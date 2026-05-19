@@ -15,6 +15,7 @@ import 'package:exel_category/domain/usecases/dataset/register_dataset_file_usec
 import 'package:exel_category/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_csv_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_excel_usecase.dart';
+import 'package:exel_category/domain/usecases/export/export_json_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_pdf_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_sql_usecase.dart';
 import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
@@ -179,6 +180,10 @@ final exportPdfUseCaseProvider = Provider<ExportPdfUseCase>((ref) {
 
 final exportSqlUseCaseProvider = Provider<ExportSqlUseCase>((ref) {
   return const ExportSqlUseCase();
+});
+
+final exportJsonUseCaseProvider = Provider<ExportJsonUseCase>((ref) {
+  return const ExportJsonUseCase();
 });
 
 final analysisServiceProvider = Provider<AnalysisService>((ref) {

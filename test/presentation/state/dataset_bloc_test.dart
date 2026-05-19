@@ -265,6 +265,85 @@ void main() {
       ]);
     });
 
+    test('should restore filters stored for the selected sheet', () async {
+      final dataset = _dataset(
+        uiStateJson: '''
+{
+  "activeTableId": 10,
+  "tableStates": {
+    "11": {
+      "filters": [
+        {
+          "columnDbName": "brand",
+          "operator": "contains",
+          "value": "van"
+        }
+      ]
+    }
+  }
+}
+''',
+      );
+      final firstTable = _table(id: 10, name: 'Sheet1', tableName: 'tbl_1');
+      final secondTable = _table(id: 11, name: 'Sheet2', tableName: 'tbl_2');
+      final brandColumn = _column(tableId: 11, dbName: 'brand');
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [firstTable, secondTable],
+        columns: [_column(tableId: 10)],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => schemaRepository.getColumnsForTable(11)).thenAnswer(
+        (_) async => [brandColumn],
+      );
+      when(() => applyFilters.call(
+            tableName: 'tbl_2',
+            filters: any(named: 'filters'),
+            sort: any(named: 'sort'),
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 0,
+          )).thenAnswer(
+        (_) async => [
+          {'id': 2, 'brand': 'Vans'},
+        ],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((state) => state is DatasetLoadedState);
+
+      final changedState = bloc.stream.firstWhere(
+        (state) => state is DatasetLoadedState && state.activeTable.id == 11,
+      );
+
+      bloc.add(const ChangeSheetEvent(11));
+
+      final state = await changedState as DatasetLoadedState;
+
+      expect(state.filters.single.column.dbName, 'brand');
+      expect(state.filters.single.value, 'van');
+      expect(state.rows, [
+        {'brand': 'Vans'},
+      ]);
+      final captured = verify(() => applyFilters.call(
+            tableName: 'tbl_2',
+            filters: captureAny(named: 'filters'),
+            sort: null,
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 0,
+          )).captured;
+      expect(captured.single, isA<List<DatasetFilter>>());
+      expect(
+        state.dataset.uiStateJson,
+        contains('"tableStates"'),
+      );
+    });
+
     test('should change view mode without reloading rows', () async {
       final dataset = _dataset();
 

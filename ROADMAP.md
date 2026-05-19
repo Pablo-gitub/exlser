@@ -370,7 +370,8 @@ Goal: make dataset browsing useful beyond read-only viewing.
 - [x] Add visible-column controls for hiding irrelevant data in the workspace.
 - [x] Add localized filter, sort, and error messages.
 - [x] Persist workspace UI state in `uiStateJson`.
-- [x] Restore filters, active sheet, hidden columns, and view mode when reopening a dataset.
+- [x] Restore filters, sorting, hidden columns, active sheet, and view mode when reopening a dataset.
+- [x] Persist filter, sorting, and hidden-column state separately for each sheet.
 - [x] Add tests for composed SQL filters.
 - [x] Add BLoC tests for filtering and sorting.
 
@@ -394,10 +395,14 @@ Publish criteria:
 Goal: export dataset data or filtered results.
 
 - [x] Export the current sheet using active filters, sorting, and visible columns.
+- [x] Add an export dialog for choosing current sheet, all sheets, or a custom sheet set.
 - [x] Complete `ExportCsvUseCase`.
 - [x] Complete `ExportExcelUseCase`.
 - [x] Complete `ExportPdfUseCase`.
 - [x] Include `ExportSqlUseCase` in this release.
+- [x] Include `ExportJsonUseCase` for business-friendly structured exports.
+- [x] Let PDF exports use either table layout or card layout.
+- [x] Add row-level JSON QR codes to card views and card PDF exports.
 - [x] Implement `ExportDataService`.
 - [x] Add export action from DatasetView.
 - [x] Integrate native share/download flow.
@@ -411,6 +416,14 @@ Publish criteria:
 
 - [x] The user can export at least CSV and Excel.
 - [x] Export respects the selected sheet, active filters, sorting, and visible columns.
+- [x] Multi-sheet export restores each sheet's own filters, sorting, and visible columns.
+- [x] CSV export creates one file per exported sheet.
+- [x] JSON export groups rows by sheet name.
+
+Scope note:
+
+- Multiple-sheet export restores each selected sheet's persisted filter,
+  sorting, and hidden-column state from `uiStateJson`.
 
 ## Path to Basic Analytics
 

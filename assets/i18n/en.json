@@ -67,6 +67,10 @@
             "select_sheet": "Sheet",
             "table_view": "Table",
             "card_view": "Cards",
+            "qr": {
+                "tooltip": "Row JSON QR code",
+                "unavailable": "This row is too large for a QR code."
+            },
             "no_tables": "This dataset has no sheets to display.",
             "no_rows": "No rows available for this sheet.",
             "filters": {
@@ -121,6 +125,16 @@
                 "csv": "Export CSV",
                 "pdf": "Export PDF",
                 "sql": "Export SQL",
+                "json": "Export JSON",
+                "dialog_title": "Export",
+                "sheets": "Sheets",
+                "current_sheet": "Current sheet",
+                "all_sheets": "All sheets",
+                "format": "Format",
+                "pdf_layout": "PDF layout",
+                "pdf_table": "Table",
+                "pdf_cards": "Cards with QR",
+                "no_sheet_selected": "Select at least one sheet.",
                 "started": "Exporting dataset...",
                 "success": "Export ready: {count} file(s).",
                 "failed": "Could not export this dataset."

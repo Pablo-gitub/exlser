@@ -6,6 +6,7 @@ import 'package:exel_category/domain/repositories/query_repository.dart';
 import 'package:exel_category/domain/repositories/schema_repository.dart';
 import 'package:exel_category/domain/usecases/export/export_csv_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_excel_usecase.dart';
+import 'package:exel_category/domain/usecases/export/export_json_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_pdf_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_sql_usecase.dart';
 import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
@@ -37,6 +38,7 @@ void main() {
         exportExcelUseCase: const ExportExcelUseCase(),
         exportPdfUseCase: const ExportPdfUseCase(),
         exportSqlUseCase: const ExportSqlUseCase(),
+        exportJsonUseCase: const ExportJsonUseCase(),
       );
     });
 
@@ -113,9 +115,18 @@ void main() {
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
           )).thenAnswer(
-        (_) async => [
-          {'product': 'Sk8-Hi', 'brand': 'Vans'},
-        ],
+        (invocation) async {
+          final tableName = invocation.namedArguments[#tableName] as String;
+          if (tableName == 'sales_2026_february') {
+            return [
+              {'product': 'Dunk', 'brand': 'Nike'},
+            ];
+          }
+
+          return [
+            {'product': 'Sk8-Hi', 'brand': 'Vans'},
+          ];
+        },
       );
 
       final files = await service.exportCurrentTable(
@@ -142,6 +153,86 @@ void main() {
             tableName: 'sales_2026',
             whereClause: "(product LIKE ? ESCAPE '\\')",
             arguments: ['%Sk8%'],
+            limit: null,
+            offset: null,
+          )).called(1);
+    });
+
+    test('exports selected sheets and applies each sheet filter state',
+        () async {
+      final dataset = _dataset();
+      final januaryTable = _table(1, 'January', 'sales_2026');
+      final otherTable = _table(2, 'February', 'sales_2026_february');
+      final productColumn = _column('Product', 'product');
+      final brandColumn = _column('Brand', 'brand');
+
+      when(() => queryRepository.queryWithFilter(
+            tableName: any(named: 'tableName'),
+            whereClause: any(named: 'whereClause'),
+            arguments: any(named: 'arguments'),
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+          )).thenAnswer(
+        (invocation) async {
+          final tableName = invocation.namedArguments[#tableName] as String;
+
+          if (tableName == otherTable.sqlTableName) {
+            return [
+              {'product': 'Dunk', 'brand': 'Nike'},
+            ];
+          }
+
+          return [
+            {'product': 'Sk8-Hi', 'brand': 'Vans'},
+          ];
+        },
+      );
+
+      final files = await service.exportSelectedTables(
+        dataset: dataset,
+        selectedTables: [januaryTable, otherTable],
+        visibleColumnsByTableId: {
+          januaryTable.id: [brandColumn],
+          otherTable.id: [productColumn],
+        },
+        filtersByTableId: {
+          januaryTable.id: [
+            DatasetFilter(
+              column: productColumn,
+              operator: FilterOperator.contains,
+              value: 'Sk8',
+            ),
+          ],
+          otherTable.id: [
+            DatasetFilter(
+              column: brandColumn,
+              operator: FilterOperator.contains,
+              value: 'Nike',
+            ),
+          ],
+        },
+        format: ExportFormat.json,
+      );
+
+      final json = String.fromCharCodes(files.single.bytes);
+
+      expect(files.single.extension, 'json');
+      expect(json, contains('"January"'));
+      expect(json, contains('"Brand": "Vans"'));
+      expect(json, isNot(contains('"Product": "Sk8-Hi"')));
+      expect(json, contains('"February"'));
+      expect(json, contains('"Product": "Dunk"'));
+      verify(() => queryRepository.queryWithFilter(
+            tableName: 'sales_2026',
+            whereClause: "(product LIKE ? ESCAPE '\\')",
+            arguments: ['%Sk8%'],
+            limit: null,
+            offset: null,
+          )).called(1);
+      verify(() => queryRepository.queryWithFilter(
+            tableName: 'sales_2026_february',
+            whereClause: "(brand LIKE ? ESCAPE '\\')",
+            arguments: ['%Nike%'],
             limit: null,
             offset: null,
           )).called(1);

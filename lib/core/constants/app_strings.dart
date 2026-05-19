@@ -64,6 +64,10 @@ class AppStrings {
   static const String datasetWorkspaceTableView =
       'dataset.workspace.table_view';
   static const String datasetWorkspaceCardView = 'dataset.workspace.card_view';
+  static const String datasetWorkspaceQrTooltip =
+      'dataset.workspace.qr.tooltip';
+  static const String datasetWorkspaceQrUnavailable =
+      'dataset.workspace.qr.unavailable';
   static const String datasetWorkspaceNoTables = 'dataset.workspace.no_tables';
   static const String datasetWorkspaceNoRows = 'dataset.workspace.no_rows';
   static const String datasetWorkspaceLoadFailed =
@@ -88,6 +92,26 @@ class AppStrings {
       'dataset.workspace.export.pdf';
   static const String datasetWorkspaceExportSql =
       'dataset.workspace.export.sql';
+  static const String datasetWorkspaceExportJson =
+      'dataset.workspace.export.json';
+  static const String datasetWorkspaceExportDialogTitle =
+      'dataset.workspace.export.dialog_title';
+  static const String datasetWorkspaceExportSheets =
+      'dataset.workspace.export.sheets';
+  static const String datasetWorkspaceExportCurrentSheet =
+      'dataset.workspace.export.current_sheet';
+  static const String datasetWorkspaceExportAllSheets =
+      'dataset.workspace.export.all_sheets';
+  static const String datasetWorkspaceExportFormat =
+      'dataset.workspace.export.format';
+  static const String datasetWorkspaceExportPdfLayout =
+      'dataset.workspace.export.pdf_layout';
+  static const String datasetWorkspaceExportPdfTable =
+      'dataset.workspace.export.pdf_table';
+  static const String datasetWorkspaceExportPdfCards =
+      'dataset.workspace.export.pdf_cards';
+  static const String datasetWorkspaceExportNoSheetSelected =
+      'dataset.workspace.export.no_sheet_selected';
   static const String datasetWorkspaceExportStarted =
       'dataset.workspace.export.started';
   static const String datasetWorkspaceExportSuccess =

@@ -20,6 +20,7 @@ class DatasetWorkspaceUiState {
   final List<String> hiddenColumnDbNames;
   final List<StoredDatasetFilter> filters;
   final StoredDatasetSort? sort;
+  final Map<int, StoredTableWorkspaceState> tableStates;
   final List<StoredAnalyticsChart> charts;
 
   const DatasetWorkspaceUiState({
@@ -30,6 +31,7 @@ class DatasetWorkspaceUiState {
     this.hiddenColumnDbNames = const [],
     this.filters = const [],
     this.sort,
+    this.tableStates = const {},
     this.charts = const [],
   });
 
@@ -44,19 +46,24 @@ class DatasetWorkspaceUiState {
           ]
         : <StoredAnalyticsChart>[];
 
+    final previousState = DatasetWorkspaceUiState.fromJsonString(
+      state.dataset.uiStateJson,
+    );
+    final activeTableState = StoredTableWorkspaceState.fromLoadedState(state);
+    final tableStates = {
+      ...previousState.tableStates,
+      state.activeTable.id: activeTableState,
+    };
+
     return DatasetWorkspaceUiState(
       activeTableId: state.activeTable.id,
       viewMode: state.viewMode,
       rowLimit: state.rowLimit,
       pageIndex: state.pageIndex,
-      hiddenColumnDbNames: state.hiddenColumnDbNames,
-      filters: [
-        for (final filter in state.filters)
-          StoredDatasetFilter.fromDatasetFilter(filter),
-      ],
-      sort: state.sort == null
-          ? null
-          : StoredDatasetSort.fromDatasetSort(state.sort!),
+      hiddenColumnDbNames: activeTableState.hiddenColumnDbNames,
+      filters: activeTableState.filters,
+      sort: activeTableState.sort,
+      tableStates: tableStates,
       charts: charts,
     );
   }
@@ -82,6 +89,7 @@ class DatasetWorkspaceUiState {
     final filtersJson = json['filters'];
     final chartsJson = json['charts'];
     final hiddenColumnsJson = json['hiddenColumnDbNames'];
+    final tableStatesJson = json['tableStates'];
 
     return DatasetWorkspaceUiState(
       activeTableId:
@@ -108,6 +116,16 @@ class DatasetWorkspaceUiState {
       sort: json['sort'] is Map<String, dynamic>
           ? StoredDatasetSort.fromJson(json['sort'] as Map<String, dynamic>)
           : null,
+      tableStates: tableStatesJson is Map
+          ? {
+              for (final entry in tableStatesJson.entries)
+                if (_intFromJson(entry.key) != null &&
+                    entry.value is Map<String, dynamic>)
+                  _intFromJson(entry.key)!: StoredTableWorkspaceState.fromJson(
+                    entry.value as Map<String, dynamic>,
+                  ),
+            }
+          : const {},
       charts: chartsJson is List
           ? [
               for (final chartJson in chartsJson)
@@ -130,27 +148,42 @@ class DatasetWorkspaceUiState {
         'hiddenColumnDbNames': hiddenColumnDbNames,
       'filters': [for (final filter in filters) filter.toJson()],
       if (sort != null) 'sort': sort!.toJson(),
+      if (tableStates.isNotEmpty)
+        'tableStates': {
+          for (final entry in tableStates.entries)
+            entry.key.toString(): entry.value.toJson(),
+        },
       if (charts.isNotEmpty)
         'charts': [for (final chart in charts) chart.toJson()],
     };
   }
 
-  List<DatasetFilter> restoreFilters(List<DatasetColumn> columns) {
+  List<DatasetFilter> restoreFilters(
+    List<DatasetColumn> columns, {
+    int? tableId,
+  }) {
+    final storedFilters = _tableStateFor(tableId)?.filters ?? filters;
+
     return [
-      for (final storedFilter in filters)
+      for (final storedFilter in storedFilters)
         if (storedFilter.toDatasetFilter(columns) != null)
           storedFilter.toDatasetFilter(columns)!,
     ];
   }
 
-  DatasetSort? restoreSort(List<DatasetColumn> columns) {
-    return sort?.toDatasetSort(columns);
+  DatasetSort? restoreSort(List<DatasetColumn> columns, {int? tableId}) {
+    return (_tableStateFor(tableId)?.sort ?? sort)?.toDatasetSort(columns);
   }
 
-  List<String> restoreHiddenColumnDbNames(List<DatasetColumn> columns) {
+  List<String> restoreHiddenColumnDbNames(
+    List<DatasetColumn> columns, {
+    int? tableId,
+  }) {
     final knownColumns = columns.map((column) => column.dbName).toSet();
+    final hiddenColumns =
+        _tableStateFor(tableId)?.hiddenColumnDbNames ?? hiddenColumnDbNames;
     final restored = [
-      for (final dbName in hiddenColumnDbNames)
+      for (final dbName in hiddenColumns)
         if (knownColumns.contains(dbName)) dbName,
     ];
 
@@ -159,6 +192,75 @@ class DatasetWorkspaceUiState {
     }
 
     return restored;
+  }
+
+  StoredTableWorkspaceState? _tableStateFor(int? tableId) {
+    if (tableId == null) {
+      return null;
+    }
+
+    return tableStates[tableId];
+  }
+}
+
+class StoredTableWorkspaceState {
+  final List<String> hiddenColumnDbNames;
+  final List<StoredDatasetFilter> filters;
+  final StoredDatasetSort? sort;
+
+  const StoredTableWorkspaceState({
+    this.hiddenColumnDbNames = const [],
+    this.filters = const [],
+    this.sort,
+  });
+
+  factory StoredTableWorkspaceState.fromLoadedState(
+    DatasetLoadedState state,
+  ) {
+    return StoredTableWorkspaceState(
+      hiddenColumnDbNames: state.hiddenColumnDbNames,
+      filters: [
+        for (final filter in state.filters)
+          StoredDatasetFilter.fromDatasetFilter(filter),
+      ],
+      sort: state.sort == null
+          ? null
+          : StoredDatasetSort.fromDatasetSort(state.sort!),
+    );
+  }
+
+  factory StoredTableWorkspaceState.fromJson(Map<String, dynamic> json) {
+    final hiddenColumnsJson = json['hiddenColumnDbNames'];
+    final filtersJson = json['filters'];
+
+    return StoredTableWorkspaceState(
+      hiddenColumnDbNames: hiddenColumnsJson is List
+          ? [
+              for (final value in hiddenColumnsJson)
+                if (value.toString().trim().isNotEmpty) value.toString().trim(),
+            ]
+          : const [],
+      filters: filtersJson is List
+          ? [
+              for (final filterJson in filtersJson)
+                if (filterJson is Map<String, dynamic>)
+                  StoredDatasetFilter.fromJson(filterJson),
+            ]
+          : const [],
+      sort: json['sort'] is Map<String, dynamic>
+          ? StoredDatasetSort.fromJson(json['sort'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (hiddenColumnDbNames.isNotEmpty)
+        'hiddenColumnDbNames': hiddenColumnDbNames,
+      if (filters.isNotEmpty)
+        'filters': [for (final filter in filters) filter.toJson()],
+      if (sort != null) 'sort': sort!.toJson(),
+    };
   }
 }
 
