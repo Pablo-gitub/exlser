@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 
 class LineChartWidget extends StatelessWidget {
   final TimeSeriesChartData data;
+  final double height;
 
-  const LineChartWidget({super.key, required this.data});
+  const LineChartWidget({
+    super.key,
+    required this.data,
+    this.height = 240,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +23,7 @@ class LineChartWidget extends StatelessWidget {
     final lineColor = Theme.of(context).colorScheme.primary;
 
     return SizedBox(
-      height: 240,
+      height: height,
       child: LineChart(
         LineChartData(
           minX: minX,

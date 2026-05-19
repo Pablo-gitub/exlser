@@ -20,6 +20,7 @@ class AppStrings {
   static const String clear = 'common.clear';
   static const String apply = 'common.apply';
   static const String close = 'common.close';
+  static const String expand = 'common.expand';
 
   static const String home = 'menu.home';
   static const String works = 'menu.works';

@@ -120,28 +120,64 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
                     ),
                   ),
                 )
-              : Column(
-                  children: [
-                    for (final chart in charts)
-                      _ChartCard(
-                        key: ValueKey(chart.id),
-                        chart: chart,
-                        allColumns: widget.state.columns,
-                        onRemove: () {
-                          context
-                              .read<DatasetBloc>()
-                              .add(RemoveChartEvent(chart.id));
-                        },
-                        onConfigChanged: (suggestion) {
-                          context.read<DatasetBloc>().add(
-                                UpdateChartConfigEvent(
-                                  chartId: chart.id,
-                                  suggestion: suggestion,
-                                ),
-                              );
-                        },
-                      ),
-                  ],
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final twoColumns = constraints.maxWidth >= 800;
+                    if (twoColumns) {
+                      final cardWidth = (constraints.maxWidth - 16) / 2;
+                      return Wrap(
+                        spacing: 16,
+                        runSpacing: 0,
+                        children: [
+                          for (final chart in charts)
+                            SizedBox(
+                              width: cardWidth,
+                              child: _ChartCard(
+                                key: ValueKey(chart.id),
+                                chart: chart,
+                                allColumns: widget.state.columns,
+                                onRemove: () {
+                                  context
+                                      .read<DatasetBloc>()
+                                      .add(RemoveChartEvent(chart.id));
+                                },
+                                onConfigChanged: (suggestion) {
+                                  context.read<DatasetBloc>().add(
+                                        UpdateChartConfigEvent(
+                                          chartId: chart.id,
+                                          suggestion: suggestion,
+                                        ),
+                                      );
+                                },
+                              ),
+                            ),
+                        ],
+                      );
+                    }
+                    return Column(
+                      children: [
+                        for (final chart in charts)
+                          _ChartCard(
+                            key: ValueKey(chart.id),
+                            chart: chart,
+                            allColumns: widget.state.columns,
+                            onRemove: () {
+                              context
+                                  .read<DatasetBloc>()
+                                  .add(RemoveChartEvent(chart.id));
+                            },
+                            onConfigChanged: (suggestion) {
+                              context.read<DatasetBloc>().add(
+                                    UpdateChartConfigEvent(
+                                      chartId: chart.id,
+                                      suggestion: suggestion,
+                                    ),
+                                  );
+                            },
+                          ),
+                      ],
+                    );
+                  },
                 ),
         },
       ],
@@ -162,6 +198,48 @@ class _ChartCard extends StatelessWidget {
     required this.onRemove,
     required this.onConfigChanged,
   });
+
+  void _showExpanded(BuildContext context, ChartSuggestion suggestion) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => Dialog(
+        insetPadding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width - 48,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Chip(
+                      label: Text(suggestion.chartType.label),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _ChartBody(
+                  suggestion: suggestion,
+                  chartData: chart.chartData,
+                  chartHeight: 420,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -193,6 +271,11 @@ class _ChartCard extends StatelessWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
+                IconButton(
+                  icon: const Icon(Icons.open_in_full),
+                  tooltip: AppStrings.expand.tr(),
+                  onPressed: () => _showExpanded(context, suggestion),
+                ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: AppStrings.delete.tr(),
@@ -452,8 +535,13 @@ class _AggregationInfoText extends StatelessWidget {
 class _ChartBody extends StatelessWidget {
   final ChartSuggestion suggestion;
   final ChartData chartData;
+  final double chartHeight;
 
-  const _ChartBody({required this.suggestion, required this.chartData});
+  const _ChartBody({
+    required this.suggestion,
+    required this.chartData,
+    this.chartHeight = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -473,14 +561,23 @@ class _ChartBody extends StatelessWidget {
       final data = chartData as CategoryChartData;
       if (data.isEmpty) return const _EmptyChartMessage();
       return data.chartType == ChartType.pie
-          ? PieChartWidget(data: data)
-          : DistributionChartWidget(data: data);
+          ? PieChartWidget(
+              data: data,
+              height: chartHeight > 0 ? chartHeight : 220,
+            )
+          : DistributionChartWidget(
+              data: data,
+              height: chartHeight > 0 ? chartHeight : 240,
+            );
     }
 
     if (chartData is TimeSeriesChartData) {
       final data = chartData as TimeSeriesChartData;
       if (data.isEmpty) return const _EmptyChartMessage();
-      return LineChartWidget(data: data);
+      return LineChartWidget(
+        data: data,
+        height: chartHeight > 0 ? chartHeight : 240,
+      );
     }
 
     return const SizedBox.shrink();

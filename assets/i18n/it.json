@@ -25,7 +25,8 @@
         "add": "Aggiungi",
         "clear": "Svuota",
         "apply": "Applica",
-        "close": "Chiudi"
+        "close": "Chiudi",
+        "expand": "Espandi"
     },
     "menu": {
         "home": "Home",

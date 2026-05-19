@@ -21,6 +21,8 @@ import 'package:exel_category/presentation/widgets/dataset_views/dataset_card_vi
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_filter_panel.dart';
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_table_view.dart';
 import 'package:exel_category/presentation/widgets/layout/app_scaffold.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -200,23 +202,33 @@ class _DatasetExportActionState extends State<_DatasetExportAction> {
         pdfLayout: result.pdfLayout,
       );
 
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [
-            for (final file in files)
-              XFile.fromData(
-                file.bytes,
-                mimeType: file.mimeType,
-                name: file.fileName,
-              ),
-          ],
-          fileNameOverrides: [for (final file in files) file.fileName],
-          sharePositionOrigin: renderBox == null
-              ? null
-              : renderBox.localToGlobal(Offset.zero) & renderBox.size,
-          downloadFallbackEnabled: true,
-        ),
-      );
+      if (kIsWeb || defaultTargetPlatform == TargetPlatform.iOS) {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [
+              for (final file in files)
+                XFile.fromData(
+                  file.bytes,
+                  mimeType: file.mimeType,
+                  name: file.fileName,
+                ),
+            ],
+            fileNameOverrides: [for (final file in files) file.fileName],
+            sharePositionOrigin: renderBox == null
+                ? null
+                : renderBox.localToGlobal(Offset.zero) & renderBox.size,
+            downloadFallbackEnabled: true,
+          ),
+        );
+      } else {
+        for (final file in files) {
+          await FilePicker.platform.saveFile(
+            dialogTitle: file.fileName,
+            fileName: file.fileName,
+            bytes: file.bytes,
+          );
+        }
+      }
 
       messenger.showSnackBar(
         SnackBar(
@@ -465,67 +477,81 @@ class _LoadedWorkspace extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _DatasetHeader(
-            dataset: state.dataset,
-            activeTable: state.activeTable,
-            tables: state.tables,
-            columns: state.columns,
-            visibleColumnCount: visibleColumns.length,
-            loadedRowCount: state.rows.length,
-            rowLimit: state.rowLimit,
-            totalRowCount: state.totalRowCount,
-            viewMode: state.viewMode,
-          ),
-          const SizedBox(height: 16),
-          _SheetSelector(
-            tables: state.tables,
-            activeTable: state.activeTable,
-          ),
-          const SizedBox(height: 16),
-          DatasetFilterPanel(
-            columns: state.columns,
-            rows: state.rows,
-            filters: state.filters,
-            onAddFilter: (filter) {
-              context.read<DatasetBloc>().add(AddFilterEvent(filter));
-            },
-            onRemoveFilter: (filterId) {
-              context.read<DatasetBloc>().add(RemoveFilterEvent(filterId));
-            },
-            onClearFilters: () {
-              context.read<DatasetBloc>().add(const ClearFiltersEvent());
-            },
-          ),
-          const SizedBox(height: 16),
-          _ColumnVisibilitySection(
-            columns: state.columns,
-            hiddenColumnDbNames: state.hiddenColumnDbNames,
-          ),
-          const SizedBox(height: 16),
-          if (state.rows.isEmpty)
-            _NoRowsMessage(columns: visibleColumns)
-          else if (state.viewMode == DatasetViewMode.table)
-            DatasetTableView(
-              columns: visibleColumns,
-              rows: state.rows,
-              sort: state.sort,
-              onSortColumn: (column) {
-                context.read<DatasetBloc>().add(
-                      ToggleSortColumnEvent(column),
-                    );
-              },
-            )
-          else
-            DatasetCardView(
-              columns: visibleColumns,
-              rows: state.rows,
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1100),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _DatasetHeader(
+                    dataset: state.dataset,
+                    activeTable: state.activeTable,
+                    tables: state.tables,
+                    columns: state.columns,
+                    visibleColumnCount: visibleColumns.length,
+                    loadedRowCount: state.rows.length,
+                    rowLimit: state.rowLimit,
+                    totalRowCount: state.totalRowCount,
+                    viewMode: state.viewMode,
+                  ),
+                  const SizedBox(height: 16),
+                  _SheetSelector(
+                    tables: state.tables,
+                    activeTable: state.activeTable,
+                  ),
+                  const SizedBox(height: 16),
+                  DatasetFilterPanel(
+                    columns: state.columns,
+                    rows: state.rows,
+                    filters: state.filters,
+                    onAddFilter: (filter) {
+                      context.read<DatasetBloc>().add(AddFilterEvent(filter));
+                    },
+                    onRemoveFilter: (filterId) {
+                      context
+                          .read<DatasetBloc>()
+                          .add(RemoveFilterEvent(filterId));
+                    },
+                    onClearFilters: () {
+                      context
+                          .read<DatasetBloc>()
+                          .add(const ClearFiltersEvent());
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _ColumnVisibilitySection(
+                    columns: state.columns,
+                    hiddenColumnDbNames: state.hiddenColumnDbNames,
+                  ),
+                  const SizedBox(height: 16),
+                  if (state.rows.isEmpty)
+                    _NoRowsMessage(columns: visibleColumns)
+                  else if (state.viewMode == DatasetViewMode.table)
+                    DatasetTableView(
+                      columns: visibleColumns,
+                      rows: state.rows,
+                      sort: state.sort,
+                      onSortColumn: (column) {
+                        context.read<DatasetBloc>().add(
+                              ToggleSortColumnEvent(column),
+                            );
+                      },
+                    )
+                  else
+                    DatasetCardView(
+                      columns: visibleColumns,
+                      rows: state.rows,
+                    ),
+                  const SizedBox(height: 12),
+                  _DatasetPaginationControls(state: state),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  AnalyticsSection(state: state),
+                ],
+              ),
             ),
-          const SizedBox(height: 12),
-          _DatasetPaginationControls(state: state),
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 8),
-          AnalyticsSection(state: state),
+          ),
         ],
       ),
     );

@@ -21,17 +21,28 @@ class DatasetCardView extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return ListView.separated(
-      itemCount: rows.length,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final row = rows[index];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final crossAxisCount = width < 600
+            ? 1
+            : width < 1000
+                ? 2
+                : 3;
+        final spacing = 8.0;
+        final cardWidth =
+            (width - spacing * (crossAxisCount - 1)) / crossAxisCount;
 
-        return _DatasetRowCard(
-          columns: columns,
-          row: row,
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final row in rows)
+              SizedBox(
+                width: cardWidth,
+                child: _DatasetRowCard(columns: columns, row: row),
+              ),
+          ],
         );
       },
     );

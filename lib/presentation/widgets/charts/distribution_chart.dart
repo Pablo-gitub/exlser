@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 
 class DistributionChartWidget extends StatelessWidget {
   final CategoryChartData data;
+  final double height;
 
-  const DistributionChartWidget({super.key, required this.data});
+  const DistributionChartWidget({
+    super.key,
+    required this.data,
+    this.height = 240,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +24,7 @@ class DistributionChartWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          height: 240,
+          height: height,
           child: BarChart(
             BarChartData(
               maxY: maxY * 1.2,

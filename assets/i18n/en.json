@@ -25,7 +25,8 @@
         "add": "Add",
         "clear": "Clear",
         "apply": "Apply",
-        "close": "Close"
+        "close": "Close",
+        "expand": "Expand"
     },
     "menu": {
         "home": "Home",

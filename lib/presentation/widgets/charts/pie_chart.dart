@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 
 class PieChartWidget extends StatefulWidget {
   final CategoryChartData data;
+  final double height;
 
-  const PieChartWidget({super.key, required this.data});
+  const PieChartWidget({
+    super.key,
+    required this.data,
+    this.height = 220,
+  });
 
   @override
   State<PieChartWidget> createState() => _PieChartWidgetState();
@@ -22,7 +27,7 @@ class _PieChartWidgetState extends State<PieChartWidget> {
     return Column(
       children: [
         SizedBox(
-          height: 220,
+          height: widget.height,
           child: PieChart(
             PieChartData(
               pieTouchData: PieTouchData(
