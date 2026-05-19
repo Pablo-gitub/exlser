@@ -27,7 +27,20 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
   @override
   void initState() {
     super.initState();
-    context.read<DatasetBloc>().add(const LoadAnalyticsEvent());
+    final blocState = context.read<DatasetBloc>().state;
+    if (blocState is DatasetLoadedState &&
+        blocState.analyticsState is DatasetAnalyticsIdleState) {
+      context.read<DatasetBloc>().add(const LoadAnalyticsEvent());
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AnalyticsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.state.activeTable.id != oldWidget.state.activeTable.id &&
+        widget.state.analyticsState is DatasetAnalyticsIdleState) {
+      context.read<DatasetBloc>().add(const LoadAnalyticsEvent());
+    }
   }
 
   void _showAddChartDialog() {

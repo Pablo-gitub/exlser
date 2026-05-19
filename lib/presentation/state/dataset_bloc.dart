@@ -690,11 +690,21 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     ));
 
     final loadedState = await _loadAnalyticsForState(currentState);
-    final nextState = _attachWorkspaceStateJson(loadedState);
-    emit(nextState);
 
-    if (nextState.analyticsState is DatasetAnalyticsLoadedState) {
-      await _persistWorkspaceState(nextState);
+    final latestState = state;
+    if (latestState is! DatasetLoadedState) return;
+    if (latestState.activeTable.id != currentState.activeTable.id) return;
+
+    try {
+      final nextState = _attachWorkspaceStateJson(loadedState);
+      emit(nextState);
+      if (nextState.analyticsState is DatasetAnalyticsLoadedState) {
+        await _persistWorkspaceState(nextState);
+      }
+    } catch (_) {
+      emit(loadedState.copyWith(
+        analyticsState: const DatasetAnalyticsErrorState('analytics_failed'),
+      ));
     }
   }
 
