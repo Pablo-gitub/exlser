@@ -1,5 +1,6 @@
 import 'package:exel_category/application/dto/confirmed_import.dart';
 import 'package:exel_category/application/dto/created_dataset_result.dart';
+import 'package:exel_category/application/services/transaction_runner.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/usecases/dataset/create_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/register_dataset_file_usecase.dart';
@@ -20,6 +21,7 @@ import 'package:exel_category/domain/value_objects/column_type.dart';
 /// - physical SQL tables
 /// - data rows
 class CreateDatasetService {
+  final TransactionRunner transactionRunner;
   final CreateDatasetUseCase createDatasetUseCase;
   final RegisterDatasetFileUseCase registerDatasetFileUseCase;
   final CreateDatasetTableUseCase createDatasetTableUseCase;
@@ -28,6 +30,7 @@ class CreateDatasetService {
   final InsertRowsUseCase insertRowsUseCase;
 
   const CreateDatasetService({
+    required this.transactionRunner,
     required this.createDatasetUseCase,
     required this.registerDatasetFileUseCase,
     required this.createDatasetTableUseCase,
@@ -43,6 +46,12 @@ class CreateDatasetService {
       throw Exception('Cannot create dataset without sheets');
     }
 
+    return transactionRunner.run(() => _createDatasetInTransaction(confirmedImport));
+  }
+
+  Future<CreatedDatasetResult> _createDatasetInTransaction(
+    ConfirmedImport confirmedImport,
+  ) async {
     /// 1. Create dataset
     final dataset = await createDatasetUseCase.call(
       datasetName: confirmedImport.datasetName,

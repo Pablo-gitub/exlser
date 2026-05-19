@@ -2,6 +2,8 @@ import 'package:exel_category/application/services/create_dataset_service.dart';
 import 'package:exel_category/application/services/export_data_service.dart';
 import 'package:exel_category/application/services/import_data_service.dart';
 import 'package:exel_category/data/adapters/parsers/parser_factory.dart';
+import 'package:exel_category/data/services/drift_transaction_runner.dart';
+import 'package:exel_category/presentation/providers/database_providers.dart';
 import 'package:exel_category/presentation/providers/repository_providers.dart';
 import 'package:exel_category/presentation/providers/usecase_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +21,7 @@ final importDataServiceProvider = Provider<ImportDataService>((ref) {
 
 final createDatasetServiceProvider = Provider<CreateDatasetService>((ref) {
   return CreateDatasetService(
+    transactionRunner: DriftTransactionRunner(ref.watch(driftDatasourceProvider)),
     createDatasetUseCase: ref.watch(createDatasetUseCaseProvider),
     registerDatasetFileUseCase: ref.watch(registerDatasetFileUseCaseProvider),
     createDatasetTableUseCase: ref.watch(createDatasetTableUseCaseProvider),

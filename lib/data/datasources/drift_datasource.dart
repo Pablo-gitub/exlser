@@ -44,9 +44,7 @@ class DriftDatasource {
   /// Executes operations inside a database transaction.
   ///
   /// If any operation fails, the entire transaction is rolled back.
-  Future<void> runInTransaction(
-    Future<void> Function() action,
-  ) async {
+  Future<void> runInTransaction(Future<void> Function() action) async {
     await db.transaction(() async {
       await action();
     });

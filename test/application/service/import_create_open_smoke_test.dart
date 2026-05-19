@@ -15,6 +15,7 @@ import 'package:exel_category/data/adapters/normalizers/number_normalizer.dart';
 import 'package:exel_category/data/adapters/parsers/parser_factory.dart';
 import 'package:exel_category/data/datasources/drift_datasource.dart';
 import 'package:exel_category/data/repositories/dataset_file_repository_impl.dart';
+import 'package:exel_category/data/services/drift_transaction_runner.dart';
 import 'package:exel_category/data/repositories/dataset_repository_impl.dart';
 import 'package:exel_category/data/repositories/query_repository_impl.dart';
 import 'package:exel_category/data/repositories/schema_repository_impl.dart';
@@ -67,6 +68,7 @@ void main() {
         ),
       );
       createDatasetService = CreateDatasetService(
+        transactionRunner: DriftTransactionRunner(datasource),
         createDatasetUseCase: CreateDatasetUseCase(
           repository: datasetsRepository,
         ),

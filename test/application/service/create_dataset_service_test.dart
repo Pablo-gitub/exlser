@@ -1,5 +1,6 @@
 import 'package:exel_category/application/dto/confirmed_import.dart';
 import 'package:exel_category/application/services/create_dataset_service.dart';
+import 'package:exel_category/application/services/transaction_runner.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
@@ -32,12 +33,27 @@ class MockBuildDynamicTableUseCase extends Mock
 
 class MockInsertRowsUseCase extends Mock implements InsertRowsUseCase {}
 
+class MockTransactionRunner extends Mock implements TransactionRunner {}
+
 class FakeDatasetTable extends Fake implements DatasetTable {}
 
 class FakeDatasetColumn extends Fake implements DatasetColumn {}
 
+/// Executes the action directly with no real transaction.
+/// Used to unit-test service logic independently of the database.
+class PassthroughTransactionRunner implements TransactionRunner {
+  int runCallCount = 0;
+
+  @override
+  Future<T> run<T>(Future<T> Function() action) async {
+    runCallCount++;
+    return action();
+  }
+}
+
 void main() {
   late CreateDatasetService service;
+  late PassthroughTransactionRunner transactionRunner;
   late MockCreateDatasetUseCase createDatasetUseCase;
   late MockRegisterDatasetFileUseCase registerDatasetFileUseCase;
   late MockCreateDatasetTableUseCase createDatasetTableUseCase;
@@ -60,6 +76,7 @@ void main() {
   });
 
   setUp(() {
+    transactionRunner = PassthroughTransactionRunner();
     createDatasetUseCase = MockCreateDatasetUseCase();
     registerDatasetFileUseCase = MockRegisterDatasetFileUseCase();
     createDatasetTableUseCase = MockCreateDatasetTableUseCase();
@@ -68,6 +85,7 @@ void main() {
     insertRowsUseCase = MockInsertRowsUseCase();
 
     service = CreateDatasetService(
+      transactionRunner: transactionRunner,
       createDatasetUseCase: createDatasetUseCase,
       registerDatasetFileUseCase: registerDatasetFileUseCase,
       createDatasetTableUseCase: createDatasetTableUseCase,
@@ -412,6 +430,76 @@ void main() {
           datasetName: any(named: 'datasetName'),
           sourceFileName: any(named: 'sourceFileName'),
         ));
+  });
+
+  group('atomicity', () {
+    test('wraps all steps inside a transaction on success', () async {
+      mockDatasetCreation(_dataset());
+      mockTableCreation(_table());
+      mockColumnRegistration();
+      mockDynamicTableCreation();
+      mockRowInsertion();
+
+      await service.createDataset(confirmedImport: _confirmedImport());
+
+      expect(transactionRunner.runCallCount, 1);
+    });
+
+    test('propagates exception when buildDynamicTable fails', () async {
+      mockDatasetCreation(_dataset());
+      mockTableCreation(_table());
+      mockColumnRegistration();
+      when(() => buildDynamicTableUseCase.call(
+            table: any(named: 'table'),
+            columns: any(named: 'columns'),
+          )).thenThrow(Exception('duplicate column "id"'));
+      mockRowInsertion();
+
+      await expectLater(
+        () => service.createDataset(confirmedImport: _confirmedImport()),
+        throwsException,
+      );
+
+      // Transaction runner was still entered — rollback is its responsibility
+      expect(transactionRunner.runCallCount, 1);
+    });
+
+    test('propagates exception when insertRows fails', () async {
+      mockDatasetCreation(_dataset());
+      mockTableCreation(_table());
+      mockColumnRegistration();
+      mockDynamicTableCreation();
+      when(() => insertRowsUseCase.call(
+            tableName: any(named: 'tableName'),
+            rows: any(named: 'rows'),
+          )).thenThrow(Exception('insert failed'));
+
+      await expectLater(
+        () => service.createDataset(confirmedImport: _confirmedImport()),
+        throwsException,
+      );
+
+      expect(transactionRunner.runCallCount, 1);
+    });
+
+    test('does not enter transaction when sheets list is empty', () async {
+      await expectLater(
+        () => service.createDataset(
+          confirmedImport: const ConfirmedImport(
+            datasetName: 'Test',
+            sourceFileName: 'file.xlsx',
+            sheets: [],
+          ),
+        ),
+        throwsException,
+      );
+
+      expect(transactionRunner.runCallCount, 0);
+      verifyNever(() => createDatasetUseCase.call(
+            datasetName: any(named: 'datasetName'),
+            sourceFileName: any(named: 'sourceFileName'),
+          ));
+    });
   });
 }
 
