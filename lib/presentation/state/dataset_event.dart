@@ -44,6 +44,16 @@ class ChangePageEvent extends DatasetEvent {
   const ChangePageEvent(this.pageIndex);
 }
 
+class SetColumnHiddenEvent extends DatasetEvent {
+  final String columnDbName;
+  final bool hidden;
+
+  const SetColumnHiddenEvent({
+    required this.columnDbName,
+    required this.hidden,
+  });
+}
+
 class AddFilterEvent extends DatasetEvent {
   final DatasetFilter filter;
 

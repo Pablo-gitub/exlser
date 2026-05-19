@@ -32,6 +32,7 @@ final exportDataServiceProvider = Provider<ExportDataService>((ref) {
   return ExportDataService(
     schemaRepository: ref.watch(schemaRepositoryProvider),
     queryRepository: ref.watch(queryRepositoryProvider),
+    applyFiltersUseCase: ref.watch(applyFiltersUseCaseProvider),
     exportCsvUseCase: ref.watch(exportCsvUseCaseProvider),
     exportExcelUseCase: ref.watch(exportExcelUseCaseProvider),
     exportPdfUseCase: ref.watch(exportPdfUseCaseProvider),

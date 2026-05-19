@@ -48,6 +48,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     on<ChangeViewModeEvent>(_onChangeViewMode);
     on<ChangeRowLimitEvent>(_onChangeRowLimit);
     on<ChangePageEvent>(_onChangePage);
+    on<SetColumnHiddenEvent>(_onSetColumnHidden);
     on<AddFilterEvent>(_onAddFilter);
     on<RemoveFilterEvent>(_onRemoveFilter);
     on<ClearFiltersEvent>(_onClearFilters);
@@ -213,6 +214,41 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       pageIndex: event.pageIndex,
       errorCode: 'pagination_failed',
     );
+  }
+
+  Future<void> _onSetColumnHidden(
+    SetColumnHiddenEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+
+    final knownColumn = currentState.columns.any(
+      (column) => column.dbName == event.columnDbName,
+    );
+    if (!knownColumn) return;
+
+    final hiddenColumns = currentState.hiddenColumnDbNames.toSet();
+
+    if (event.hidden) {
+      final visibleCount = currentState.columns
+          .where((column) => !hiddenColumns.contains(column.dbName))
+          .length;
+      if (visibleCount <= 1) {
+        return;
+      }
+      hiddenColumns.add(event.columnDbName);
+    } else {
+      hiddenColumns.remove(event.columnDbName);
+    }
+
+    final nextState = _attachWorkspaceStateJson(
+      currentState.copyWith(
+        hiddenColumnDbNames: hiddenColumns.toList(),
+      ),
+    );
+    emit(nextState);
+    await _persistWorkspaceState(nextState);
   }
 
   Future<void> _onAddFilter(
@@ -403,6 +439,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     final columns = await _schemaRepository.getColumnsForTable(activeTable.id);
     final activeFilters = workspaceState?.restoreFilters(columns) ?? filters;
     final activeSort = workspaceState?.restoreSort(columns) ?? sort;
+    final hiddenColumnDbNames =
+        workspaceState?.restoreHiddenColumnDbNames(columns) ?? const <String>[];
     final totalRowCount = await _countRows(
       activeTable: activeTable,
       filters: activeFilters,
@@ -430,6 +468,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       rowLimit: rowLimit,
       pageIndex: safePageIndex,
       totalRowCount: totalRowCount,
+      hiddenColumnDbNames: hiddenColumnDbNames,
       filters: activeFilters,
       sort: activeSort,
     );

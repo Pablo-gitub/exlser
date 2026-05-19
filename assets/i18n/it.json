@@ -3,8 +3,8 @@
         "name": "ExlSer"
     },
     "home": {
-        "select_file": "Seleziona un file Excel o CSV",
-        "drop_file": "Trascina qui un file Excel o CSV",
+        "select_file": "Seleziona un file CSV o XLSX",
+        "drop_file": "Trascina qui un file CSV o XLSX",
         "process_file": "Elabora file",
         "browse_file": "Sfoglia file"
     },
@@ -53,6 +53,8 @@
             "source_file": "File sorgente",
             "sheets": "Fogli",
             "columns": "Colonne",
+            "visible_columns": "Colonne visibili",
+            "visible_columns_hint": "Nascondi le colonne che non ti servono nella tabella e negli export.",
             "rows": "Righe",
             "loaded_rows": "Righe caricate",
             "initial_row_limit": "Sono mostrate le prime {count} righe.",
@@ -207,9 +209,9 @@
             "empty_file_name": "Il file selezionato non ha un nome. Seleziona di nuovo il file.",
             "empty_file_path": "L'app non riesce ad accedere al percorso del file selezionato. Seleziona di nuovo il file.",
             "empty_file_bytes": "Il file selezionato è vuoto o non disponibile. Seleziona di nuovo il file.",
-            "no_extension": "Il file selezionato non ha estensione. Usa un file CSV, XLS o XLSX.",
-            "unsupported_format": "Questo formato file non è supportato. Usa un file CSV, XLS o XLSX.",
-            "parser_not_found": "L'app non può ancora leggere questo tipo di file. Usa un file CSV, XLS o XLSX.",
+            "no_extension": "Il file selezionato non ha estensione. Usa un file CSV o XLSX.",
+            "unsupported_format": "Questo formato file non è supportato. Usa un file CSV o XLSX. I file XLS legacy non sono ancora supportati.",
+            "parser_not_found": "L'app non può ancora leggere questo tipo di file. Usa un file CSV o XLSX.",
             "parsing_failed": "Il file non può essere letto. Verifica che non sia danneggiato o protetto da password.",
             "no_sheets": "Nel file non sono stati trovati fogli leggibili.",
             "no_valid_sheets": "Il file è stato letto, ma nessun foglio contiene dati tabellari utilizzabili.",

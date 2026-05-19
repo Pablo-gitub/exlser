@@ -61,7 +61,7 @@ void main() {
       var processButton = tester.widget<ElevatedButton>(
         find.widgetWithText(ElevatedButton, 'Process File'),
       );
-      expect(find.text('Select an Excel or CSV file'), findsOneWidget);
+      expect(find.text('Select a CSV or XLSX file'), findsOneWidget);
       expect(processButton.onPressed, isNull);
 
       homeViewModel.setSelectedFile(
@@ -82,7 +82,7 @@ void main() {
       processButton = tester.widget<ElevatedButton>(
         find.widgetWithText(ElevatedButton, 'Process File'),
       );
-      expect(find.text('Select an Excel or CSV file'), findsOneWidget);
+      expect(find.text('Select a CSV or XLSX file'), findsOneWidget);
       expect(processButton.onPressed, isNull);
 
       homeViewModel.setSelectedFile(

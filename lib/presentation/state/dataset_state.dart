@@ -96,6 +96,7 @@ class DatasetLoadedState extends DatasetState {
   final int rowLimit;
   final int pageIndex;
   final int totalRowCount;
+  final List<String> hiddenColumnDbNames;
   final List<DatasetFilter> filters;
   final DatasetSort? sort;
   final DatasetAnalyticsState analyticsState;
@@ -110,10 +111,16 @@ class DatasetLoadedState extends DatasetState {
     required this.rowLimit,
     required this.pageIndex,
     required this.totalRowCount,
+    this.hiddenColumnDbNames = const [],
     this.filters = const [],
     this.sort,
     this.analyticsState = const DatasetAnalyticsIdleState(),
   });
+
+  List<DatasetColumn> get visibleColumns => [
+        for (final column in columns)
+          if (!hiddenColumnDbNames.contains(column.dbName)) column,
+      ];
 
   int get pageCount {
     if (totalRowCount <= 0) {
@@ -139,6 +146,7 @@ class DatasetLoadedState extends DatasetState {
     int? rowLimit,
     int? pageIndex,
     int? totalRowCount,
+    List<String>? hiddenColumnDbNames,
     List<DatasetFilter>? filters,
     Object? sort = _sortNotProvided,
     DatasetAnalyticsState? analyticsState,
@@ -153,6 +161,7 @@ class DatasetLoadedState extends DatasetState {
       rowLimit: rowLimit ?? this.rowLimit,
       pageIndex: pageIndex ?? this.pageIndex,
       totalRowCount: totalRowCount ?? this.totalRowCount,
+      hiddenColumnDbNames: hiddenColumnDbNames ?? this.hiddenColumnDbNames,
       filters: filters ?? this.filters,
       sort:
           identical(sort, _sortNotProvided) ? this.sort : sort as DatasetSort?,

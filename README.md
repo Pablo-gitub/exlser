@@ -229,7 +229,8 @@ The first publishable preview focuses on the local import workflow:
 - read imported rows in a table
 - paginate large tables
 - filter and sort rows
-- export datasets to Excel, CSV, PDF, or SQL
+- hide columns that are not relevant to the current analysis
+- export the selected sheet to Excel, CSV, PDF, or SQL using active filters, sorting, and visible columns
 - delete a dataset together with schema, rows, and file reference
 
 Not included in `v0.1.0`:

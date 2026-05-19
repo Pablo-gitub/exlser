@@ -8,8 +8,11 @@ import 'package:exel_category/domain/usecases/export/export_csv_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_excel_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_pdf_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_sql_usecase.dart';
+import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
 import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exel_category/domain/value_objects/dataset_filter.dart';
 import 'package:exel_category/domain/value_objects/export_format.dart';
+import 'package:exel_category/domain/value_objects/filter_operator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -29,6 +32,7 @@ void main() {
       service = ExportDataService(
         schemaRepository: schemaRepository,
         queryRepository: queryRepository,
+        applyFiltersUseCase: ApplyFiltersUseCase(repository: queryRepository),
         exportCsvUseCase: const ExportCsvUseCase(),
         exportExcelUseCase: const ExportExcelUseCase(),
         exportPdfUseCase: const ExportPdfUseCase(),
@@ -94,6 +98,53 @@ void main() {
         ),
         throwsStateError,
       );
+    });
+
+    test('exports current filtered table using visible columns only', () async {
+      final dataset = _dataset();
+      final table = _table(1, 'January', 'sales_2026');
+      final productColumn = _column('Product', 'product');
+      final brandColumn = _column('Brand', 'brand');
+
+      when(() => queryRepository.queryWithFilter(
+            tableName: any(named: 'tableName'),
+            whereClause: any(named: 'whereClause'),
+            arguments: any(named: 'arguments'),
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+          )).thenAnswer(
+        (_) async => [
+          {'product': 'Sk8-Hi', 'brand': 'Vans'},
+        ],
+      );
+
+      final files = await service.exportCurrentTable(
+        dataset: dataset,
+        table: table,
+        visibleColumns: [brandColumn],
+        filters: [
+          DatasetFilter(
+            column: productColumn,
+            operator: FilterOperator.contains,
+            value: 'Sk8',
+          ),
+        ],
+        sort: null,
+        format: ExportFormat.csv,
+      );
+
+      final csv = String.fromCharCodes(files.single.bytes);
+      expect(csv, contains('Brand'));
+      expect(csv, contains('Vans'));
+      expect(csv, isNot(contains('Product')));
+      expect(csv, isNot(contains('Sk8-Hi')));
+      verify(() => queryRepository.queryWithFilter(
+            tableName: 'sales_2026',
+            whereClause: "(product LIKE ? ESCAPE '\\')",
+            arguments: ['%Sk8%'],
+            limit: null,
+            offset: null,
+          )).called(1);
     });
   });
 }

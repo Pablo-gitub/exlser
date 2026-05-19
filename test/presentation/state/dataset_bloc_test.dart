@@ -139,7 +139,8 @@ void main() {
   "sort": {
     "columnDbName": "brand",
     "direction": "descending"
-  }
+  },
+  "hiddenColumnDbNames": ["brand"]
 }
 ''',
       );
@@ -178,6 +179,8 @@ void main() {
       expect(state.filters.single.value, 'van');
       expect(state.sort?.column.dbName, 'brand');
       expect(state.sort?.direction, SortDirection.descending);
+      expect(state.hiddenColumnDbNames, isEmpty);
+      expect(state.visibleColumns.map((column) => column.dbName), ['brand']);
       expect(state.rows, [
         {'brand': 'Vans'},
       ]);
@@ -301,6 +304,74 @@ void main() {
             datasetId: 1,
             uiStateJson: any(named: 'uiStateJson'),
           )).called(1);
+      verifyNever(() => fetchRows.call(
+            tableName: 'tbl_1',
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 0,
+          ));
+    });
+
+    test('should hide and show columns without reloading rows', () async {
+      final dataset = _dataset();
+      final productColumn = _column(dbName: 'product');
+      final brandColumn = _column(dbName: 'brand');
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [productColumn, brandColumn],
+        rows: [
+          {'id': 1, 'product': 'Sk8-Hi', 'brand': 'Vans'},
+        ],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((state) => state is DatasetLoadedState);
+      clearInteractions(fetchRows);
+
+      final hiddenState = bloc.stream.firstWhere(
+        (state) =>
+            state is DatasetLoadedState &&
+            state.hiddenColumnDbNames.contains('product'),
+      );
+
+      bloc.add(
+        const SetColumnHiddenEvent(
+          columnDbName: 'product',
+          hidden: true,
+        ),
+      );
+
+      final state = await hiddenState as DatasetLoadedState;
+
+      expect(state.visibleColumns.map((column) => column.dbName), ['brand']);
+      expect(state.dataset.uiStateJson, contains('hiddenColumnDbNames'));
+
+      final shownState = bloc.stream.firstWhere(
+        (state) =>
+            state is DatasetLoadedState && state.hiddenColumnDbNames.isEmpty,
+      );
+
+      bloc.add(
+        const SetColumnHiddenEvent(
+          columnDbName: 'product',
+          hidden: false,
+        ),
+      );
+
+      final restoredState = await shownState as DatasetLoadedState;
+
+      expect(
+        restoredState.visibleColumns.map((column) => column.dbName),
+        ['product', 'brand'],
+      );
+      verify(() => updateDatasetUiState.call(
+            datasetId: 1,
+            uiStateJson: any(named: 'uiStateJson'),
+          )).called(2);
       verifyNever(() => fetchRows.call(
             tableName: 'tbl_1',
             limit: DatasetBloc.defaultRowLimit,

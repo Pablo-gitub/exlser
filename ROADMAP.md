@@ -367,9 +367,10 @@ Goal: make dataset browsing useful beyond read-only viewing.
 - [x] Add boolean filter UI using a true/false selector.
 - [x] Keep SQL-style operators behind an advanced-mode toggle.
 - [x] Add sortable table headers.
+- [x] Add visible-column controls for hiding irrelevant data in the workspace.
 - [x] Add localized filter, sort, and error messages.
 - [x] Persist workspace UI state in `uiStateJson`.
-- [x] Restore filters, active sheet, and view mode when reopening a dataset.
+- [x] Restore filters, active sheet, hidden columns, and view mode when reopening a dataset.
 - [x] Add tests for composed SQL filters.
 - [x] Add BLoC tests for filtering and sorting.
 
@@ -392,24 +393,24 @@ Publish criteria:
 
 Goal: export dataset data or filtered results.
 
-- [ ] Decide export scope: full dataset, current sheet, or filtered results.
-- [ ] Complete `ExportCsvUseCase`.
-- [ ] Complete `ExportExcelUseCase`.
-- [ ] Complete `ExportPdfUseCase`.
-- [ ] Decide whether `ExportSqlUseCase` belongs in this release.
-- [ ] Implement `ExportDataService`.
-- [ ] Add export dialog from DatasetView.
-- [ ] Integrate `file_saver` and/or share flow.
-- [ ] Handle web/native differences.
-- [ ] Add export use case tests.
-- [ ] Add export service tests.
+- [x] Export the current sheet using active filters, sorting, and visible columns.
+- [x] Complete `ExportCsvUseCase`.
+- [x] Complete `ExportExcelUseCase`.
+- [x] Complete `ExportPdfUseCase`.
+- [x] Include `ExportSqlUseCase` in this release.
+- [x] Implement `ExportDataService`.
+- [x] Add export action from DatasetView.
+- [x] Integrate native share/download flow.
+- [x] Handle web/native differences through `share_plus`.
+- [x] Add export use case tests.
+- [x] Add export service tests.
 
 ### Milestone Reached: v0.3.0 - Export
 
 Publish criteria:
 
-- [ ] The user can export at least CSV and Excel.
-- [ ] Export respects the selected sheet and active filters if that scope is selected.
+- [x] The user can export at least CSV and Excel.
+- [x] Export respects the selected sheet, active filters, sorting, and visible columns.
 
 ## Path to Basic Analytics
 
@@ -680,11 +681,11 @@ Immediate next step:
 
 Practical order:
 
-1. Decide export scope: full dataset, current sheet, or filtered results.
+1. Export the current sheet using active filters, sorting, and visible columns.
 2. Complete `ExportCsvUseCase`.
 3. Complete `ExportExcelUseCase` and `ExportPdfUseCase`.
 4. Implement `ExportDataService` orchestrating the use cases.
 5. Add export dialog triggered from `DatasetView`.
-6. Integrate `file_saver` and/or share sheet (handle web vs native).
+6. Integrate share sheet/download fallback (handle web vs native).
 7. Write export use case and service tests.
 8. Ship v0.3.0.

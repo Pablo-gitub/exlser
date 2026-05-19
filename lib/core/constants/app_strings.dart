@@ -42,6 +42,10 @@ class AppStrings {
       'dataset.workspace.source_file';
   static const String datasetWorkspaceSheets = 'dataset.workspace.sheets';
   static const String datasetWorkspaceColumns = 'dataset.workspace.columns';
+  static const String datasetWorkspaceVisibleColumns =
+      'dataset.workspace.visible_columns';
+  static const String datasetWorkspaceVisibleColumnsHint =
+      'dataset.workspace.visible_columns_hint';
   static const String datasetWorkspaceRows = 'dataset.workspace.rows';
   static const String datasetWorkspaceLoadedRows =
       'dataset.workspace.loaded_rows';

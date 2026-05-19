@@ -119,7 +119,7 @@ void main() {
     });
   });
 
-  group('DatasetWorkspaceUiState.charts', () {
+  group('DatasetWorkspaceUiState', () {
     final columns = [_col('cat', ColumnType.text)];
 
     test('fromJson restores charts list', () {
@@ -187,6 +187,40 @@ void main() {
 
       expect(state.rowLimit, DatasetWorkspaceUiState.defaultRowLimit);
       expect(state.pageIndex, 0);
+    });
+
+    test('fromJson restores hidden columns and filters unknown columns', () {
+      final state = DatasetWorkspaceUiState.fromJson({
+        'hiddenColumnDbNames': ['cat', 'missing'],
+      });
+
+      expect(state.hiddenColumnDbNames, ['cat', 'missing']);
+      expect(
+        state.restoreHiddenColumnDbNames([
+          _col('cat', ColumnType.text),
+          _col('amount', ColumnType.real),
+        ]),
+        ['cat'],
+      );
+    });
+
+    test('restoreHiddenColumnDbNames does not hide every column', () {
+      const state = DatasetWorkspaceUiState(
+        hiddenColumnDbNames: ['cat'],
+      );
+
+      expect(state.restoreHiddenColumnDbNames([_col('cat', ColumnType.text)]),
+          isEmpty);
+    });
+
+    test('toJson includes hidden columns when non-empty', () {
+      const state = DatasetWorkspaceUiState(
+        hiddenColumnDbNames: ['cat'],
+      );
+
+      final json = state.toJson();
+
+      expect(json['hiddenColumnDbNames'], ['cat']);
     });
 
     test('chart round-trip through JSON preserves suggestion', () {

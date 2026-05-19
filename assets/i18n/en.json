@@ -3,8 +3,8 @@
         "name": "ExlSer"
     },
     "home": {
-        "select_file": "Select an Excel or CSV file",
-        "drop_file": "Drag and drop an Excel or CSV file here",
+        "select_file": "Select a CSV or XLSX file",
+        "drop_file": "Drag and drop a CSV or XLSX file here",
         "process_file": "Process File",
         "browse_file": "Browse file"
     },
@@ -53,6 +53,8 @@
             "source_file": "Source file",
             "sheets": "Sheets",
             "columns": "Columns",
+            "visible_columns": "Visible columns",
+            "visible_columns_hint": "Hide columns you do not need in the table and exports.",
             "rows": "Rows",
             "loaded_rows": "Loaded rows",
             "initial_row_limit": "Showing the first {count} rows.",
@@ -207,9 +209,9 @@
             "empty_file_name": "The selected file has no name. Select the file again.",
             "empty_file_path": "The app cannot access the selected file path. Select the file again.",
             "empty_file_bytes": "The selected file is empty or unavailable. Select the file again.",
-            "no_extension": "The selected file has no extension. Use a CSV, XLS, or XLSX file.",
-            "unsupported_format": "This file format is not supported. Use a CSV, XLS, or XLSX file.",
-            "parser_not_found": "The app cannot read this file type yet. Use a CSV, XLS, or XLSX file.",
+            "no_extension": "The selected file has no extension. Use a CSV or XLSX file.",
+            "unsupported_format": "This file format is not supported. Use a CSV or XLSX file. Legacy XLS files are not supported yet.",
+            "parser_not_found": "The app cannot read this file type yet. Use a CSV or XLSX file.",
             "parsing_failed": "The file could not be read. Check that it is not corrupted or password-protected.",
             "no_sheets": "No readable sheets were found in the file.",
             "no_valid_sheets": "The file was read, but no sheet contains usable tabular data.",

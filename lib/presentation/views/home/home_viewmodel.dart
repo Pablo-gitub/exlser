@@ -88,6 +88,8 @@ class HomeViewModel extends ChangeNotifier {
   /// Mobile/Desktop file picker.
   Future<void> pickFile() async {
     final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['csv', 'xlsx'],
       withData: kIsWeb,
     );
 

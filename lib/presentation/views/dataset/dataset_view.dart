@@ -4,7 +4,6 @@ import 'package:exel_category/core/constants/app_strings.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
-import 'package:exel_category/domain/entities/exported_file.dart';
 import 'package:exel_category/domain/value_objects/export_format.dart';
 import 'package:exel_category/presentation/providers/repository_providers.dart';
 import 'package:exel_category/presentation/providers/service_providers.dart';
@@ -17,11 +16,11 @@ import 'package:exel_category/presentation/widgets/dataset_views/dataset_card_vi
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_filter_panel.dart';
 import 'package:exel_category/presentation/widgets/dataset_views/dataset_table_view.dart';
 import 'package:exel_category/presentation/widgets/layout/app_scaffold.dart';
-import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DatasetView extends ConsumerWidget {
   final int datasetId;
@@ -143,6 +142,7 @@ class _DatasetExportActionState extends State<_DatasetExportAction> {
     });
 
     final messenger = ScaffoldMessenger.of(context);
+    final renderBox = context.findRenderObject() as RenderBox?;
     messenger.showSnackBar(
       SnackBar(
         content: Text(AppStrings.datasetWorkspaceExportStarted.tr()),
@@ -150,20 +150,32 @@ class _DatasetExportActionState extends State<_DatasetExportAction> {
     );
 
     try {
-      final files = await widget.exportDataService.exportDataset(
+      final files = await widget.exportDataService.exportCurrentTable(
         dataset: state.dataset,
+        table: state.activeTable,
+        visibleColumns: state.visibleColumns,
+        filters: state.filters,
+        sort: state.sort,
         format: format,
       );
 
-      for (final file in files) {
-        await FileSaver.instance.saveFile(
-          name: file.name,
-          bytes: file.bytes,
-          ext: file.extension,
-          mimeType: _mimeTypeFor(file),
-          customMimeType: file.mimeType,
-        );
-      }
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [
+            for (final file in files)
+              XFile.fromData(
+                file.bytes,
+                mimeType: file.mimeType,
+                name: file.fileName,
+              ),
+          ],
+          fileNameOverrides: [for (final file in files) file.fileName],
+          sharePositionOrigin: renderBox == null
+              ? null
+              : renderBox.localToGlobal(Offset.zero) & renderBox.size,
+          downloadFallbackEnabled: true,
+        ),
+      );
 
       messenger.showSnackBar(
         SnackBar(
@@ -188,19 +200,6 @@ class _DatasetExportActionState extends State<_DatasetExportAction> {
       }
     }
   }
-
-  MimeType _mimeTypeFor(ExportedFile file) {
-    switch (file.format) {
-      case ExportFormat.excel:
-        return MimeType.microsoftExcel;
-      case ExportFormat.csv:
-        return MimeType.csv;
-      case ExportFormat.pdf:
-        return MimeType.pdf;
-      case ExportFormat.sql:
-        return MimeType.custom;
-    }
-  }
 }
 
 class _LoadedWorkspace extends StatelessWidget {
@@ -212,6 +211,8 @@ class _LoadedWorkspace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final visibleColumns = state.visibleColumns;
+
     return RefreshIndicator(
       onRefresh: () async {
         context.read<DatasetBloc>().add(const RefreshResultsEvent());
@@ -224,6 +225,7 @@ class _LoadedWorkspace extends StatelessWidget {
             activeTable: state.activeTable,
             tables: state.tables,
             columns: state.columns,
+            visibleColumnCount: visibleColumns.length,
             loadedRowCount: state.rows.length,
             rowLimit: state.rowLimit,
             totalRowCount: state.totalRowCount,
@@ -250,11 +252,16 @@ class _LoadedWorkspace extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
+          _ColumnVisibilitySection(
+            columns: state.columns,
+            hiddenColumnDbNames: state.hiddenColumnDbNames,
+          ),
+          const SizedBox(height: 16),
           if (state.rows.isEmpty)
-            _NoRowsMessage(columns: state.columns)
+            _NoRowsMessage(columns: visibleColumns)
           else if (state.viewMode == DatasetViewMode.table)
             DatasetTableView(
-              columns: state.columns,
+              columns: visibleColumns,
               rows: state.rows,
               sort: state.sort,
               onSortColumn: (column) {
@@ -265,7 +272,7 @@ class _LoadedWorkspace extends StatelessWidget {
             )
           else
             DatasetCardView(
-              columns: state.columns,
+              columns: visibleColumns,
               rows: state.rows,
             ),
           const SizedBox(height: 12),
@@ -285,6 +292,7 @@ class _DatasetHeader extends StatelessWidget {
   final DatasetTable activeTable;
   final List<DatasetTable> tables;
   final List<DatasetColumn> columns;
+  final int visibleColumnCount;
   final int loadedRowCount;
   final int rowLimit;
   final int totalRowCount;
@@ -295,6 +303,7 @@ class _DatasetHeader extends StatelessWidget {
     required this.activeTable,
     required this.tables,
     required this.columns,
+    required this.visibleColumnCount,
     required this.loadedRowCount,
     required this.rowLimit,
     required this.totalRowCount,
@@ -338,7 +347,9 @@ class _DatasetHeader extends StatelessWidget {
             ),
             _MetricTile(
               label: AppStrings.datasetWorkspaceColumns.tr(),
-              value: '${columns.length}',
+              value: visibleColumnCount == columns.length
+                  ? '${columns.length}'
+                  : '$visibleColumnCount / ${columns.length}',
             ),
             _MetricTile(
               label: AppStrings.datasetWorkspaceRows.tr(),
@@ -416,6 +427,67 @@ class _MetricTile extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ColumnVisibilitySection extends StatelessWidget {
+  final List<DatasetColumn> columns;
+  final List<String> hiddenColumnDbNames;
+
+  const _ColumnVisibilitySection({
+    required this.columns,
+    required this.hiddenColumnDbNames,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (columns.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).dividerColor),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppStrings.datasetWorkspaceVisibleColumns.tr(),
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              AppStrings.datasetWorkspaceVisibleColumnsHint.tr(),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final column in columns)
+                  FilterChip(
+                    label: Text(column.originalName),
+                    selected: !hiddenColumnDbNames.contains(column.dbName),
+                    onSelected: (selected) {
+                      context.read<DatasetBloc>().add(
+                            SetColumnHiddenEvent(
+                              columnDbName: column.dbName,
+                              hidden: !selected,
+                            ),
+                          );
+                    },
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );

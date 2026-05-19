@@ -17,6 +17,7 @@ class DatasetWorkspaceUiState {
   final DatasetViewMode viewMode;
   final int rowLimit;
   final int pageIndex;
+  final List<String> hiddenColumnDbNames;
   final List<StoredDatasetFilter> filters;
   final StoredDatasetSort? sort;
   final List<StoredAnalyticsChart> charts;
@@ -26,6 +27,7 @@ class DatasetWorkspaceUiState {
     this.viewMode = DatasetViewMode.table,
     this.rowLimit = defaultRowLimit,
     this.pageIndex = 0,
+    this.hiddenColumnDbNames = const [],
     this.filters = const [],
     this.sort,
     this.charts = const [],
@@ -47,6 +49,7 @@ class DatasetWorkspaceUiState {
       viewMode: state.viewMode,
       rowLimit: state.rowLimit,
       pageIndex: state.pageIndex,
+      hiddenColumnDbNames: state.hiddenColumnDbNames,
       filters: [
         for (final filter in state.filters)
           StoredDatasetFilter.fromDatasetFilter(filter),
@@ -78,6 +81,7 @@ class DatasetWorkspaceUiState {
   factory DatasetWorkspaceUiState.fromJson(Map<String, dynamic> json) {
     final filtersJson = json['filters'];
     final chartsJson = json['charts'];
+    final hiddenColumnsJson = json['hiddenColumnDbNames'];
 
     return DatasetWorkspaceUiState(
       activeTableId:
@@ -88,6 +92,12 @@ class DatasetWorkspaceUiState {
         fallback: defaultRowLimit,
       ),
       pageIndex: _nonNegativeIntFromJson(json['pageIndex']),
+      hiddenColumnDbNames: hiddenColumnsJson is List
+          ? [
+              for (final value in hiddenColumnsJson)
+                if (value.toString().trim().isNotEmpty) value.toString().trim(),
+            ]
+          : const [],
       filters: filtersJson is List
           ? [
               for (final filterJson in filtersJson)
@@ -116,6 +126,8 @@ class DatasetWorkspaceUiState {
       'viewMode': viewMode.name,
       'rowLimit': rowLimit,
       'pageIndex': pageIndex,
+      if (hiddenColumnDbNames.isNotEmpty)
+        'hiddenColumnDbNames': hiddenColumnDbNames,
       'filters': [for (final filter in filters) filter.toJson()],
       if (sort != null) 'sort': sort!.toJson(),
       if (charts.isNotEmpty)
@@ -133,6 +145,20 @@ class DatasetWorkspaceUiState {
 
   DatasetSort? restoreSort(List<DatasetColumn> columns) {
     return sort?.toDatasetSort(columns);
+  }
+
+  List<String> restoreHiddenColumnDbNames(List<DatasetColumn> columns) {
+    final knownColumns = columns.map((column) => column.dbName).toSet();
+    final restored = [
+      for (final dbName in hiddenColumnDbNames)
+        if (knownColumns.contains(dbName)) dbName,
+    ];
+
+    if (restored.length >= columns.length) {
+      return const [];
+    }
+
+    return restored;
   }
 }
 
