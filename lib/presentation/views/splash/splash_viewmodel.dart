@@ -1,5 +1,6 @@
 import 'package:exel_category/presentation/router/router_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final splashViewModelProvider = Provider<SplashViewModel>(
   (ref) => SplashViewModel(ref),
@@ -31,8 +32,18 @@ class SplashViewModel {
   /// - load user preferences
   /// - load theme / locale settings
   Future<void> initialize() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    final prefsResult = await Future.wait([
+      Future.delayed(const Duration(milliseconds: 500)),
+      SharedPreferences.getInstance(),
+    ]);
 
-    ref.read(routerNotifierProvider).completeSplash();
+    final prefs = prefsResult[1] as SharedPreferences;
+    final isOnboardingCompleted =
+        prefs.getBool('onboarding_completed') ?? false;
+
+    ref.read(routerNotifierProvider).setInitialState(
+          isSplashCompleted: true,
+          isOnboardingCompleted: isOnboardingCompleted,
+        );
   }
 }

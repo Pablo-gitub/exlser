@@ -53,6 +53,8 @@ dependencies:
   flutter_dropzone: ^4.2.1
   excel_community: ^1.0.9
   flutter_bloc: ^9.1.1
+  shared_preferences: ^2.5.3
+  desktop_drop: ^0.7.1
 
 dev_dependencies:
   flutter_test:
@@ -70,7 +72,6 @@ dev_dependencies:
   dependency_validator: ^5.0.5
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.4
-  shared_preferences: ^2.5.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

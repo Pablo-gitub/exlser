@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../router/router_notifier.dart';
 
@@ -46,7 +47,7 @@ class OnboardingViewModel {
         curve: Curves.easeInOut,
       );
     } else {
-      completeOnboarding();
+      await completeOnboarding();
     }
   }
 
@@ -59,7 +60,9 @@ class OnboardingViewModel {
     );
   }
 
-  void completeOnboarding() {
+  Future<void> completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_completed', true);
     ref.read(routerNotifierProvider).completeOnboarding();
   }
 
