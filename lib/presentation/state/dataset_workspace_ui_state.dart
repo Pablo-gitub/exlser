@@ -319,6 +319,7 @@ class StoredAnalyticsChart {
     final xColumn =
         xColumnDbName != null ? _findColumn(columns, xColumnDbName!) : null;
     if (xColumn == null) return null;
+    if (!chartType.validXColumnTypes.contains(xColumn.declaredType)) return null;
 
     final yColumn =
         yColumnDbName != null ? _findColumn(columns, yColumnDbName!) : null;

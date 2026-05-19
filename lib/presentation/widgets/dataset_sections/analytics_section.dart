@@ -366,16 +366,21 @@ class _ColumnDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveSelected = selected != null &&
+            columns.any((c) => c.dbName == selected!.dbName)
+        ? selected
+        : null;
+
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 220),
       child: DropdownButtonFormField<DatasetColumn?>(
-        key: ValueKey(selected?.dbName),
+        key: ValueKey(effectiveSelected?.dbName),
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
           isDense: true,
         ),
-        initialValue: selected,
+        initialValue: effectiveSelected,
         items: [
           if (nullable)
             DropdownMenuItem<DatasetColumn?>(
