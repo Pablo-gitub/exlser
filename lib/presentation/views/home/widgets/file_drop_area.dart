@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:exel_category/core/constants/app_strings.dart';
 import 'package:exel_category/core/theme/app_colors.dart';
@@ -18,7 +21,63 @@ class FileDropArea extends StatelessWidget {
       return const _WebFileDropArea();
     }
 
+    if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+      return const _DesktopFileDropArea();
+    }
+
     return const _MobileFileDropArea();
+  }
+}
+
+class _DesktopFileDropArea extends ConsumerStatefulWidget {
+  const _DesktopFileDropArea();
+
+  @override
+  ConsumerState<_DesktopFileDropArea> createState() =>
+      _DesktopFileDropAreaState();
+}
+
+class _DesktopFileDropAreaState extends ConsumerState<_DesktopFileDropArea> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = ref.watch(homeViewModelProvider);
+
+    return Column(
+      children: [
+        DropTarget(
+          onDragEntered: (_) => setState(() => _isHovering = true),
+          onDragExited: (_) => setState(() => _isHovering = false),
+          onDragDone: (detail) {
+            setState(() => _isHovering = false);
+            if (detail.files.isEmpty) return;
+            final file = detail.files.first;
+            ref.read(homeViewModelProvider).setSelectedFile(
+                  name: file.name,
+                  path: file.path,
+                );
+          },
+          child: GestureDetector(
+            onTap: () => ref.read(homeViewModelProvider).pickFile(),
+            child: _buildUploadBox(
+              context,
+              ref,
+              placeholderText:
+                  vm.selectedFileName ?? AppStrings.homeSelectFile.tr(),
+              isHovering: _isHovering,
+            ),
+          ),
+        ),
+        if (!vm.hasFile) ...[
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => ref.read(homeViewModelProvider).pickFile(),
+            child: Text(AppStrings.browseFile.tr()),
+          ),
+        ],
+      ],
+    );
   }
 }
 
@@ -85,7 +144,6 @@ class _WebFileDropAreaState extends ConsumerState<_WebFileDropArea> {
               isHovering: isHovering,
             ),
 
-            /// ✅ Dropzone SOLO quando NON hai file
             if (!vm.hasFile)
               Positioned.fill(
                 child: DropzoneView(
@@ -110,7 +168,6 @@ class _WebFileDropAreaState extends ConsumerState<_WebFileDropArea> {
           ],
         ),
 
-        /// Bottone browse (solo quando non hai file)
         if (!vm.hasFile) ...[
           const SizedBox(height: 12),
           TextButton(
@@ -182,7 +239,7 @@ Widget _buildClearButton(VoidCallback onPressed) {
           shape: BoxShape.circle,
         ),
         child: const Icon(
-          Icons.close, // oppure Icons.delete
+          Icons.close,
           size: 16,
           color: Colors.white,
         ),
