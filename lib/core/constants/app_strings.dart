@@ -34,6 +34,8 @@ class AppStrings {
   static const String worksNeverOpened = 'works.never_opened';
   static const String worksDeleteTitle = 'works.delete_title';
   static const String worksDeleteMessage = 'works.delete_message';
+  static const String worksSearchHint = 'works.search_hint';
+  static const String worksNoResults = 'works.no_results';
   static const String worksLoadFailed = 'works.error.load_failed';
   static const String worksOpenFailed = 'works.error.open_failed';
   static const String worksDeleteFailed = 'works.error.delete_failed';

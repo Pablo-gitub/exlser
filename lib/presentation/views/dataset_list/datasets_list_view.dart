@@ -10,34 +10,93 @@ import 'package:go_router/go_router.dart';
 import 'datasets_list_provider.dart';
 import 'datasets_list_viewmodel.dart';
 
-class DatasetsListView extends ConsumerWidget {
+class DatasetsListView extends ConsumerStatefulWidget {
   const DatasetsListView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DatasetsListView> createState() => _DatasetsListViewState();
+}
+
+class _DatasetsListViewState extends ConsumerState<DatasetsListView> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  DateTime? _dateFrom;
+  DateTime? _dateTo;
+
+  bool get _hasActiveFilters =>
+      _searchQuery.isNotEmpty || _dateFrom != null || _dateTo != null;
+
+  List<Dataset> _filtered(List<Dataset> datasets) {
+    if (!_hasActiveFilters) return datasets;
+    return [
+      for (final dataset in datasets)
+        if (_matchesSearch(dataset) && _matchesDate(dataset)) dataset,
+    ];
+  }
+
+  bool _matchesSearch(Dataset dataset) {
+    if (_searchQuery.isEmpty) return true;
+    final q = _searchQuery.toLowerCase();
+    return dataset.name.toLowerCase().contains(q) ||
+        dataset.sourceFileName.toLowerCase().contains(q);
+  }
+
+  bool _matchesDate(Dataset dataset) {
+    final created = DateTime.fromMillisecondsSinceEpoch(dataset.createdAt);
+    final day = DateTime(created.year, created.month, created.day);
+    if (_dateFrom != null && day.isBefore(_dateFrom!)) return false;
+    if (_dateTo != null && day.isAfter(_dateTo!)) return false;
+    return true;
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _searchQuery = '';
+      _searchController.clear();
+      _dateFrom = null;
+      _dateTo = null;
+    });
+  }
+
+  Future<void> _pickDateFrom(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dateFrom ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: _dateTo ?? DateTime.now(),
+    );
+    if (picked != null) setState(() => _dateFrom = picked);
+  }
+
+  Future<void> _pickDateTo(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dateTo ?? DateTime.now(),
+      firstDate: _dateFrom ?? DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) setState(() => _dateTo = picked);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final viewModel = ref.watch(datasetsListViewModelProvider);
 
     return AppScaffold(
       title: AppStrings.works.tr(),
-      actions: [
-        IconButton(
-          tooltip: AppStrings.refresh.tr(),
-          onPressed: viewModel.isLoading ? null : viewModel.loadDatasets,
-          icon: const Icon(Icons.refresh),
-        ),
-      ],
       body: _buildBody(context, viewModel),
     );
   }
 
-  Widget _buildBody(
-    BuildContext context,
-    DatasetsListViewModel viewModel,
-  ) {
+  Widget _buildBody(BuildContext context, DatasetsListViewModel viewModel) {
     if (viewModel.isLoading && !viewModel.hasDatasets) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (!viewModel.hasDatasets) {
@@ -47,36 +106,86 @@ class DatasetsListView extends ConsumerWidget {
       );
     }
 
+    final filtered = _filtered(viewModel.datasets);
+
     return RefreshIndicator(
       onRefresh: viewModel.loadDatasets,
-      child: ListView.separated(
+      child: ListView(
         padding: const EdgeInsets.all(16),
-        itemCount:
-            viewModel.datasets.length + (viewModel.errorCode == null ? 0 : 1),
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          if (viewModel.errorCode != null && index == 0) {
-            return _ErrorBanner(
-              errorCode: viewModel.errorCode!,
-              onDismissed: viewModel.clearError,
-            );
-          }
-
-          final datasetIndex = viewModel.errorCode == null ? index : index - 1;
-          final dataset = viewModel.datasets[datasetIndex];
-
-          return _DatasetListCard(
-            dataset: dataset,
-            isOpening: viewModel.openingDatasetId == dataset.id,
-            isDeleting: viewModel.deletingDatasetId == dataset.id,
-            onOpen: () => _openDataset(context, viewModel, dataset.id),
-            onDelete: () => _confirmDeleteDataset(
-              context,
-              viewModel,
-              dataset,
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _WorksFilterBar(
+                    searchController: _searchController,
+                    dateFrom: _dateFrom,
+                    dateTo: _dateTo,
+                    hasActiveFilters: _hasActiveFilters,
+                    onSearchChanged: (v) => setState(() => _searchQuery = v),
+                    onPickDateFrom: () => _pickDateFrom(context),
+                    onPickDateTo: () => _pickDateTo(context),
+                    onClearDateFrom: _dateFrom != null
+                        ? () => setState(() => _dateFrom = null)
+                        : null,
+                    onClearDateTo: _dateTo != null
+                        ? () => setState(() => _dateTo = null)
+                        : null,
+                    onClearAll: _clearFilters,
+                  ),
+                  const SizedBox(height: 16),
+                  if (viewModel.errorCode != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _ErrorBanner(
+                        errorCode: viewModel.errorCode!,
+                        onDismissed: viewModel.clearError,
+                      ),
+                    ),
+                  if (filtered.isEmpty)
+                    _NoResultsMessage(onClearFilters: _clearFilters)
+                  else
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final width = constraints.maxWidth;
+                        final crossCount = width < 600
+                            ? 1
+                            : width < 1000
+                                ? 2
+                                : 3;
+                        const spacing = 12.0;
+                        final cardWidth =
+                            (width - spacing * (crossCount - 1)) / crossCount;
+                        return Wrap(
+                          spacing: spacing,
+                          runSpacing: spacing,
+                          children: [
+                            for (final dataset in filtered)
+                              SizedBox(
+                                width: cardWidth,
+                                child: _DatasetListCard(
+                                  dataset: dataset,
+                                  isOpening:
+                                      viewModel.openingDatasetId == dataset.id,
+                                  isDeleting:
+                                      viewModel.deletingDatasetId == dataset.id,
+                                  onOpen: () => _openDataset(
+                                      context, viewModel, dataset.id),
+                                  onDelete: () => _confirmDeleteDataset(
+                                      context, viewModel, dataset),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                ],
+              ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -126,6 +235,149 @@ class DatasetsListView extends ConsumerWidget {
 
     if (shouldDelete != true) return;
     await viewModel.deleteDataset(dataset.id);
+  }
+}
+
+class _WorksFilterBar extends StatelessWidget {
+  final TextEditingController searchController;
+  final DateTime? dateFrom;
+  final DateTime? dateTo;
+  final bool hasActiveFilters;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onPickDateFrom;
+  final VoidCallback onPickDateTo;
+  final VoidCallback? onClearDateFrom;
+  final VoidCallback? onClearDateTo;
+  final VoidCallback onClearAll;
+
+  const _WorksFilterBar({
+    required this.searchController,
+    required this.dateFrom,
+    required this.dateTo,
+    required this.hasActiveFilters,
+    required this.onSearchChanged,
+    required this.onPickDateFrom,
+    required this.onPickDateTo,
+    required this.onClearDateFrom,
+    required this.onClearDateTo,
+    required this.onClearAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: searchController,
+          decoration: InputDecoration(
+            hintText: AppStrings.worksSearchHint.tr(),
+            prefixIcon: const Icon(Icons.search),
+            border: const OutlineInputBorder(),
+            isDense: true,
+            suffixIcon: searchController.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear, size: 20),
+                    onPressed: () {
+                      searchController.clear();
+                      onSearchChanged('');
+                    },
+                  )
+                : null,
+          ),
+          onChanged: onSearchChanged,
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            _DateFilterChip(
+              label: AppStrings.datasetWorkspaceFiltersFrom.tr(),
+              date: dateFrom,
+              onTap: onPickDateFrom,
+              onClear: onClearDateFrom,
+            ),
+            _DateFilterChip(
+              label: AppStrings.datasetWorkspaceFiltersTo.tr(),
+              date: dateTo,
+              onTap: onPickDateTo,
+              onClear: onClearDateTo,
+            ),
+            if (hasActiveFilters)
+              ActionChip(
+                avatar: const Icon(Icons.clear_all, size: 16),
+                label: Text(AppStrings.clear.tr()),
+                onPressed: onClearAll,
+                visualDensity: VisualDensity.compact,
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _DateFilterChip extends StatelessWidget {
+  final String label;
+  final DateTime? date;
+  final VoidCallback onTap;
+  final VoidCallback? onClear;
+
+  const _DateFilterChip({
+    required this.label,
+    required this.date,
+    required this.onTap,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dateText = date != null
+        ? MaterialLocalizations.of(context).formatMediumDate(date!)
+        : null;
+
+    return InputChip(
+      avatar: const Icon(Icons.calendar_month_outlined, size: 16),
+      label: Text(dateText != null ? '$label: $dateText' : label),
+      onPressed: onTap,
+      deleteIcon: const Icon(Icons.close, size: 14),
+      onDeleted: onClear,
+      visualDensity: VisualDensity.compact,
+    );
+  }
+}
+
+class _NoResultsMessage extends StatelessWidget {
+  final VoidCallback onClearFilters;
+
+  const _NoResultsMessage({required this.onClearFilters});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.search_off, size: 40),
+            const SizedBox(height: 12),
+            Text(
+              AppStrings.worksNoResults.tr(),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: onClearFilters,
+              icon: const Icon(Icons.clear_all),
+              label: Text(AppStrings.clear.tr()),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

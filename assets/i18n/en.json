@@ -42,6 +42,8 @@
         "never_opened": "Never opened",
         "delete_title": "Delete dataset",
         "delete_message": "This will remove the dataset, schema, rows, and file reference.",
+        "search_hint": "Search by name or file",
+        "no_results": "No datasets match your search.",
         "error": {
             "load_failed": "Could not load datasets.",
             "open_failed": "Could not open the selected dataset.",

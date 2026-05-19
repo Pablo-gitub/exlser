@@ -42,6 +42,8 @@
         "never_opened": "Mai aperto",
         "delete_title": "Elimina dataset",
         "delete_message": "Questa operazione rimuoverà dataset, schema, righe e riferimento al file.",
+        "search_hint": "Cerca per nome o file",
+        "no_results": "Nessun dataset corrisponde alla ricerca.",
         "error": {
             "load_failed": "Impossibile caricare i dataset.",
             "open_failed": "Impossibile aprire il dataset selezionato.",
