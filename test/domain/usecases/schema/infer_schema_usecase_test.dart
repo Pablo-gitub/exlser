@@ -136,5 +136,42 @@ void main() {
 
       expect(result.first.dbName, "product_name");
     });
+
+    test("should rename 'Id' column to avoid conflict with primary key", () {
+      final rows = [
+        ["Id"],
+        ["1"],
+        ["2"],
+      ];
+
+      final result = useCase(rows, 1);
+
+      expect(result.first.dbName, isNot("id"));
+    });
+
+    test("should deduplicate identical column headers", () {
+      final rows = [
+        ["value", "value", "value"],
+        ["a", "b", "c"],
+      ];
+
+      final result = useCase(rows, 1);
+
+      final dbNames = result.map((c) => c.dbName).toList();
+      expect(dbNames.toSet().length, 3);
+    });
+
+    test("should handle empty column headers without crashing", () {
+      final rows = [
+        ["", "name", ""],
+        ["1", "Alice", "x"],
+      ];
+
+      final result = useCase(rows, 1);
+
+      expect(result.length, 3);
+      final dbNames = result.map((c) => c.dbName).toList();
+      expect(dbNames.toSet().length, 3);
+    });
   });
 }

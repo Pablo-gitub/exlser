@@ -1,7 +1,7 @@
 import 'package:exel_category/data/adapters/normalizers/boolean_normalizer.dart';
 import 'package:exel_category/data/adapters/normalizers/date_normalizer.dart';
 import 'package:exel_category/data/adapters/normalizers/number_normalizer.dart';
-import 'package:exel_category/data/adapters/sanitizers/sql_name_sanitizer.dart';
+import 'package:exel_category/core/normalizers/sql_name_sanitizer.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/value_objects/column_type.dart';
 
@@ -42,6 +42,7 @@ class InferSchemaUseCase {
     final dataRows = rows.skip(1).toList();
 
     final columns = <DatasetColumn>[];
+    final seenDbNames = <String>[];
 
     for (int colIndex = 0; colIndex < headers.length; colIndex++) {
       final header = headers[colIndex];
@@ -53,7 +54,11 @@ class InferSchemaUseCase {
 
       final inferredType = _inferColumnType(columnValues);
       final nullable = columnValues.any((v) => v.trim().isEmpty);
-      final dbName = SqlNameSanitizer.sanitize(header);
+      final dbName = SqlNameSanitizer.sanitizeColumnName(
+        header,
+        existingNames: seenDbNames,
+      );
+      seenDbNames.add(dbName);
 
       columns.add(
         DatasetColumn(

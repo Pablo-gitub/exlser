@@ -35,7 +35,9 @@ class SqlNameSanitizer {
     'right',
     'outer',
     'on',
-    'having'
+    'having',
+    // reserved to avoid collision with the auto-generated PRIMARY KEY column
+    'id',
   };
 
   /// Sanitizes a column name dynamically generated from an Excel header.
