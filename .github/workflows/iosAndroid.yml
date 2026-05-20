@@ -8,10 +8,10 @@ on:
       - main
       - master
       - develop
-name: "Build & Release"
+name: "Android Build & Release"
 jobs:
   build:
-    name: Build & Release
+    name: Android Build & Release
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,17 +25,21 @@ jobs:
           architecture: x64
 
       - run: flutter build apk --release --split-per-abi
-      - run: |
-          flutter build ios --no-codesign
-          cd build/ios/iphoneos
-          mkdir Payload
-          cd Payload
-          ln -s ../Runner.app
-          cd ..
-          zip -r app.ipa Payload
+      # iOS release builds are intentionally disabled for now.
+      # Unsigned IPA files are not installable on standard iPhones; re-enable
+      # this only after adding Apple signing certificates/provisioning profiles.
+      #
+      # - run: |
+      #     flutter build ios --release --no-codesign
+      #     cd build/ios/iphoneos
+      #     mkdir Payload
+      #     cd Payload
+      #     ln -s ../Runner.app
+      #     cd ..
+      #     zip -r app.ipa Payload
       - name: Push to Releases
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/apk/release/*,build/ios/iphoneos/app.ipa"
+          artifacts: "build/app/outputs/apk/release/*"
           tag: v1.0.${{ github.run_number }}
           token: ${{ secrets.TRY_EXCELETOR_TOKEN }}
