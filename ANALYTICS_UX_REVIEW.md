@@ -682,120 +682,152 @@ Start with a small, high-impact patch:
 
 ## Current Implementation Update
 
-Recent commits introduced the first correctness layer for chart configuration
-validation and chart loading errors.
+**Session 2026-05-24:** Implemented Phase 1A and 1B validation and error handling.
 
-### Completed Or Partially Completed
+### Fully Completed (Phase 1A & 1B)
 
-- [x] `ChartConfigValidator` exists and validates:
-  - unsupported chart types;
-  - invalid X columns;
-  - invalid Y columns;
-  - metric aggregations without a numeric Y column.
-- [x] `InvalidChartConfigException` exists.
-- [x] `GetCategoryDistributionUseCase` no longer silently converts
-      `SUM/AVG/MIN/MAX` without a Y column into `COUNT(*)`.
-- [x] `ChartLoadResult` exists and carries either chart data or a structured
-      `ChartLoadError`.
-- [x] `AnalysisService.loadChartData` returns structured load results instead
-      of raw `ChartData`.
-- [x] `AnalyticsChart` now stores a per-chart `ChartLoadError?`.
-- [x] BLoC chart loading keeps per-chart error information.
-- [x] Tests cover the validator and invalid category aggregation behavior.
+- [x] `ChartConfigValidator` (lib/domain/entities/) fully implemented:
+  - `isAggregationValidForChartType()` validates aggregation for chart type
+  - `getValidAggregations()` returns filtered list based on Y column presence
+  - `validateChartSuggestion()` validates complete chart configuration
+  - Prevents SUM/AVG/MIN/MAX without numeric Y column
+  - Rejects invalid X/Y column types for chart type
+  - All 16 unit tests passing
 
-### Still Open After The Recent Changes
+- [x] `InvalidChartConfigException` (lib/domain/exceptions/) created
+  - Thrown by GetCategoryDistributionUseCase on invalid aggregation
+  - Prevents silent COUNT(*) fallback for SUM/AVG/MIN/MAX without Y column
 
-- [ ] The UI still shows all aggregation options in `_AggregationDropdown`.
-      `ChartConfigValidator.getValidAggregations()` exists but is not yet used
-      by the chart card controls.
-- [ ] The Y/value dropdown is still nullable for all chart types, including
-      line charts where Y is required.
-- [ ] `COUNT` still shows the Y/value dropdown when numeric columns exist,
-      even though Y is not needed for count.
-- [ ] Per-chart errors are stored in state, but the chart card still renders
-      mostly through the generic empty/no-chart path instead of a specific
-      actionable error message.
-- [ ] The chart controls still use technical labels (`X axis`, `Y axis`) rather
-      than chart-specific user language (`Group by`, `Value`, `Date`,
-      `Value over time`).
-- [ ] Chart titles/sentences are still missing, so users do not get a clear
-      natural-language explanation of what the chart represents.
-- [ ] Chart configuration still reloads immediately on every dropdown change.
-      This can briefly create intermediate invalid states.
-- [ ] Chart persistence is still top-level in `uiStateJson`, while filters,
-      sorting, and hidden columns are per sheet.
+- [x] `GetCategoryDistributionUseCase` guard implemented:
+  - Throws InvalidChartConfigException if aggregationType != COUNT && yColumn == null
+  - No more silent conversion to COUNT(*)
+  - All 11 validation tests passing
 
-## Updated Analytics Roadmap
+- [x] Error handling infrastructure in place:
+  - `ChartLoadResult` DTO (lib/application/dto/) wraps data + error
+  - `ChartLoadError` enum with 5 error types
+  - `AnalyticsChart.error?` field stores per-chart errors
+  - `AnalysisService.loadChartData()` catches exceptions and maps to ChartLoadError
+  - DatasetBloc integrates error handling into chart state
 
-The roadmap below supersedes the original "Suggested Implementation Order" for
-the current codebase. It separates high-priority UX/correctness work from lower
-priority analytics depth and polish.
+- [x] Complete test coverage:
+  - 16 ChartConfigValidator tests
+  - 11 GetCategoryDistributionUseCase validation tests
+  - All BLoC tests updated for ChartLoadResult
+  - **All 365 tests passing** ✅
 
-### Higher Priority
+### Still Open (Remaining UI/UX Work)
 
-These items directly affect correctness, user trust, or basic chart usability.
+**Phase 1B - Error Messages in UI:**
+- [ ] Display per-chart error messages in analytics_section.dart
+- [ ] Map ChartLoadError types to user-facing messages
+- [ ] Show specific messages vs. generic "no chart available"
 
-1. **Wire `ChartConfigValidator` into the chart card UI**
-   - Use `getValidAggregations()` to filter the aggregation dropdown.
-   - If Y/value column is missing, expose only `COUNT`.
-   - If the user clears Y/value, automatically switch aggregation to `COUNT`.
-   - Keep invalid metric aggregations from being sent to the BLoC.
+**Phase 1C - User-Facing Labels:**
+- [ ] Replace "X axis" → "Group by" (bar/pie)
+- [ ] Replace "Y axis" → "Value" (bar/pie) / "Value over time" (line)
+- [ ] Replace "X axis" → "Date" (line)
+- [ ] Add i18n string keys for chart-type-specific labels
 
-2. **Make required chart inputs explicit**
-   - Line chart: require date X and numeric Y.
-   - Bar/pie with `COUNT`: Y/value is not required.
-   - Bar/pie with `SUM/AVG/MIN/MAX`: numeric Y is required.
-   - Disable or hide controls that are irrelevant for the selected aggregation.
+**Phase 1D - Chart Title Sentences:**
+- [ ] Add `chartSentence` field to ChartData
+- [ ] Compute sentences like "Sum of Sales by Brand"
+- [ ] Display above chart card
 
-3. **Render per-chart error messages**
-   - Map `ChartLoadError.invalidAggregation` to a message such as:
-     "Select a numeric value column to use this aggregation."
-   - Map `chartTypeNotSupported`, `noRowsAfterFilter`, and `internalFailure`
-     to distinct user-facing messages.
-   - Add a small per-chart retry action.
+**Phase 1A - Validator Integration in UI:**
+- [ ] Wire `getValidAggregations()` into `_AggregationDropdown`
+- [ ] Disable invalid aggregation options in dropdown
+- [ ] Hide Y/value when COUNT is selected
+- [ ] Show Y/value as required for SUM/AVG/MIN/MAX
+- [ ] Add tooltips explaining disabled options
 
-4. **Rename chart controls to user-facing labels**
-   - Bar/pie:
-     - `Group by`
-     - `Value`
-   - Line:
-     - `Date`
-     - `Value over time`
-   - Keep technical names out of the primary UI where possible.
+**Phase 1E - Per-Sheet Persistence (DEFERRED):**
+- [ ] Move charts from top-level to per-table state
+- [ ] Update JSON serialization
+- [ ] Update BLoC handlers for per-table access
+- [ ] Test multi-sheet scenarios
+- (Larger refactoring; scheduled for follow-up session)
 
-5. **Add chart title sentences**
-   - Examples:
-     - `Count by Brand`
-     - `Sum of Total grouped by Product`
-     - `Average Temperature over Date`
-   - Show this near the top of each chart card and in expanded mode.
+## Updated Analytics Roadmap (Session 2026-05-24)
 
-6. **Show active filter context on charts**
-   - Add a compact indicator such as:
-     - `Filtered result`
-     - `3 active filters`
-   - This makes it clear that charts reflect the current dataset filters.
+Foundation (validation and error handling) is complete. Remaining work focuses on
+UI/UX improvements. Prioritized by impact and estimated effort.
 
-7. **Keep previous chart visible while reloading**
-   - Avoid replacing chart data with `EmptyChartData` immediately.
-   - Show a loading overlay on top of the previous chart until new data arrives.
+### Immediate Next (Phase 1B-1D) — 5-6 hours estimated
 
-8. **Improve Add Chart dialog**
-   - Replace plain chart type labels with descriptive options:
-     - `Trend over time`
-     - `Category comparison`
-     - `Share by category`
-   - Show why each chart is available based on the current columns.
+**PHASE 1B: Error Messages in UI** (2-3 hours)
+1. Add i18n string keys for each ChartLoadError type
+2. Update `analytics_section.dart` to check `AnalyticsChart.error`
+3. Render specific messages instead of generic "no chart available"
+4. Examples:
+   - `invalidAggregation` → "Select a numeric value column to use this aggregation."
+   - `noRowsAfterFilter` → "No rows match the current filters."
+   - `internalFailure` → "Chart failed to load. Try changing columns or filters."
 
-9. **Move chart persistence per sheet**
-   - Store chart configs in table-specific state, similar to filters and hidden
-     columns.
-   - Avoid restoring charts from one sheet onto another sheet with a different
-     schema.
+**PHASE 1A: Wire Validator into UI** (1-2 hours)
+1. Pass `getValidAggregations()` result to `_AggregationDropdown`
+2. Disable aggregation options that are not in the allowed list
+3. Hide Y/value dropdown when aggregation is `COUNT`
+4. Mark Y/value as required for `SUM/AVG/MIN/MAX`
+5. Add tooltip on disabled options explaining why they are disabled
 
-10. **Add localized chart labels**
-    - Move `ChartType.label` display text to i18n.
-    - Localize boolean labels currently formatted as `True` / `False`.
+**PHASE 1C: User-Facing Control Labels** (1-2 hours)
+1. Compute labels based on `suggestion.chartType`:
+   - Bar/Pie: `Group by`, `Value`
+   - Line: `Date`, `Value over time`
+2. Pass labels to `_ColumnDropdown` and `_AggregationDropdown`
+3. Update i18n keys to use chart-type-specific strings
+
+**PHASE 1D: Chart Title Sentences** (1 hour)
+1. Add `chartSentence: String?` field to `ChartData`
+2. Compute in `analytics_section.dart`:
+   - `Count by Brand`
+   - `Sum of Total grouped by Product`
+   - `Average Temperature over Date`
+3. Display above chart (in card header or as subtitle)
+
+### High Priority (Phase 2) — 3-4 hours estimated
+
+After Phase 1 UX improvements are complete:
+
+1. **Show active filter context on charts**
+   - Add filter indicator: "Filtered result — 3 active filters"
+   - Clarifies that charts respect current filter state
+
+2. **Per-sheet chart persistence** (architectural)
+   - Move charts from top-level `uiStateJson` to per-table state
+   - Prevent chart restoration across incompatible schemas
+   - Update JSON serialization for per-table access
+
+3. **Keep previous chart visible during reload**
+   - Show loading overlay instead of immediately showing EmptyChartData
+   - Smoother UX when changing chart configuration
+
+4. **Improve Add Chart dialog**
+   - Replace plain labels with descriptive options:
+     - `Trend over time` (date + numeric)
+     - `Category comparison` (category + optional numeric)
+     - `Share by category` (category with small cardinality)
+   - Show why each option is available for current columns
+
+### Medium Priority (Phase 3) — 2-3 hours estimated
+
+Polish and additional features:
+
+1. **Chart readability improvements**
+   - Add tooltips to bar/pie charts (full label, value, percentage)
+   - Improve pie chart legend (show value + percentage)
+   - Locale-aware date formatting for line charts
+   - Compact number formatting (K, M, B)
+
+2. **Top-N and cardinality controls**
+   - Top 5/10/20/50 selector for category charts
+   - Auto-prefer pie only for ≤8 categories
+   - Use cardinality query before suggesting pie
+
+3. **Localization**
+   - Move `ChartType.label` to i18n
+   - Localize boolean labels (True/False based on locale)
 
 ### Medium Priority
 
@@ -872,22 +904,58 @@ These items are valuable but should wait until the core chart UX is stable.
    - Add color-blind-safe palette.
    - Add non-color-only encodings.
 
-## Recommended Next Patch
+## Recommended Next Patch (Session 2026-05-24)
 
-The next best patch is small and focused:
+**Status:** Validation & error infrastructure complete. Ready for UI implementation.
 
-```text
-Wire ChartConfigValidator into AnalyticsSection controls.
+The next patch series is focused, phased, and low-risk because the service and
+BLoC layers already handle all error cases correctly.
+
+### Patch 1: Phase 1B - Error Messages (Session 2026-05-24 or next)
+```
+Add contextual error messages and hide generic "no chart available" state.
 ```
 
-Expected scope:
+Scope:
+- Add i18n strings for each `ChartLoadError` type
+- Update `analytics_section.dart` to check `AnalyticsChart.error`
+- Render specific error message when `error != null`
+- Estimated: 2-3 hours
 
-- pass allowed aggregations into `_AggregationDropdown`;
-- hide or disable Y/value for `COUNT`;
-- require Y/value for `SUM/AVG/MIN/MAX`;
-- show specific per-chart validation messages;
-- add widget or BLoC tests for invalid aggregation UI behavior.
+### Patch 2: Phase 1A - Validator Integration (Recommended next)
+```
+Wire ChartConfigValidator into AnalyticsSection dropdown controls.
+```
 
-This is the highest-leverage next step because the domain/application layers
-already contain most of the correctness logic. The remaining risk is that the
-UI can still guide users into invalid or confusing configurations.
+Scope:
+- Pass `ChartConfigValidator.getValidAggregations()` to `_AggregationDropdown`
+- Filter dropdown options to only allowed aggregations
+- Hide Y/value when `COUNT` is selected
+- Mark Y/value as required for `SUM/AVG/MIN/MAX`
+- Add tooltip explaining disabled options
+- Estimated: 1-2 hours
+
+Why this is highest-leverage:
+- Domain/application layers already validate everything correctly
+- UI currently still allows users to select invalid configurations
+- Prevents misleading chart loads before they reach the service
+- Very low risk: validation layer already tested comprehensively
+
+### Patch 3: Phase 1C/1D - Labels and Titles (Follow-up)
+```
+Improve chart readability with user-facing labels and title sentences.
+```
+
+Scope:
+- Replace "X axis"/"Y axis" with "Group by"/"Value"/"Date" labels
+- Compute and display chart title sentences ("Sum of Sales by Brand")
+- Add i18n keys for chart-type-specific labels
+- Estimated: 2-3 hours
+
+### Why This Order
+
+1. **Correctness first:** Error messages confirm the system works correctly
+2. **Prevention second:** UI validation prevents bad states before loading
+3. **UX polish third:** Labels and titles improve readability
+
+All foundation is in place. No architectural risk. Proceed with confidence.
