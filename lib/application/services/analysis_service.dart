@@ -1,12 +1,15 @@
 import 'package:exel_category/application/dto/chart_data.dart';
+import 'package:exel_category/application/dto/chart_load_result.dart';
 import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/column_statistics.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/exceptions/invalid_chart_config_exception.dart';
 import 'package:exel_category/domain/usecases/analytics/get_category_distribution_usecase.dart';
 import 'package:exel_category/domain/usecases/analytics/get_column_statistics_usecase.dart';
 import 'package:exel_category/domain/usecases/analytics/get_time_series_usecase.dart';
 import 'package:exel_category/domain/usecases/analytics/suggest_charts_usecase.dart';
 import 'package:exel_category/domain/value_objects/chart_type.dart';
+import 'package:exel_category/presentation/state/dataset_state.dart';
 
 /// Orchestrates analytical operations on dataset tables.
 ///
@@ -47,45 +50,55 @@ class AnalysisService {
     );
   }
 
-  Future<ChartData> loadChartData({
+  Future<ChartLoadResult> loadChartData({
     required String tableName,
     required ChartSuggestion suggestion,
     String? whereClause,
     List<Object?>? whereArguments,
   }) async {
-    if (!suggestion.hasChart) return const EmptyChartData();
+    if (!suggestion.hasChart) {
+      return ChartLoadResult.error(ChartLoadError.chartTypeNotSupported);
+    }
 
     final xCol = suggestion.xColumn;
     final yCol = suggestion.yColumn;
     final agg = suggestion.aggregationType;
 
-    if (suggestion.chartType == ChartType.line &&
-        xCol != null &&
-        yCol != null) {
-      return getTimeSeriesUseCase(
-        tableName: tableName,
-        xColumn: xCol,
-        yColumn: yCol,
-        aggregationType: agg,
-        whereClause: whereClause,
-        whereArguments: whereArguments,
-      );
-    }
+    try {
+      if (suggestion.chartType == ChartType.line &&
+          xCol != null &&
+          yCol != null) {
+        final data = await getTimeSeriesUseCase(
+          tableName: tableName,
+          xColumn: xCol,
+          yColumn: yCol,
+          aggregationType: agg,
+          whereClause: whereClause,
+          whereArguments: whereArguments,
+        );
+        return ChartLoadResult.success(data);
+      }
 
-    if ((suggestion.chartType == ChartType.bar ||
-            suggestion.chartType == ChartType.pie) &&
-        xCol != null) {
-      return getCategoryDistributionUseCase(
-        tableName: tableName,
-        xColumn: xCol,
-        yColumn: yCol,
-        aggregationType: agg,
-        chartType: suggestion.chartType,
-        whereClause: whereClause,
-        whereArguments: whereArguments,
-      );
-    }
+      if ((suggestion.chartType == ChartType.bar ||
+              suggestion.chartType == ChartType.pie) &&
+          xCol != null) {
+        final data = await getCategoryDistributionUseCase(
+          tableName: tableName,
+          xColumn: xCol,
+          yColumn: yCol,
+          aggregationType: agg,
+          chartType: suggestion.chartType,
+          whereClause: whereClause,
+          whereArguments: whereArguments,
+        );
+        return ChartLoadResult.success(data);
+      }
 
-    return const EmptyChartData();
+      return ChartLoadResult.error(ChartLoadError.chartTypeNotSupported);
+    } on InvalidChartConfigException {
+      return ChartLoadResult.error(ChartLoadError.invalidAggregation);
+    } catch (e) {
+      return ChartLoadResult.error(ChartLoadError.internalFailure);
+    }
   }
 }

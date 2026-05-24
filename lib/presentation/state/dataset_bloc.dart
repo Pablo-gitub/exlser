@@ -1,4 +1,5 @@
 import 'package:exel_category/application/dto/chart_data.dart';
+import 'package:exel_category/application/dto/chart_load_result.dart';
 import 'package:exel_category/application/services/analysis_service.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
@@ -649,7 +650,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
 
       final whereClause = _applyFilters.buildWhereClause(currentState.filters);
 
-      final chartsData = await Future.wait([
+      final chartsResults = await Future.wait([
         for (final suggestion in suggestions)
           _analysisService.loadChartData(
             tableName: currentState.activeTable.sqlTableName,
@@ -664,7 +665,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
           AnalyticsChart(
             id: ids[i],
             suggestion: suggestions[i],
-            chartData: chartsData[i],
+            chartData: chartsResults[i].data,
+            error: chartsResults[i].error,
           ),
       ];
 
@@ -745,7 +747,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
 
     try {
       final whereClause = _applyFilters.buildWhereClause(currentState.filters);
-      final chartData = await _analysisService.loadChartData(
+      final result = await _analysisService.loadChartData(
         tableName: currentState.activeTable.sqlTableName,
         suggestion: suggestion,
         whereClause: whereClause?.sql,
@@ -760,7 +762,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final loadedCharts = [
         for (final c in latestAnalytics.charts)
           if (c.id == id)
-            c.copyWith(chartData: chartData, isLoading: false)
+            c.copyWith(chartData: result.data, isLoading: false, error: result.error)
           else
             c,
       ];
@@ -835,7 +837,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
 
     try {
       final whereClause = _applyFilters.buildWhereClause(currentState.filters);
-      final chartData = await _analysisService.loadChartData(
+      final result = await _analysisService.loadChartData(
         tableName: currentState.activeTable.sqlTableName,
         suggestion: event.suggestion,
         whereClause: whereClause?.sql,
@@ -850,7 +852,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final loadedCharts = [
         for (final c in latestAnalytics.charts)
           if (c.id == event.chartId)
-            c.copyWith(chartData: chartData, isLoading: false)
+            c.copyWith(chartData: result.data, isLoading: false, error: result.error)
           else
             c,
       ];

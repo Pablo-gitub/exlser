@@ -11,32 +11,46 @@ enum DatasetViewMode {
   cards,
 }
 
+enum ChartLoadError {
+  noNumericColumn,
+  invalidAggregation,
+  noRowsAfterFilter,
+  chartTypeNotSupported,
+  internalFailure,
+}
+
 class AnalyticsChart {
   final String id;
   final ChartSuggestion suggestion;
   final ChartData chartData;
   final bool isLoading;
+  final ChartLoadError? error;
 
   const AnalyticsChart({
     required this.id,
     required this.suggestion,
     this.chartData = const EmptyChartData(),
     this.isLoading = false,
+    this.error,
   });
 
   AnalyticsChart copyWith({
     ChartSuggestion? suggestion,
     ChartData? chartData,
     bool? isLoading,
+    Object? error = _errorNotProvided,
   }) {
     return AnalyticsChart(
       id: id,
       suggestion: suggestion ?? this.suggestion,
       chartData: chartData ?? this.chartData,
       isLoading: isLoading ?? this.isLoading,
+      error: identical(error, _errorNotProvided) ? this.error : error as ChartLoadError?,
     );
   }
 }
+
+const Object _errorNotProvided = Object();
 
 sealed class DatasetAnalyticsState {
   const DatasetAnalyticsState();

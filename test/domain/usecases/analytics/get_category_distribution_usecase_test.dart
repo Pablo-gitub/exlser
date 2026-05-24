@@ -1,4 +1,5 @@
 import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/exceptions/invalid_chart_config_exception.dart';
 import 'package:exel_category/domain/repositories/query_repository.dart';
 import 'package:exel_category/domain/usecases/analytics/get_category_distribution_usecase.dart';
 import 'package:exel_category/domain/value_objects/aggregation_type.dart';
@@ -148,6 +149,54 @@ void main() {
               .captured;
       expect(captured[0], contains('WHERE status = ?'));
       expect(captured[1], ['active']);
+    });
+
+    test('throws InvalidChartConfigException when SUM without yColumn', () async {
+      final column = _col('category', ColumnType.text);
+
+      expect(
+        () => useCase(
+          tableName: 'tbl',
+          xColumn: column,
+          aggregationType: AggregationType.sum,
+        ),
+        throwsA(isA<InvalidChartConfigException>()),
+      );
+    });
+
+    test(
+        'throws InvalidChartConfigException for AVG/MIN/MAX without yColumn',
+        () async {
+      final column = _col('category', ColumnType.text);
+
+      for (final agg in [
+        AggregationType.avg,
+        AggregationType.min,
+        AggregationType.max,
+      ]) {
+        expect(
+          () => useCase(
+            tableName: 'tbl',
+            xColumn: column,
+            aggregationType: agg,
+          ),
+          throwsA(isA<InvalidChartConfigException>()),
+          reason: '$agg should throw without yColumn',
+        );
+      }
+    });
+
+    test('does not throw when COUNT without yColumn', () async {
+      final column = _col('category', ColumnType.text);
+      when(() => repository.executeRawQuery(any(), any()))
+          .thenAnswer((_) async => []);
+
+      await useCase(
+        tableName: 'tbl',
+        xColumn: column,
+        aggregationType: AggregationType.count,
+      );
+      // If we reach here without throwing, test passes
     });
   });
 }

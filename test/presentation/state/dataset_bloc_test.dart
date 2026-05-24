@@ -1,4 +1,5 @@
 import 'package:exel_category/application/dto/chart_data.dart';
+import 'package:exel_category/application/dto/chart_load_result.dart';
 import 'package:exel_category/application/services/analysis_service.dart';
 import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
@@ -581,7 +582,8 @@ void main() {
             whereArguments: any(named: 'whereArguments'),
           )).thenAnswer((_) async {
         chartLoadCount += 1;
-        return chartLoadCount == 1 ? initialChartData : filteredChartData;
+        final data = chartLoadCount == 1 ? initialChartData : filteredChartData;
+        return ChartLoadResult.success(data);
       });
       when(() => applyFilters.call(
             tableName: 'tbl_1',
@@ -826,7 +828,7 @@ void main() {
             suggestion: any(named: 'suggestion'),
             whereClause: any(named: 'whereClause'),
             whereArguments: any(named: 'whereArguments'),
-          )).thenAnswer((_) async => chartData);
+          )).thenAnswer((_) async => ChartLoadResult.success(chartData));
 
       bloc.add(const LoadDatasetEvent(1));
       await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
@@ -909,7 +911,7 @@ void main() {
             suggestion: any(named: 'suggestion'),
             whereClause: any(named: 'whereClause'),
             whereArguments: any(named: 'whereArguments'),
-          )).thenAnswer((_) async => updatedChartData);
+          )).thenAnswer((_) async => ChartLoadResult.success(updatedChartData));
 
       bloc.add(const LoadDatasetEvent(1));
       await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
@@ -971,7 +973,7 @@ void main() {
             suggestion: any(named: 'suggestion'),
             whereClause: any(named: 'whereClause'),
             whereArguments: any(named: 'whereArguments'),
-          )).thenAnswer((_) async => const EmptyChartData());
+          )).thenAnswer((_) async => ChartLoadResult.success(const EmptyChartData()));
 
       bloc.add(const LoadDatasetEvent(1));
       await bloc.stream.firstWhere((s) => s is DatasetLoadedState);

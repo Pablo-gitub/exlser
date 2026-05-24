@@ -1,5 +1,6 @@
 import 'package:exel_category/application/dto/chart_data.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/exceptions/invalid_chart_config_exception.dart';
 import 'package:exel_category/domain/repositories/query_repository.dart';
 import 'package:exel_category/domain/value_objects/aggregation_type.dart';
 import 'package:exel_category/domain/value_objects/chart_type.dart';
@@ -25,15 +26,22 @@ class GetCategoryDistributionUseCase {
     String? whereClause,
     List<Object?>? whereArguments,
   }) async {
+    // Validate: SUM/AVG/MIN/MAX require a Y column
+    if (aggregationType != AggregationType.count && yColumn == null) {
+      throw InvalidChartConfigException(
+        'Cannot use $aggregationType aggregation without a numeric Y column',
+      );
+    }
+
     final x = xColumn.dbName;
     final where = whereClause != null ? 'WHERE $whereClause' : '';
 
     final String valueExpr;
-    if (aggregationType == AggregationType.count || yColumn == null) {
+    if (aggregationType == AggregationType.count) {
       valueExpr = 'COUNT(*) AS value';
     } else {
       valueExpr =
-          '${aggregationType.sqlFunction}(CAST(${yColumn.dbName} AS REAL)) AS value';
+          '${aggregationType.sqlFunction}(CAST(${yColumn!.dbName} AS REAL)) AS value';
     }
 
     final sql = '''
