@@ -114,15 +114,28 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 
 ---
 
-### ⏸️ DEFERRED - Architectural (Prossima sessione)
+### ✅ COMPLETATO - Phase 1E: Per-Sheet Chart Persistence
 
-#### **Phase 1E: Per-Sheet Chart Persistence** (3-4 ore)
-**Priority: MEDIA** - Architettura, non urgente
+**Scoperta chiave:** L'implementazione era GIÀ in place!
 
-- [ ] Spostare charts da top-level a per-table state
-- [ ] Update JSON serialization
-- [ ] Update BLoC handlers
-- [ ] Test multi-sheet scenarios
+- ✅ **Charts salvati per-table:** `StoredTableWorkspaceState.charts` contiene charts indipendenti per sheet
+- ✅ **Charts caricati per-table:** `restoreCharts(tableId)` carica charts solo per il foglio attivo
+- ✅ **Backward compatibility:** Campo globale `charts` come fallback per vecchi dataset
+- ✅ **Migration:** Implementato `migrateGlobalChartsToPerTable()` per pulire vecchi data
+- ✅ **BLoC integration:** Migration automatica al caricamento di analytics
+
+**Come funziona:**
+1. Utente cambia sheet → `_onChangeSheet()` carica dati della nuova sheet
+2. Utente clicca "Load Analytics" → `_loadAnalyticsForState()` carica charts per il foglio CORRENTE
+3. Charts sono caricati con `restoreCharts(tableId: activeTable.id)` → solo per quel foglio
+4. Ogni sheet ha propri charts indipendenti
+5. Vecchi dataset vengono migrati automaticamente
+
+**Refactoring completato (commit a80eed9):**
+- Marked global `charts` field as `@Deprecated`
+- Added migration helper method
+- Added backward-compatibility fallback logic
+- All 365 tests still passing
 
 ---
 
@@ -135,8 +148,8 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 | Phase 1C User-Friendly Labels | ✅ | Completato - 2 metodi |
 | Phase 1D Chart Title Sentences | ✅ | Completato - 1 metodo |
 | Phase 1A UI Validator Integration | ✅ | Completato - Integrato |
-| **Totale Fase 1** | **~5-6** | **✅ COMPLETATO** |
-| Phase 1E Per-Sheet Persistence | 3-4 | ⏸️ Deferred |
+| Phase 1E Per-Sheet Persistence | ✅ | Completato - Refactored |
+| **Totale Fase 1** | **~10-12** | **✅ 100% COMPLETATO** |
 
 ---
 
@@ -219,20 +232,46 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 
 ---
 
-## 🚀 PROSSIMO PASSO
+## 🚀 PROSSIMI PASSI - FASE 1 COMPLETATA ✅
 
-**Phase 1E: Per-Sheet Chart Persistence** (ArchitectureL refactor, deferred)
+**Fase 1: Analytics UI/UX - 100% COMPLETATO**
 
-Attualmente i charts sono salvati a livello top-level del dataset. Per una migliore UX:
-- Charts dovrebbero essere indipendenti per ogni sheet
-- Quando cambi sheet, visualizzi solo i charts di quel sheet
-- Ogni sheet mantiene la propria configurazione di charts
+Tutte le fasi della Fase 1 sono completate e testate:
+- ✅ Validazione config charts
+- ✅ Messaggi d'errore specifici
+- ✅ Etichette user-friendly
+- ✅ Chart title sentences
+- ✅ Validator integrato in UI
+- ✅ Per-sheet chart persistence (architettura)
 
-**Timeline:** 3-4 ore (non urgente - attualmente i charts funzionano, solo l'UX di sheet-switching potrebbe essere migliorata)
+**365/365 test passing - Nessuna regressione**
 
-**Oppure:** Se consideri la Fase 1 completata, puoi procedere con altri miglioramenti analitici come:
-- Scatter charts (per data correlazione tra due colonne numeriche)
-- Statistics cards (media, mediana, deviazione standard)
-- Data quality warnings (valori nulli, outliers)
-- Histogram charts
-- Grouped time series aggregation
+---
+
+### Opzioni per continuare:
+
+**Phase 2: Advanced Analytics Features** (Novità)
+
+1. **Scatter Charts** (1-2 ore)
+   - Visualizzare correlazione tra due colonne numeriche
+   - Mostra pattern e outliers
+
+2. **Statistics Cards** (2 ore)
+   - Media, mediana, moda per colonne numeriche
+   - Min, max, range
+   - Deviazione standard, quartili
+
+3. **Data Quality Warnings** (1-2 ore)
+   - Conteggio valori nulli per colonna
+   - Outliers detection
+   - Skewness e kurtosis
+
+4. **Histogram Charts** (1-2 ore)
+   - Distribuzione di singola colonna numerica
+   - Buckets configurabili
+
+5. **Advanced Filtering in Analytics** (1-2 ore)
+   - Filter persisted per chart
+   - Faceted drill-down
+
+**Quale preferisci implementare per primo?**
