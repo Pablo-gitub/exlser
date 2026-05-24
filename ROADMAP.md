@@ -759,6 +759,177 @@ Publish criteria:
 - [ ] Releases are reproducible.
 - [ ] User and developer documentation are complete enough for public users.
 
+## Path to Google Play First Release
+
+Goal: publish the first Android version on Google Play without losing the
+ability to keep GitHub APK releases for direct installation.
+
+Repository readiness check:
+
+- [x] Android app label is set to `ExlSer`.
+- [x] Android launcher icon assets exist.
+- [x] Project version is currently `2.0.0+1`.
+- [x] The project inherits Flutter's Android SDK defaults; with the current
+  local Flutter SDK this means target SDK 36, which is above the current
+  Google Play minimum requirement for new apps.
+- [x] The Android GitHub Action currently builds split APKs for GitHub releases.
+- [ ] Repository and project naming still use `exel_category` / `excel_category`
+  in places instead of the final `exlser` identity.
+- [ ] Android package name is still `com.example.exel_category`.
+- [ ] Release builds are still signed with the debug signing config.
+- [ ] The GitHub Action does not yet build an Android App Bundle (`.aab`).
+- [ ] Play Console store listing, privacy policy, app content declarations,
+  testing tracks, and release notes are not tracked as completed yet.
+
+### 1. Rename Repository and Project Identity
+
+Goal: align the public project identity with the final product name before
+publishing.
+
+- [ ] Rename the GitHub repository from `exel_category` / `excel_category` to
+  `exlser`.
+- [ ] Update the local checkout folder name to `exlser`.
+- [ ] Update the local Git remote URL after the GitHub repository rename.
+- [ ] Decide whether to rename the Dart package in `pubspec.yaml` from
+  `exel_category` to `exlser`.
+- [ ] If the Dart package name changes, update all `package:exel_category/...`
+  imports.
+- [ ] Update README, changelog, roadmap, GitHub Actions names, badges, release
+  artifact names, and documentation references that still mention the old
+  project name.
+- [ ] Verify that the app still builds and tests after the repository/project
+  rename.
+
+Definition of done:
+
+- [ ] GitHub, local folder, documentation, workflows, and package metadata use
+  `exlser` consistently where the final public product identity is needed.
+- [ ] No user-facing or public release artifact still presents the old project
+  name.
+
+### 2. Lock the Android Identity
+
+Goal: choose the permanent package identity before the first Play upload.
+
+- [ ] Choose the final Play package name/application ID.
+- [ ] Update `android/app/build.gradle.kts` `namespace`.
+- [ ] Update `android/app/build.gradle.kts` `applicationId`.
+- [ ] Update the Kotlin package under `android/app/src/main/kotlin/...`.
+- [ ] Verify that the app still launches after the package rename.
+
+Definition of done:
+
+- [ ] The project no longer contains `com.example.exel_category`.
+- [ ] The selected package name is considered permanent for Google Play.
+
+### 3. Add Release Signing
+
+Goal: produce a Play-uploadable release artifact without committing secrets.
+
+- [ ] Generate a dedicated Android upload key.
+- [ ] Store keystore passwords and paths outside source control.
+- [ ] Add local `key.properties` support for developer machines.
+- [ ] Add CI secrets for the upload keystore if GitHub Actions will produce
+  the Play artifact.
+- [ ] Replace the debug signing config for release builds.
+- [ ] Document how to rotate/reset the upload key if needed.
+
+Definition of done:
+
+- [ ] `flutter build appbundle --release` produces a signed bundle locally or
+  in CI.
+- [ ] No keystore file, password, or signing secret is committed.
+
+### 4. Build the Play Artifact
+
+Goal: keep APK artifacts for direct distribution, but make the Play release
+use an Android App Bundle.
+
+- [ ] Add a dedicated Play release workflow or extend the existing Android
+  workflow to build `flutter build appbundle --release`.
+- [ ] Upload `build/app/outputs/bundle/release/app-release.aab` as a GitHub
+  artifact for manual Play Console upload.
+- [ ] Keep split APK generation only for GitHub/sideload releases, if still
+  useful.
+- [ ] Use a tag convention that separates GitHub APK releases from Play bundle
+  releases, for example `android-v*` and `play-v*`.
+- [ ] Bump `pubspec.yaml` build number for every Play upload
+  (`2.0.0+2`, `2.0.0+3`, etc.).
+
+Definition of done:
+
+- [ ] A signed `.aab` exists for the exact version being uploaded to Play.
+- [ ] APK-only releases cannot be confused with Play production artifacts.
+
+### 5. Complete Play Console Requirements
+
+Goal: make the Play Console app eligible for testing and review.
+
+- [ ] Create the app in Play Console with the final package name.
+- [ ] Enable Play App Signing.
+- [ ] Upload the first signed Android App Bundle.
+- [ ] Prepare store listing: app name, short description, full description,
+  app icon, feature graphic, screenshots, and optional promo video.
+- [ ] Add a public privacy policy URL.
+- [ ] Complete the Data safety form.
+- [ ] Complete App content declarations: target audience, content rating,
+  app access, ads, data deletion, and policy declarations.
+- [ ] Review merged release manifest permissions and make sure the Data safety
+  form matches the app and third-party SDK behavior.
+- [ ] Add release notes for the first Play testing build.
+
+Definition of done:
+
+- [ ] Play Console accepts the bundle and app content forms without blocking
+  errors.
+- [ ] Store listing assets are ready for review.
+
+### 6. Run Play Testing
+
+Goal: verify the app through the Play distribution path before production.
+
+- [ ] Create an internal testing release first.
+- [ ] Install from Play internal testing on at least one real Android device.
+- [ ] Smoke test import, schema confirmation, dataset creation, table view,
+  filtering, analytics, export/share, and app restart persistence.
+- [ ] If the developer account is subject to the current personal-account
+  testing requirement, run a closed test with at least 12 opted-in testers for
+  14 continuous days before requesting production access.
+- [ ] Fix blockers from testing and upload a new build number when needed.
+- [ ] Apply for production access if Play Console requires it.
+
+Definition of done:
+
+- [ ] The release has passed internal testing.
+- [ ] Any required closed testing period has been completed.
+- [ ] Production access is available in Play Console.
+
+### 7. Publish the First Google Play Version
+
+Goal: start a controlled production rollout.
+
+- [ ] Choose the rollout percentage.
+- [ ] Upload final release notes.
+- [ ] Submit the production release for review.
+- [ ] Monitor Play Console vitals, crashes, installs, and review feedback.
+- [ ] Prepare a fast follow-up patch version if review or early users find
+  blocking issues.
+
+### Milestone Reached: v2.0.0 - First Google Play Release
+
+Publish criteria:
+
+- [ ] Public repository, documentation, and release artifacts use the final
+  `exlser` identity.
+- [ ] Android package identity is final and no longer uses the example package.
+- [ ] Release signing is configured with a real upload key.
+- [ ] A signed Android App Bundle has been uploaded to Play Console.
+- [ ] Play App Signing is enabled.
+- [ ] Store listing, privacy policy, Data safety, and app content declarations
+  are complete.
+- [ ] Required Play testing is complete.
+- [ ] The first production rollout has started.
+
 ## Legacy Migration
 
 Legacy code should be removed only after the equivalent new flow is complete:
