@@ -2,13 +2,8 @@ name: "Desktop Build & Release"
 
 on:
   push:
-    branches:
-      - main
-      - develop
-  pull_request:
-    branches:
-      - main
-      - develop
+    tags:
+      - "desktop-v*"
 
 jobs:
   build-linux:
@@ -108,6 +103,6 @@ jobs:
             ./builds/linux-build.zip
             ./builds/windows-build.zip
             ./builds/macos-build.zip
-          tag: desktop-v1.0.${{ github.run_number }}
+          tag: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.TRY_EXCELETOR_TOKEN }}
