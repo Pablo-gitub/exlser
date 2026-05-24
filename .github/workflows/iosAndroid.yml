@@ -3,6 +3,10 @@ on:
     tags:
       - "android-v*"
 name: "Android Build & Release"
+
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Android Build & Release
@@ -36,4 +40,4 @@ jobs:
         with:
           artifacts: "build/app/outputs/apk/release/*"
           tag: ${{ github.ref_name }}
-          token: ${{ secrets.TRY_EXCELETOR_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}

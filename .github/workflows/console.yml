@@ -5,6 +5,9 @@ on:
     tags:
       - "desktop-v*"
 
+permissions:
+  contents: write
+
 jobs:
   build-linux:
     name: Build Linux
@@ -104,5 +107,4 @@ jobs:
             ./builds/windows-build.zip
             ./builds/macos-build.zip
           tag: ${{ github.ref_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.TRY_EXCELETOR_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
