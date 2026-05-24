@@ -21,6 +21,7 @@ class DatasetWorkspaceUiState {
   final List<StoredDatasetFilter> filters;
   final StoredDatasetSort? sort;
   final Map<int, StoredTableWorkspaceState> tableStates;
+  @Deprecated('Charts are now stored per-table in StoredTableWorkspaceState. This field is kept only for backward compatibility with old datasets.')
   final List<StoredAnalyticsChart> charts;
 
   const DatasetWorkspaceUiState({
@@ -147,6 +148,10 @@ class DatasetWorkspaceUiState {
           for (final entry in tableStates.entries)
             entry.key.toString(): entry.value.toJson(),
         },
+      // Note: global 'charts' field is deprecated. Charts are now stored per-table.
+      // This line handles backward compatibility: if there are global charts,
+      // they are migrated to per-table on next load via restoreCharts() fallback.
+      // New charts are always stored in tableStates[...].charts
       if (charts.isNotEmpty)
         'charts': [for (final chart in charts) chart.toJson()],
     };
@@ -197,12 +202,57 @@ class DatasetWorkspaceUiState {
   }
 
   List<StoredAnalyticsChart> restoreCharts({int? tableId}) {
+    // Charts are now stored per-table. This method prioritizes per-table charts
+    // and falls back to global charts only for backward compatibility with old datasets.
     final tableCharts = _tableStateFor(tableId)?.charts;
     if (tableCharts != null && tableCharts.isNotEmpty) {
       return tableCharts;
     }
 
+    // Fallback to deprecated global charts for backward compatibility
+    // (These will only exist in datasets created with old code)
+    // ignore: deprecated_member_use
     return charts;
+  }
+
+  /// Migrates global charts to per-table state for backward compatibility.
+  /// Returns a new DatasetWorkspaceUiState with charts moved from global to per-table.
+  /// If activeTableId is provided, global charts are moved to that table.
+  DatasetWorkspaceUiState migrateGlobalChartsToPerTable({int? activeTableId}) {
+    // ignore: deprecated_member_use
+    if (charts.isEmpty) {
+      return this; // Nothing to migrate
+    }
+
+    final targetTableId = activeTableId ?? this.activeTableId ?? 0;
+
+    // Get or create per-table state for target table
+    final existingTableState = _tableStateFor(targetTableId);
+    final migratedTableState = StoredTableWorkspaceState(
+      charts: charts,
+      hiddenColumnDbNames: existingTableState?.hiddenColumnDbNames ?? const [],
+      filters: existingTableState?.filters ?? const [],
+      sort: existingTableState?.sort,
+    );
+
+    // Update tableStates with migrated charts
+    final newTableStates = {
+      ...tableStates,
+      targetTableId: migratedTableState,
+    };
+
+    // Return new state with empty global charts and migrated per-table charts
+    return DatasetWorkspaceUiState(
+      activeTableId: activeTableId,
+      viewMode: viewMode,
+      rowLimit: rowLimit,
+      pageIndex: pageIndex,
+      hiddenColumnDbNames: hiddenColumnDbNames,
+      filters: filters,
+      sort: sort,
+      tableStates: newTableStates,
+      charts: const [], // Clear deprecated global charts
+    );
   }
 }
 

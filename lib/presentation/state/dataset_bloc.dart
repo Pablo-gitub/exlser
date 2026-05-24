@@ -629,8 +629,14 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         ids = [for (final chart in charts) chart.id];
         suggestions = [for (final chart in charts) chart.suggestion];
       } else {
-        final workspaceState = DatasetWorkspaceUiState.fromJsonString(
+        var workspaceState = DatasetWorkspaceUiState.fromJsonString(
           currentState.dataset.uiStateJson,
+        );
+
+        // Migrate global charts to per-table if needed (backward compatibility)
+        // This handles datasets created with old code that stored charts globally
+        workspaceState = workspaceState.migrateGlobalChartsToPerTable(
+          activeTableId: currentState.activeTable.id,
         );
 
         final storedCharts = workspaceState.restoreCharts(
