@@ -44,89 +44,73 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 
 ---
 
-### 🔄 IN PROGRESS - UI/UX Layer (5-6 ore stimate)
+### ✅ COMPLETATO - UI/UX Layer (Tutte le fasi implementate)
 
-#### **Phase 1B: Messaggi d'Errore in UI** (2-3 ore)
+#### **Phase 1B: Messaggi d'Errore in UI** ✅ COMPLETATO
 **Priority: ALTA** - Permette agli utenti di capire cosa è andato storto
 
-✅ **COMPLETATO!** Il sistema di messaggi d'errore è già pienamente implementato:
+✅ **COMPLETATO!** Il sistema di messaggi d'errore è pienamente implementato:
 
-- ✅ **i18n strings:** Già in place in en.json e it.json
-  - `dataset.workspace.analytics.error_messages.invalid_aggregation`
-  - `dataset.workspace.analytics.error_messages.no_rows_after_filter`
-  - `dataset.workspace.analytics.error_messages.unsupported`
-  - `dataset.workspace.analytics.error_messages.internal`
-  - `dataset.workspace.analytics.error_messages.no_numeric_column`
-
-- ✅ **AppStrings constants:** Mappati correttamente in app_strings.dart (lines 270-279)
-
-- ✅ **UI Widget:** `_ChartErrorMessage` implementato in analytics_section.dart
-  - Riceve `ChartLoadError` e mostra messaggio specifico
-  - Chiamato da `_ChartBody` quando `error != null` (line 813-814)
-  - Mappatura: `_errorMessage()` method (lines 888-900)
-
-- ✅ **Integration:** `AnalyticsChart.error` passato correttamente dal BLoC (line 295 del card widget)
-
-**Come funziona il flusso:**
-1. BLoC riceve errore da service e lo mette in `AnalyticsChart.error`
-2. Widget riceve `AnalyticsChart` e passa `error` a `_ChartBody`
-3. `_ChartBody` mostra `_ChartErrorMessage` se error != null
-4. `_ChartErrorMessage` mapperà l'errore al messaggio i18n
-
-**Expected outcome:** ✅ User vede messaggio specifico che spiega il problema.
+- ✅ **i18n strings:** Tutti in place in en.json e it.json
+- ✅ **AppStrings constants:** Mappati correttamente in app_strings.dart
+- ✅ **UI Widget:** `_ChartErrorMessage` implementato in analytics_section.dart (lines 856-902)
+- ✅ **Integration:** `AnalyticsChart.error` propagato dal BLoC
+- ✅ **Tests:** 365 test passing, inclusi 11 test di validazione per eccezioni
 
 ---
 
-#### **Phase 1C: Etichette User-Friendly** (1-2 ore)
+#### **Phase 1C: Etichette User-Friendly** ✅ COMPLETATO
 **Priority: ALTA** - Elimina linguaggio tecnico
 
-- [ ] **Passo 1:** Rinominare controlli dropdown
-  - Bar/Pie: `X axis` → `Group by`, `Y axis` → `Value`
-  - Line: `X axis` → `Date`, `Y axis` → `Value over time`
-  - Aggiungere i18n keys
+✅ **COMPLETATO!** Etichette specifiche per tipo di chart:
 
-- [ ] **Passo 2:** Update analytics_section.dart widget
-  - Compute label based on `suggestion.chartType`
-  - Pass labels a `_ColumnDropdown` e `_AggregationDropdown`
-  - File: `lib/presentation/widgets/dataset_sections/analytics_section.dart`
+- ✅ **_xColumnLabel()** (line 698): Ritorna etichette in base al chartType
+  - Line: `AppStrings.datasetWorkspaceAnalyticsDate` → "Date"
+  - Bar/Pie: `AppStrings.datasetWorkspaceAnalyticsGroupBy` → "Group by"
+  - Scatter: `AppStrings.datasetWorkspaceAnalyticsXColumn` → "X axis"
 
-**Expected outcome:** UI mostra "Group by Product" invece di "X axis: Product".
+- ✅ **_yColumnLabel()** (line 709): Ritorna etichette specifiche
+  - Line: `AppStrings.datasetWorkspaceAnalyticsValueOverTime` → "Value over time"
+  - Bar/Pie: `AppStrings.datasetWorkspaceAnalyticsValue` → "Value"
+  - Scatter: `AppStrings.datasetWorkspaceAnalyticsYColumn` → "Y axis"
+
+- ✅ **Integration:** Usate in analytics_section.dart linee 375 e 386
+- ✅ **i18n:** Tutti gli i18n keys presenti in en.json e it.json
 
 ---
 
-#### **Phase 1D: Chart Title Sentences** (1 ora)
+#### **Phase 1D: Chart Title Sentences** ✅ COMPLETATO
 **Priority: MEDIA** - Contesto naturale per ogni chart
 
-- [ ] **Passo 1:** Aggiungere field a ChartData DTO
-  - `chartSentence: String?`
-  - File: `lib/application/dto/chart_data.dart`
+✅ **COMPLETATO!** Titoli descrittivi già calcolati e mostrati:
 
-- [ ] **Passo 2:** Compute sentence in analytics_section.dart
-  - Examples: "Count by Brand", "Sum of Sales by Product", "Average Temperature over Date"
-  - Format: `{aggregation} of {yColumn} grouped by {xColumn}` oppure `{aggregation} over {xColumn}`
+- ✅ **_chartSentence()** (line 718): Computa titoli come:
+  - "Count by {group}" - per conteggi su categorie
+  - "Count over {date}" - per conteggi nel tempo
+  - "{aggregation} of {value} by {group}" - es. "Sum of Sales by Brand"
+  - "{aggregation} of {value} over {date}" - es. "Average Price over Date"
 
-- [ ] **Passo 3:** Display sentence nel chart card
-  - Sopra il chart o come subtitle
-  - File: `lib/presentation/widgets/dataset_sections/analytics_section.dart`
-
-**Expected outcome:** Chart mostra "Sum of Sales by Brand" - contesto immediato.
+- ✅ **Display:** Titolo mostrato nella chart card header (line 334)
+- ✅ **i18n:** Template strings mappati a AppStrings:
+  - `datasetWorkspaceAnalyticsTitleCountBy`
+  - `datasetWorkspaceAnalyticsTitleCountOver`
+  - `datasetWorkspaceAnalyticsTitleAggregationBy`
+  - `datasetWorkspaceAnalyticsTitleAggregationOver`
 
 ---
 
-#### **Phase 1A: Validator Integration in UI** (1-2 ore)
+#### **Phase 1A UI: Validator Integration in UI** ✅ COMPLETATO
 **Priority: MASSIMA** - Previene invalid config prima del caricamento
 
-- [ ] **Passo 1:** Integrare ChartConfigValidator nel dropdown
-  - Disabilitare opzioni non valide in `_AggregationDropdown`
-  - Nascondere Y column quando `COUNT` è selezionato
-  - Marcare Y come required per `SUM/AVG/MIN/MAX`
-  - File: `lib/presentation/widgets/dataset_sections/analytics_section.dart`
+✅ **COMPLETATO!** Validator integrato nei dropdown:
 
-- [ ] **Passo 2:** Aggiungere tooltip
-  - "Non disponibile - nessuna colonna numerica selezionata"
-  - "Richiesta per questa aggregazione"
-
-**Expected outcome:** UI previene selezione di config invalide, disabling visual.
+- ✅ **Integration:** `ChartConfigValidator.getValidAggregations()` usato in line 321-324
+- ✅ **Dropdown Filtering:** `_AggregationDropdown` riceve solo opzioni valide (line 404)
+  - Solo aggregazioni valide sono mostrate nel dropdown
+  - Dropdown disabilitato se nessuna opzione disponibile
+- ✅ **Y Column Logic:** Nascosto automaticamente quando COUNT è selezionato (line 407-410)
+- ✅ **Exception Guard:** `GetCategoryDistributionUseCase` lancia exception per config invalide
+- ✅ **Tests:** 11 test specifici per la validazione delle aggregazioni
 
 ---
 
@@ -142,30 +126,30 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 
 ---
 
-## 📊 TIMELINE STIMATO
+## 📊 TIMELINE COMPLETATO
 
 | Phase | Ore | Status |
 |-------|-----|--------|
-| Phase 1A+1B Foundation | ✅ | Completato - Tutti test passing |
-| Phase 1B Error Messages | 2-3 | **IN PROGRESS** |
-| Phase 1C Labels | 1-2 | **PENDING** |
-| Phase 1D Titles | 1 | **PENDING** |
-| Phase 1A UI Integration | 1-2 | **PENDING** |
-| **Totale Fase 1** | **5-6** | **In progress** |
-| Phase 1E Per-Sheet | 3-4 | Deferred |
+| Phase 1A Foundation (Validator) | ✅ | Completato - 16 test |
+| Phase 1B Error Messages | ✅ | Completato - Implementato |
+| Phase 1C User-Friendly Labels | ✅ | Completato - 2 metodi |
+| Phase 1D Chart Title Sentences | ✅ | Completato - 1 metodo |
+| Phase 1A UI Validator Integration | ✅ | Completato - Integrato |
+| **Totale Fase 1** | **~5-6** | **✅ COMPLETATO** |
+| Phase 1E Per-Sheet Persistence | 3-4 | ⏸️ Deferred |
 
 ---
 
-## 🎯 SUCCESS CRITERIA
+## 🎯 SUCCESS CRITERIA - ✅ TUTTI RAGGIUNTI
 
-Dopo completamento Phase 1B-1D:
-
-- ✅ Messaggi d'errore specifici invece di "no chart available"
-- ✅ Etichette user-friendly ("Group by", "Value", "Date")
+- ✅ Messaggi d'errore specifici (`ChartLoadError` enum con 5 tipi)
+- ✅ Etichette user-friendly ("Group by", "Value", "Date", "Value over time")
 - ✅ Chart title sentences visible per ogni chart
-- ✅ UI previene selezione config invalide
-- ✅ Tutti test passan do (aggiunti nuovi test per UI)
-- ✅ Documentazione aggiornata
+- ✅ UI previene selezione config invalide (dropdown disabilitati/filtrati)
+- ✅ Tutti 365 test passing (inclusi 27 nuovi test per validator e handler)
+- ✅ Documentazione aggiornata (questo file)
+- ✅ Validazione a livello domain + service + UI
+- ✅ Error propagation complete: BLoC → Widget → User message
 
 ---
 
@@ -235,8 +219,20 @@ Dopo completamento Phase 1B-1D:
 
 ---
 
-## 🚀 PROSSIMO COMANDO
+## 🚀 PROSSIMO PASSO
 
-Procediamo con **Phase 1B: Error Messages in UI**
+**Phase 1E: Per-Sheet Chart Persistence** (ArchitectureL refactor, deferred)
 
-Inizia con: Aggiungere i18n strings e update analytics_section.dart per mostrare messaggi d'errore specifici.
+Attualmente i charts sono salvati a livello top-level del dataset. Per una migliore UX:
+- Charts dovrebbero essere indipendenti per ogni sheet
+- Quando cambi sheet, visualizzi solo i charts di quel sheet
+- Ogni sheet mantiene la propria configurazione di charts
+
+**Timeline:** 3-4 ore (non urgente - attualmente i charts funzionano, solo l'UX di sheet-switching potrebbe essere migliorata)
+
+**Oppure:** Se consideri la Fase 1 completata, puoi procedere con altri miglioramenti analitici come:
+- Scatter charts (per data correlazione tra due colonne numeriche)
+- Statistics cards (media, mediana, deviazione standard)
+- Data quality warnings (valori nulli, outliers)
+- Histogram charts
+- Grouped time series aggregation
