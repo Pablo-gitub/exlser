@@ -679,3 +679,215 @@ Start with a small, high-impact patch:
   - sum without Y column rejected or auto-corrected;
   - line chart without Y column rejected by UI/config validator;
   - only count available when there are no numeric columns.
+
+## Current Implementation Update
+
+Recent commits introduced the first correctness layer for chart configuration
+validation and chart loading errors.
+
+### Completed Or Partially Completed
+
+- [x] `ChartConfigValidator` exists and validates:
+  - unsupported chart types;
+  - invalid X columns;
+  - invalid Y columns;
+  - metric aggregations without a numeric Y column.
+- [x] `InvalidChartConfigException` exists.
+- [x] `GetCategoryDistributionUseCase` no longer silently converts
+      `SUM/AVG/MIN/MAX` without a Y column into `COUNT(*)`.
+- [x] `ChartLoadResult` exists and carries either chart data or a structured
+      `ChartLoadError`.
+- [x] `AnalysisService.loadChartData` returns structured load results instead
+      of raw `ChartData`.
+- [x] `AnalyticsChart` now stores a per-chart `ChartLoadError?`.
+- [x] BLoC chart loading keeps per-chart error information.
+- [x] Tests cover the validator and invalid category aggregation behavior.
+
+### Still Open After The Recent Changes
+
+- [ ] The UI still shows all aggregation options in `_AggregationDropdown`.
+      `ChartConfigValidator.getValidAggregations()` exists but is not yet used
+      by the chart card controls.
+- [ ] The Y/value dropdown is still nullable for all chart types, including
+      line charts where Y is required.
+- [ ] `COUNT` still shows the Y/value dropdown when numeric columns exist,
+      even though Y is not needed for count.
+- [ ] Per-chart errors are stored in state, but the chart card still renders
+      mostly through the generic empty/no-chart path instead of a specific
+      actionable error message.
+- [ ] The chart controls still use technical labels (`X axis`, `Y axis`) rather
+      than chart-specific user language (`Group by`, `Value`, `Date`,
+      `Value over time`).
+- [ ] Chart titles/sentences are still missing, so users do not get a clear
+      natural-language explanation of what the chart represents.
+- [ ] Chart configuration still reloads immediately on every dropdown change.
+      This can briefly create intermediate invalid states.
+- [ ] Chart persistence is still top-level in `uiStateJson`, while filters,
+      sorting, and hidden columns are per sheet.
+
+## Updated Analytics Roadmap
+
+The roadmap below supersedes the original "Suggested Implementation Order" for
+the current codebase. It separates high-priority UX/correctness work from lower
+priority analytics depth and polish.
+
+### Higher Priority
+
+These items directly affect correctness, user trust, or basic chart usability.
+
+1. **Wire `ChartConfigValidator` into the chart card UI**
+   - Use `getValidAggregations()` to filter the aggregation dropdown.
+   - If Y/value column is missing, expose only `COUNT`.
+   - If the user clears Y/value, automatically switch aggregation to `COUNT`.
+   - Keep invalid metric aggregations from being sent to the BLoC.
+
+2. **Make required chart inputs explicit**
+   - Line chart: require date X and numeric Y.
+   - Bar/pie with `COUNT`: Y/value is not required.
+   - Bar/pie with `SUM/AVG/MIN/MAX`: numeric Y is required.
+   - Disable or hide controls that are irrelevant for the selected aggregation.
+
+3. **Render per-chart error messages**
+   - Map `ChartLoadError.invalidAggregation` to a message such as:
+     "Select a numeric value column to use this aggregation."
+   - Map `chartTypeNotSupported`, `noRowsAfterFilter`, and `internalFailure`
+     to distinct user-facing messages.
+   - Add a small per-chart retry action.
+
+4. **Rename chart controls to user-facing labels**
+   - Bar/pie:
+     - `Group by`
+     - `Value`
+   - Line:
+     - `Date`
+     - `Value over time`
+   - Keep technical names out of the primary UI where possible.
+
+5. **Add chart title sentences**
+   - Examples:
+     - `Count by Brand`
+     - `Sum of Total grouped by Product`
+     - `Average Temperature over Date`
+   - Show this near the top of each chart card and in expanded mode.
+
+6. **Show active filter context on charts**
+   - Add a compact indicator such as:
+     - `Filtered result`
+     - `3 active filters`
+   - This makes it clear that charts reflect the current dataset filters.
+
+7. **Keep previous chart visible while reloading**
+   - Avoid replacing chart data with `EmptyChartData` immediately.
+   - Show a loading overlay on top of the previous chart until new data arrives.
+
+8. **Improve Add Chart dialog**
+   - Replace plain chart type labels with descriptive options:
+     - `Trend over time`
+     - `Category comparison`
+     - `Share by category`
+   - Show why each chart is available based on the current columns.
+
+9. **Move chart persistence per sheet**
+   - Store chart configs in table-specific state, similar to filters and hidden
+     columns.
+   - Avoid restoring charts from one sheet onto another sheet with a different
+     schema.
+
+10. **Add localized chart labels**
+    - Move `ChartType.label` display text to i18n.
+    - Localize boolean labels currently formatted as `True` / `False`.
+
+### Medium Priority
+
+These items improve readability and workflow quality but are less urgent than
+preventing misleading charts.
+
+1. **Add top-N controls for category charts**
+   - Top 5 / 10 / 20 / 50.
+   - Sort by value or label.
+   - Optionally group remaining values as `Other`.
+
+2. **Use cardinality before suggesting pie charts**
+   - Pie only for small category counts.
+   - Bar chart for larger category sets.
+   - Show top-N for high-cardinality data.
+
+3. **Improve bar chart tooltips**
+   - Show full label.
+   - Show formatted value.
+   - Show aggregation type.
+   - Optionally show percentage of total.
+
+4. **Improve pie chart legend**
+   - Show label + value + percentage.
+   - Hide slice text for very small percentages.
+   - Prefer tooltips for dense charts.
+
+5. **Improve date and number formatting**
+   - Use locale-aware compact number formatting.
+   - Format line chart dates based on range and locale.
+   - Show full date in tooltip.
+
+6. **Make expanded chart mode more useful**
+   - Include chart title.
+   - Include current controls.
+   - Include active filters.
+   - Optionally include the chart data table.
+
+7. **Add undo for chart removal**
+   - Show a snackbar with `Undo` after deleting a chart card.
+
+8. **Expose basic column statistics**
+   - Use existing `GetColumnStatisticsUseCase`.
+   - Add count/null/distinct/min/max/avg/sum cards.
+
+### Lower Priority
+
+These items are valuable but should wait until the core chart UX is stable.
+
+1. **Numeric histogram**
+   - Useful for numeric-only datasets.
+   - Requires binning controls and careful labeling.
+
+2. **Scatter plot**
+   - Use when at least two numeric columns exist.
+   - Add optional group/color column later.
+
+3. **Grouped time series**
+   - Date + numeric + optional category series.
+   - Requires series limiting/top-N to avoid unreadable charts.
+
+4. **Regression and forecast**
+   - Linear trend line.
+   - Moving average.
+   - Simple forecast horizon.
+   - Must include limitation text so users do not over-trust predictions.
+
+5. **Chart export**
+   - Export chart image.
+   - Export chart data as CSV/JSON.
+
+6. **Accessibility deepening**
+   - Add semantic summaries.
+   - Add color-blind-safe palette.
+   - Add non-color-only encodings.
+
+## Recommended Next Patch
+
+The next best patch is small and focused:
+
+```text
+Wire ChartConfigValidator into AnalyticsSection controls.
+```
+
+Expected scope:
+
+- pass allowed aggregations into `_AggregationDropdown`;
+- hide or disable Y/value for `COUNT`;
+- require Y/value for `SUM/AVG/MIN/MAX`;
+- show specific per-chart validation messages;
+- add widget or BLoC tests for invalid aggregation UI behavior.
+
+This is the highest-leverage next step because the domain/application layers
+already contain most of the correctness logic. The remaining risk is that the
+UI can still guide users into invalid or confusing configurations.
