@@ -959,3 +959,38 @@ Scope:
 3. **UX polish third:** Labels and titles improve readability
 
 All foundation is in place. No architectural risk. Proceed with confidence.
+
+## Implementation Update - UI Pass (Session 2026-05-24)
+
+The first analytics UX pass has now moved from validation-only infrastructure
+into the visible chart controls.
+
+### Completed In This Pass
+
+- [x] Render specific per-chart error messages instead of only the generic
+  empty-chart state.
+- [x] Wire `ChartConfigValidator.getValidAggregations()` into the aggregation
+  dropdown.
+- [x] Prevent line charts from being configured without a numeric value column.
+- [x] Use chart-specific control labels:
+  - bar/pie: `Group by` and `Value`;
+  - line: `Date` and `Value over time`.
+- [x] Add chart sentence titles such as:
+  - `Count by Brand`;
+  - `Sum of Quantity by Product`;
+  - `Average of Temperature over Date`.
+- [x] Add i18n keys for the new labels and title sentences.
+- [x] Align validator tests with the rule that line charts require a Y/value
+  column.
+
+### Next Highest-Priority Work
+
+- [ ] Decide the final interaction for `COUNT`:
+  - either keep the value dropdown available so users can switch to a numeric
+    aggregation quickly;
+  - or hide it and add a separate `Use a value column` action.
+- [ ] Add active-filter context to chart cards.
+- [ ] Keep the previous chart visible while a new chart configuration is
+  loading.
+- [ ] Move chart persistence to per-sheet state so charts do not leak across
+  incompatible sheets.

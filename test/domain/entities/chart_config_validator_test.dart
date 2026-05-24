@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('ChartConfigValidator', () {
     group('isAggregationValidForChartType', () {
-      test('COUNT is valid for any chart type without Y column', () {
+      test('COUNT is valid for category charts without Y column', () {
         expect(
           ChartConfigValidator.isAggregationValidForChartType(
             ChartType.bar,
@@ -26,13 +26,16 @@ void main() {
           ),
           true,
         );
+      });
+
+      test('COUNT is invalid for line chart without Y column', () {
         expect(
           ChartConfigValidator.isAggregationValidForChartType(
             ChartType.line,
             AggregationType.count,
             false,
           ),
-          true,
+          false,
         );
       });
 
@@ -112,6 +115,14 @@ void main() {
           false,
         );
         expect(valid, [AggregationType.count]);
+      });
+
+      test('returns empty list for line charts without Y column', () {
+        final valid = ChartConfigValidator.getValidAggregations(
+          ChartType.line,
+          false,
+        );
+        expect(valid, isEmpty);
       });
 
       test('returns all aggregations when Y column exists', () {
@@ -217,6 +228,18 @@ void main() {
           chartType: ChartType.bar,
           xColumn: textColumn,
           aggregationType: AggregationType.sum,
+        );
+        expect(
+          ChartConfigValidator.validateChartSuggestion(suggestion),
+          ChartValidationResult.missingYColumn,
+        );
+      });
+
+      test('invalid line chart without Y column', () {
+        final suggestion = ChartSuggestion(
+          chartType: ChartType.line,
+          xColumn: dateColumn,
+          aggregationType: AggregationType.count,
         );
         expect(
           ChartConfigValidator.validateChartSuggestion(suggestion),

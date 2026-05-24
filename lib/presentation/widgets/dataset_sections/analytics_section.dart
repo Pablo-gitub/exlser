@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:exel_category/application/dto/chart_data.dart';
 import 'package:exel_category/core/constants/app_strings.dart';
+import 'package:exel_category/domain/entities/chart_config_validator.dart';
 import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/value_objects/aggregation_type.dart';
@@ -50,6 +51,9 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
         .where(
           (t) =>
               columns.any((c) => t.validXColumnTypes.contains(c.declaredType)),
+        )
+        .where(
+          (t) => !t.requiresYColumn || columns.any((c) => c.isNumeric),
         )
         .toList();
 
@@ -244,6 +248,7 @@ class _ChartCard extends StatelessWidget {
                 _ChartBody(
                   suggestion: suggestion,
                   chartData: chart.chartData,
+                  error: chart.error,
                   chartHeight: 420,
                 ),
               ],
@@ -262,7 +267,27 @@ class _ChartCard extends StatelessWidget {
     final validXColumns = allColumns
         .where((c) => chartType.validXColumnTypes.contains(c.declaredType))
         .toList();
-    final validYColumns = allColumns.where((c) => c.isNumeric).toList();
+    final validYColumns = allColumns
+        .where((c) => chartType.validYColumnTypes.contains(c.declaredType))
+        .toList();
+    final selectedYColumn = suggestion.yColumn != null &&
+            validYColumns.any((c) => c.dbName == suggestion.yColumn!.dbName)
+        ? suggestion.yColumn
+        : null;
+    final aggregationOptions = ChartConfigValidator.getValidAggregations(
+      chartType,
+      selectedYColumn != null,
+    );
+    final selectedAggregation =
+        aggregationOptions.contains(suggestion.aggregationType)
+            ? suggestion.aggregationType
+            : AggregationType.count;
+    final displaySuggestion = suggestion.copyWith(
+      yColumn: selectedYColumn,
+      aggregationType: selectedAggregation,
+    );
+    final chartTitle =
+        aggregationOptions.isEmpty ? '' : _chartSentence(displaySuggestion);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -303,7 +328,7 @@ class _ChartCard extends StatelessWidget {
               children: [
                 if (validXColumns.isNotEmpty)
                   _ColumnDropdown(
-                    label: AppStrings.datasetWorkspaceAnalyticsXColumn.tr(),
+                    label: _xColumnLabel(chartType).tr(),
                     columns: validXColumns,
                     selected: suggestion.xColumn,
                     onChanged: (col) {
@@ -314,24 +339,49 @@ class _ChartCard extends StatelessWidget {
                   ),
                 if (validYColumns.isNotEmpty)
                   _ColumnDropdown(
-                    label: AppStrings.datasetWorkspaceAnalyticsYColumn.tr(),
+                    label: _yColumnLabel(chartType).tr(),
                     columns: validYColumns,
-                    selected: suggestion.yColumn,
-                    nullable: true,
-                    onChanged: (col) =>
-                        onConfigChanged(suggestion.copyWith(yColumn: col)),
+                    selected: selectedYColumn,
+                    nullable: !chartType.requiresYColumn,
+                    onChanged: (col) {
+                      final nextAggregation = col == null
+                          ? AggregationType.count
+                          : selectedAggregation;
+                      onConfigChanged(
+                        suggestion.copyWith(
+                          yColumn: col,
+                          aggregationType: nextAggregation,
+                        ),
+                      );
+                    },
                   ),
                 _AggregationDropdown(
-                  selected: suggestion.aggregationType,
+                  selected: selectedAggregation,
+                  options: aggregationOptions,
                   onChanged: (agg) {
                     if (agg != null) {
+                      final nextYColumn = agg == AggregationType.count &&
+                              !chartType.requiresYColumn
+                          ? null
+                          : selectedYColumn;
                       onConfigChanged(
-                          suggestion.copyWith(aggregationType: agg));
+                        suggestion.copyWith(
+                          aggregationType: agg,
+                          yColumn: nextYColumn,
+                        ),
+                      );
                     }
                   },
                 ),
               ],
             ),
+            if (chartTitle.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                chartTitle,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ],
             const SizedBox(height: 16),
             if (chart.isLoading)
               const Center(
@@ -341,7 +391,11 @@ class _ChartCard extends StatelessWidget {
                 ),
               )
             else
-              _ChartBody(suggestion: suggestion, chartData: chart.chartData),
+              _ChartBody(
+                suggestion: suggestion,
+                chartData: chart.chartData,
+                error: chart.error,
+              ),
           ],
         ),
       ),
@@ -366,10 +420,10 @@ class _ColumnDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveSelected = selected != null &&
-            columns.any((c) => c.dbName == selected!.dbName)
-        ? selected
-        : null;
+    final effectiveSelected =
+        selected != null && columns.any((c) => c.dbName == selected!.dbName)
+            ? selected
+            : null;
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 220),
@@ -404,15 +458,21 @@ class _ColumnDropdown extends StatelessWidget {
 
 class _AggregationDropdown extends StatelessWidget {
   final AggregationType selected;
+  final List<AggregationType> options;
   final ValueChanged<AggregationType?> onChanged;
 
   const _AggregationDropdown({
     required this.selected,
+    required this.options,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveSelected = options.contains(selected)
+        ? selected
+        : (options.isEmpty ? null : options.first);
+
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 230),
       child: Row(
@@ -420,37 +480,21 @@ class _AggregationDropdown extends StatelessWidget {
         children: [
           Expanded(
             child: DropdownButtonFormField<AggregationType>(
-              key: ValueKey(selected),
+              key: ValueKey(effectiveSelected),
               decoration: InputDecoration(
                 labelText: AppStrings.datasetWorkspaceAnalyticsAggregation.tr(),
                 border: const OutlineInputBorder(),
                 isDense: true,
               ),
-              initialValue: selected,
+              initialValue: effectiveSelected,
               items: [
-                DropdownMenuItem(
-                  value: AggregationType.count,
-                  child:
-                      Text(AppStrings.datasetWorkspaceAnalyticsAggCount.tr()),
-                ),
-                DropdownMenuItem(
-                  value: AggregationType.sum,
-                  child: Text(AppStrings.datasetWorkspaceAnalyticsAggSum.tr()),
-                ),
-                DropdownMenuItem(
-                  value: AggregationType.avg,
-                  child: Text(AppStrings.datasetWorkspaceAnalyticsAggAvg.tr()),
-                ),
-                DropdownMenuItem(
-                  value: AggregationType.min,
-                  child: Text(AppStrings.datasetWorkspaceAnalyticsAggMin.tr()),
-                ),
-                DropdownMenuItem(
-                  value: AggregationType.max,
-                  child: Text(AppStrings.datasetWorkspaceAnalyticsAggMax.tr()),
-                ),
+                for (final option in options)
+                  DropdownMenuItem(
+                    value: option,
+                    child: Text(_aggregationLabel(option).tr()),
+                  ),
               ],
-              onChanged: onChanged,
+              onChanged: options.isEmpty ? null : onChanged,
             ),
           ),
           const SizedBox(width: 4),
@@ -521,6 +565,77 @@ class _AggregationDropdown extends StatelessWidget {
   }
 }
 
+String _xColumnLabel(ChartType chartType) {
+  return switch (chartType) {
+    ChartType.line => AppStrings.datasetWorkspaceAnalyticsDate,
+    ChartType.bar ||
+    ChartType.pie =>
+      AppStrings.datasetWorkspaceAnalyticsGroupBy,
+    ChartType.scatter => AppStrings.datasetWorkspaceAnalyticsXColumn,
+    ChartType.none => AppStrings.datasetWorkspaceAnalyticsXColumn,
+  };
+}
+
+String _yColumnLabel(ChartType chartType) {
+  return switch (chartType) {
+    ChartType.line => AppStrings.datasetWorkspaceAnalyticsValueOverTime,
+    ChartType.bar || ChartType.pie => AppStrings.datasetWorkspaceAnalyticsValue,
+    ChartType.scatter => AppStrings.datasetWorkspaceAnalyticsYColumn,
+    ChartType.none => AppStrings.datasetWorkspaceAnalyticsYColumn,
+  };
+}
+
+String _chartSentence(ChartSuggestion suggestion) {
+  final xColumn = suggestion.xColumn;
+  if (xColumn == null || !suggestion.hasChart) return '';
+
+  final aggregation = _aggregationLabel(suggestion.aggregationType).tr();
+
+  if (suggestion.chartType == ChartType.line) {
+    if (suggestion.aggregationType == AggregationType.count) {
+      return AppStrings.datasetWorkspaceAnalyticsTitleCountOver.tr(
+        namedArgs: {'date': xColumn.originalName},
+      );
+    }
+
+    final yColumn = suggestion.yColumn;
+    if (yColumn == null) return '';
+
+    return AppStrings.datasetWorkspaceAnalyticsTitleAggregationOver.tr(
+      namedArgs: {
+        'aggregation': aggregation,
+        'value': yColumn.originalName,
+        'date': xColumn.originalName,
+      },
+    );
+  }
+
+  if (suggestion.aggregationType == AggregationType.count ||
+      suggestion.yColumn == null) {
+    return AppStrings.datasetWorkspaceAnalyticsTitleCountBy.tr(
+      namedArgs: {'group': xColumn.originalName},
+    );
+  }
+
+  return AppStrings.datasetWorkspaceAnalyticsTitleAggregationBy.tr(
+    namedArgs: {
+      'aggregation': aggregation,
+      'value': suggestion.yColumn!.originalName,
+      'group': xColumn.originalName,
+    },
+  );
+}
+
+String _aggregationLabel(AggregationType aggregationType) {
+  return switch (aggregationType) {
+    AggregationType.count => AppStrings.datasetWorkspaceAnalyticsAggCount,
+    AggregationType.sum => AppStrings.datasetWorkspaceAnalyticsAggSum,
+    AggregationType.avg => AppStrings.datasetWorkspaceAnalyticsAggAvg,
+    AggregationType.min => AppStrings.datasetWorkspaceAnalyticsAggMin,
+    AggregationType.max => AppStrings.datasetWorkspaceAnalyticsAggMax,
+  };
+}
+
 class _AggregationInfoText extends StatelessWidget {
   final String label;
   final String description;
@@ -553,16 +668,22 @@ class _AggregationInfoText extends StatelessWidget {
 class _ChartBody extends StatelessWidget {
   final ChartSuggestion suggestion;
   final ChartData chartData;
+  final ChartLoadError? error;
   final double chartHeight;
 
   const _ChartBody({
     required this.suggestion,
     required this.chartData,
+    this.error,
     this.chartHeight = 0,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (error != null) {
+      return _ChartErrorMessage(error: error!);
+    }
+
     if (!suggestion.hasChart || chartData is EmptyChartData) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -599,6 +720,54 @@ class _ChartBody extends StatelessWidget {
     }
 
     return const SizedBox.shrink();
+  }
+}
+
+class _ChartErrorMessage extends StatelessWidget {
+  final ChartLoadError error;
+
+  const _ChartErrorMessage({required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 18,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                _errorMessage(error).tr(),
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _errorMessage(ChartLoadError error) {
+    return switch (error) {
+      ChartLoadError.invalidAggregation =>
+        AppStrings.datasetWorkspaceAnalyticsErrorInvalidAggregation,
+      ChartLoadError.noRowsAfterFilter =>
+        AppStrings.datasetWorkspaceAnalyticsErrorNoRows,
+      ChartLoadError.chartTypeNotSupported =>
+        AppStrings.datasetWorkspaceAnalyticsErrorUnsupported,
+      ChartLoadError.noNumericColumn =>
+        AppStrings.datasetWorkspaceAnalyticsErrorNoNumeric,
+      ChartLoadError.internalFailure =>
+        AppStrings.datasetWorkspaceAnalyticsErrorInternal,
+    };
   }
 }
 

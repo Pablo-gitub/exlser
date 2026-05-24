@@ -156,7 +156,26 @@
                 "title": "Analytics",
                 "no_chart": "No chart available for the current data types.",
                 "error": "Could not load analytics.",
+                "error_messages": {
+                    "invalid_aggregation": "Select a numeric value column to use this aggregation.",
+                    "no_rows_after_filter": "No rows match the current filters.",
+                    "unsupported": "This chart is not available for the selected columns.",
+                    "internal": "This chart could not be loaded. Try changing columns or filters.",
+                    "no_numeric_column": "Select a numeric column to draw this chart."
+                },
                 "aggregation": "Aggregation",
+                "labels": {
+                    "group_by": "Group by",
+                    "value": "Value",
+                    "date": "Date",
+                    "value_over_time": "Value over time"
+                },
+                "title_sentence": {
+                    "count_by": "Count by {group}",
+                    "count_over": "Count over {date}",
+                    "aggregation_by": "{aggregation} of {value} by {group}",
+                    "aggregation_over": "{aggregation} of {value} over {date}"
+                },
                 "x_column": "X axis",
                 "y_column": "Y axis",
                 "add_chart": "Add chart",

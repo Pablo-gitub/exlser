@@ -26,6 +26,10 @@ class ChartConfigValidator {
       return false;
     }
 
+    if (chartType.requiresYColumn && !hasYColumn) {
+      return false;
+    }
+
     final needsYColumn = aggregationType != AggregationType.count;
 
     if (needsYColumn && !hasYColumn) {
@@ -41,6 +45,10 @@ class ChartConfigValidator {
     bool hasYColumn,
   ) {
     if (!chartType.isImplemented) {
+      return [];
+    }
+
+    if (chartType.requiresYColumn && !hasYColumn) {
       return [];
     }
 
@@ -63,6 +71,10 @@ class ChartConfigValidator {
     final yColumn = suggestion.yColumn;
     final chartType = suggestion.chartType;
     final aggregationType = suggestion.aggregationType;
+
+    if (chartType.requiresYColumn && yColumn == null) {
+      return ChartValidationResult.missingYColumn;
+    }
 
     // Check X column validity
     if (xColumn != null) {

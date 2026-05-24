@@ -1,4 +1,3 @@
-import 'package:exel_category/application/dto/chart_data.dart';
 import 'package:exel_category/application/dto/chart_load_result.dart';
 import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/column_statistics.dart';

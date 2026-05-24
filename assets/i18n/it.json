@@ -156,7 +156,26 @@
                 "title": "Analisi",
                 "no_chart": "Nessun grafico disponibile per i tipi di dati presenti.",
                 "error": "Impossibile caricare l'analisi.",
+                "error_messages": {
+                    "invalid_aggregation": "Seleziona una colonna numerica per usare questa aggregazione.",
+                    "no_rows_after_filter": "Nessuna riga corrisponde ai filtri attuali.",
+                    "unsupported": "Questo grafico non è disponibile per le colonne selezionate.",
+                    "internal": "Impossibile caricare questo grafico. Prova a cambiare colonne o filtri.",
+                    "no_numeric_column": "Seleziona una colonna numerica per disegnare questo grafico."
+                },
                 "aggregation": "Aggregazione",
+                "labels": {
+                    "group_by": "Raggruppa per",
+                    "value": "Valore",
+                    "date": "Data",
+                    "value_over_time": "Valore nel tempo"
+                },
+                "title_sentence": {
+                    "count_by": "Conteggio per {group}",
+                    "count_over": "Conteggio nel tempo per {date}",
+                    "aggregation_by": "{aggregation} di {value} per {group}",
+                    "aggregation_over": "{aggregation} di {value} nel tempo per {date}"
+                },
                 "x_column": "Asse X",
                 "y_column": "Asse Y",
                 "add_chart": "Aggiungi grafico",

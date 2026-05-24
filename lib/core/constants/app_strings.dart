@@ -267,8 +267,34 @@ class AppStrings {
       'dataset.workspace.analytics.no_chart';
   static const String datasetWorkspaceAnalyticsError =
       'dataset.workspace.analytics.error';
+  static const String datasetWorkspaceAnalyticsErrorInvalidAggregation =
+      'dataset.workspace.analytics.error_messages.invalid_aggregation';
+  static const String datasetWorkspaceAnalyticsErrorNoRows =
+      'dataset.workspace.analytics.error_messages.no_rows_after_filter';
+  static const String datasetWorkspaceAnalyticsErrorUnsupported =
+      'dataset.workspace.analytics.error_messages.unsupported';
+  static const String datasetWorkspaceAnalyticsErrorInternal =
+      'dataset.workspace.analytics.error_messages.internal';
+  static const String datasetWorkspaceAnalyticsErrorNoNumeric =
+      'dataset.workspace.analytics.error_messages.no_numeric_column';
   static const String datasetWorkspaceAnalyticsAggregation =
       'dataset.workspace.analytics.aggregation';
+  static const String datasetWorkspaceAnalyticsGroupBy =
+      'dataset.workspace.analytics.labels.group_by';
+  static const String datasetWorkspaceAnalyticsValue =
+      'dataset.workspace.analytics.labels.value';
+  static const String datasetWorkspaceAnalyticsDate =
+      'dataset.workspace.analytics.labels.date';
+  static const String datasetWorkspaceAnalyticsValueOverTime =
+      'dataset.workspace.analytics.labels.value_over_time';
+  static const String datasetWorkspaceAnalyticsTitleCountBy =
+      'dataset.workspace.analytics.title_sentence.count_by';
+  static const String datasetWorkspaceAnalyticsTitleCountOver =
+      'dataset.workspace.analytics.title_sentence.count_over';
+  static const String datasetWorkspaceAnalyticsTitleAggregationBy =
+      'dataset.workspace.analytics.title_sentence.aggregation_by';
+  static const String datasetWorkspaceAnalyticsTitleAggregationOver =
+      'dataset.workspace.analytics.title_sentence.aggregation_over';
   static const String datasetWorkspaceAnalyticsAggregationInfoTooltip =
       'dataset.workspace.analytics.aggregation_info.tooltip';
   static const String datasetWorkspaceAnalyticsAggregationInfoTitle =

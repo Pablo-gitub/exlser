@@ -1,5 +1,4 @@
 import 'package:exel_category/application/dto/chart_data.dart';
-import 'package:exel_category/application/dto/chart_load_result.dart';
 import 'package:exel_category/application/services/analysis_service.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
@@ -762,7 +761,11 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final loadedCharts = [
         for (final c in latestAnalytics.charts)
           if (c.id == id)
-            c.copyWith(chartData: result.data, isLoading: false, error: result.error)
+            c.copyWith(
+              chartData: result.data,
+              isLoading: false,
+              error: result.error,
+            )
           else
             c,
       ];
@@ -852,7 +855,11 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final loadedCharts = [
         for (final c in latestAnalytics.charts)
           if (c.id == event.chartId)
-            c.copyWith(chartData: result.data, isLoading: false, error: result.error)
+            c.copyWith(
+              chartData: result.data,
+              isLoading: false,
+              error: result.error,
+            )
           else
             c,
       ];
