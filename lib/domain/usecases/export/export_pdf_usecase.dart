@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:exel_category/core/serializers/dataset_json_serializer.dart';
+import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/exported_file.dart';
 import 'package:exel_category/domain/usecases/export/export_dataset_data.dart';
 import 'package:exel_category/domain/value_objects/export_format.dart';
@@ -9,6 +10,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 class ExportPdfUseCase {
+  static const int _maxPagesPerSheet = 10000;
+  static const int _maxColumnsPerTable = 8;
+  static const int _maxPdfCellCharacters = 500;
+
   const ExportPdfUseCase();
 
   Future<ExportedFile> call(
@@ -21,11 +26,12 @@ class ExportPdfUseCase {
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4.landscape,
+          maxPages: _maxPagesPerSheet,
           build: (context) => [
             ..._header(
                 context, data.dataset.name, table.table.sheetNameOriginal),
             if (layout == PdfExportLayout.table)
-              _tableView(context, table)
+              ..._tableViews(context, table)
             else
               ..._cardViews(table),
           ],
@@ -61,16 +67,42 @@ class ExportPdfUseCase {
     ];
   }
 
-  pw.Widget _tableView(pw.Context context, ExportTableData table) {
+  List<pw.Widget> _tableViews(pw.Context context, ExportTableData table) {
+    final chunks = _columnChunks(table.columns);
+
+    return [
+      for (var i = 0; i < chunks.length; i++) ...[
+        if (chunks.length > 1)
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: 8),
+            child: pw.Text(
+              'Columns ${i + 1} of ${chunks.length}',
+              style: pw.TextStyle(
+                fontSize: 9,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ),
+        _tableView(context, table, chunks[i]),
+        if (i < chunks.length - 1) pw.SizedBox(height: 16),
+      ],
+    ];
+  }
+
+  pw.Widget _tableView(
+    pw.Context context,
+    ExportTableData table,
+    List<DatasetColumn> columns,
+  ) {
     return pw.TableHelper.fromTextArray(
       context: context,
-      headers: table.columns
-          .map((column) => column.originalName)
+      headers: columns
+          .map((column) => _formatPdfText(column.originalName))
           .toList(growable: false),
       data: [
         for (final row in table.rows)
-          table.columns
-              .map((column) => _formatValue(row[column.dbName]))
+          columns
+              .map((column) => _formatPdfText(row[column.dbName]))
               .toList(growable: false),
       ],
       cellStyle: const pw.TextStyle(fontSize: 8),
@@ -116,7 +148,7 @@ class ExportPdfUseCase {
                             ),
                             pw.SizedBox(height: 2),
                             pw.Text(
-                              _formatValue(row[column.dbName]),
+                              _formatPdfText(row[column.dbName]),
                               style: const pw.TextStyle(fontSize: 8),
                             ),
                           ],
@@ -158,8 +190,39 @@ class ExportPdfUseCase {
     }
   }
 
-  String _formatValue(dynamic value) {
-    return value == null ? '' : value.toString();
+  List<List<T>> _columnChunks<T>(List<T> columns) {
+    if (columns.length <= _maxColumnsPerTable) {
+      return [columns];
+    }
+
+    return [
+      for (var start = 0; start < columns.length; start += _maxColumnsPerTable)
+        columns.sublist(
+          start,
+          _chunkEnd(start, columns.length),
+        ),
+    ];
+  }
+
+  int _chunkEnd(int start, int length) {
+    final end = start + _maxColumnsPerTable;
+    return end > length ? length : end;
+  }
+
+  String _formatPdfText(dynamic value) {
+    if (value == null) return '';
+
+    final normalized = value
+        .toString()
+        .replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    if (normalized.length <= _maxPdfCellCharacters) {
+      return normalized;
+    }
+
+    return '${normalized.substring(0, _maxPdfCellCharacters)}...';
   }
 
   String _sanitizeFileName(String value, {required String fallback}) {

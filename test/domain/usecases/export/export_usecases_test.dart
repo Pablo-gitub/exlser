@@ -44,6 +44,48 @@ void main() {
       expect(utf8.decode(result.bytes.take(4).toList()), '%PDF');
     });
 
+    test('exports PDF table layout with many rows', () async {
+      final result = await const ExportPdfUseCase()(
+        _exportData(
+          rows: [
+            for (var i = 0; i < 700; i++)
+              {
+                'product': 'Product $i',
+                'total': i * 1.5,
+              },
+          ],
+        ),
+      );
+
+      expect(result.extension, ExportFormat.pdf.extension);
+      expect(utf8.decode(result.bytes.take(4).toList()), '%PDF');
+      expect(result.bytes, isNotEmpty);
+    });
+
+    test('exports PDF table layout with many columns and long values',
+        () async {
+      final columns = [
+        for (var i = 0; i < 14; i++)
+          _column('Very Long Column Header $i', 'col_$i', ColumnType.text),
+      ];
+      final result = await const ExportPdfUseCase()(
+        _exportData(
+          columns: columns,
+          rows: [
+            {
+              for (var i = 0; i < columns.length; i++)
+                'col_$i': 'Long unbroken value ${i.toString().padLeft(2, '0')} '
+                    '${List.filled(80, 'x').join()}',
+            },
+          ],
+        ),
+      );
+
+      expect(result.extension, ExportFormat.pdf.extension);
+      expect(utf8.decode(result.bytes.take(4).toList()), '%PDF');
+      expect(result.bytes, isNotEmpty);
+    });
+
     test('exports PDF card layout bytes', () async {
       final result = await const ExportPdfUseCase()(
         _exportData(),
@@ -83,6 +125,7 @@ void main() {
 
 ExportDatasetData _exportData({
   List<Map<String, dynamic>>? rows,
+  List<DatasetColumn>? columns,
 }) {
   final dataset = Dataset(
     id: 1,
@@ -91,17 +134,18 @@ ExportDatasetData _exportData({
     createdAt: 1,
   );
 
-  final columns = [
-    _column('Product', 'product', ColumnType.text),
-    _column('Total', 'total', ColumnType.real),
-  ];
+  final exportColumns = columns ??
+      [
+        _column('Product', 'product', ColumnType.text),
+        _column('Total', 'total', ColumnType.real),
+      ];
 
   return ExportDatasetData(
     dataset: dataset,
     tables: [
       ExportTableData(
         table: _table(1, 'January', 'sales_2026'),
-        columns: columns,
+        columns: exportColumns,
         rows: rows ??
             [
               {'product': 'Vans', 'total': 120.5},
@@ -109,7 +153,7 @@ ExportDatasetData _exportData({
       ),
       ExportTableData(
         table: _table(2, 'February', 'sales_2026_february'),
-        columns: columns,
+        columns: exportColumns,
         rows: [
           {'product': 'Nike', 'total': 90.0},
         ],
