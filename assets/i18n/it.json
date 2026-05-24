@@ -164,6 +164,8 @@
                     "no_numeric_column": "Seleziona una colonna numerica per disegnare questo grafico."
                 },
                 "aggregation": "Aggregazione",
+                "filtered_result": "Risultato filtrato: {count} filtri attivi",
+                "updating": "Aggiornamento grafico...",
                 "labels": {
                     "group_by": "Raggruppa per",
                     "value": "Valore",
@@ -179,6 +181,20 @@
                 "x_column": "Asse X",
                 "y_column": "Asse Y",
                 "add_chart": "Aggiungi grafico",
+                "add_chart_options": {
+                    "line": {
+                        "title": "Andamento nel tempo",
+                        "description": "Usa una colonna data e un valore numerico per mostrare come cambiano i valori nel tempo."
+                    },
+                    "bar": {
+                        "title": "Confronto per categoria",
+                        "description": "Confronta gruppi usando un conteggio o un valore numerico."
+                    },
+                    "pie": {
+                        "title": "Distribuzione per categoria",
+                        "description": "Mostra come un totale si divide tra un numero ridotto di gruppi."
+                    }
+                },
                 "agg": {
                     "count": "Conteggio",
                     "sum": "Somma",

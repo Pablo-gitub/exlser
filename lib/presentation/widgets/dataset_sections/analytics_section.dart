@@ -63,15 +63,20 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(AppStrings.datasetWorkspaceAnalyticsAddChart.tr()),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final type in availableTypes)
-              ListTile(
-                title: Text(type.label),
-                onTap: () => Navigator.of(dialogContext).pop(type),
-              ),
-          ],
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final type in availableTypes)
+                ListTile(
+                  leading: Icon(_chartOptionIcon(type)),
+                  title: Text(_chartOptionTitle(type).tr()),
+                  subtitle: Text(_chartOptionDescription(type).tr()),
+                  onTap: () => Navigator.of(dialogContext).pop(type),
+                ),
+            ],
+          ),
         ),
       ),
     ).then((type) {
@@ -153,6 +158,7 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
                                 key: ValueKey(chart.id),
                                 chart: chart,
                                 allColumns: widget.state.columns,
+                                activeFilterCount: widget.state.filters.length,
                                 onRemove: () {
                                   context
                                       .read<DatasetBloc>()
@@ -178,6 +184,7 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
                             key: ValueKey(chart.id),
                             chart: chart,
                             allColumns: widget.state.columns,
+                            activeFilterCount: widget.state.filters.length,
                             onRemove: () {
                               context
                                   .read<DatasetBloc>()
@@ -202,9 +209,41 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
   }
 }
 
+IconData _chartOptionIcon(ChartType chartType) {
+  return switch (chartType) {
+    ChartType.line => Icons.show_chart,
+    ChartType.bar => Icons.bar_chart,
+    ChartType.pie => Icons.pie_chart_outline,
+    ChartType.scatter => Icons.scatter_plot,
+    ChartType.none => Icons.insert_chart_outlined,
+  };
+}
+
+String _chartOptionTitle(ChartType chartType) {
+  return switch (chartType) {
+    ChartType.line => AppStrings.datasetWorkspaceAnalyticsAddChartLineTitle,
+    ChartType.bar => AppStrings.datasetWorkspaceAnalyticsAddChartBarTitle,
+    ChartType.pie => AppStrings.datasetWorkspaceAnalyticsAddChartPieTitle,
+    ChartType.scatter => 'Scatter',
+    ChartType.none => '',
+  };
+}
+
+String _chartOptionDescription(ChartType chartType) {
+  return switch (chartType) {
+    ChartType.line =>
+      AppStrings.datasetWorkspaceAnalyticsAddChartLineDescription,
+    ChartType.bar => AppStrings.datasetWorkspaceAnalyticsAddChartBarDescription,
+    ChartType.pie => AppStrings.datasetWorkspaceAnalyticsAddChartPieDescription,
+    ChartType.scatter => '',
+    ChartType.none => '',
+  };
+}
+
 class _ChartCard extends StatelessWidget {
   final AnalyticsChart chart;
   final List<DatasetColumn> allColumns;
+  final int activeFilterCount;
   final VoidCallback onRemove;
   final ValueChanged<ChartSuggestion> onConfigChanged;
 
@@ -212,6 +251,7 @@ class _ChartCard extends StatelessWidget {
     super.key,
     required this.chart,
     required this.allColumns,
+    required this.activeFilterCount,
     required this.onRemove,
     required this.onConfigChanged,
   });
@@ -237,6 +277,10 @@ class _ChartCard extends StatelessWidget {
                       label: Text(suggestion.chartType.label),
                       visualDensity: VisualDensity.compact,
                     ),
+                    if (activeFilterCount > 0) ...[
+                      const SizedBox(width: 8),
+                      _FilterContextChip(activeFilterCount: activeFilterCount),
+                    ],
                     const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.close),
@@ -382,23 +426,109 @@ class _ChartCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ],
+            if (activeFilterCount > 0) ...[
+              const SizedBox(height: 8),
+              _FilterContextChip(activeFilterCount: activeFilterCount),
+            ],
             const SizedBox(height: 16),
-            if (chart.isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else
-              _ChartBody(
+            _ChartLoadingOverlay(
+              isLoading: chart.isLoading,
+              child: _ChartBody(
                 suggestion: suggestion,
                 chartData: chart.chartData,
                 error: chart.error,
               ),
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FilterContextChip extends StatelessWidget {
+  final int activeFilterCount;
+
+  const _FilterContextChip({required this.activeFilterCount});
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      avatar: const Icon(Icons.filter_alt_outlined, size: 16),
+      label: Text(
+        AppStrings.datasetWorkspaceAnalyticsFilteredResult.tr(
+          namedArgs: {'count': activeFilterCount.toString()},
+        ),
+      ),
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+}
+
+class _ChartLoadingOverlay extends StatelessWidget {
+  final bool isLoading;
+  final Widget child;
+
+  const _ChartLoadingOverlay({
+    required this.isLoading,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isLoading) return child;
+
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        child,
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: colorScheme.surface.withValues(alpha: 0.78),
+            ),
+            child: Center(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.shadow.withValues(alpha: 0.12),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        AppStrings.datasetWorkspaceAnalyticsUpdating.tr(),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -279,6 +279,10 @@ class AppStrings {
       'dataset.workspace.analytics.error_messages.no_numeric_column';
   static const String datasetWorkspaceAnalyticsAggregation =
       'dataset.workspace.analytics.aggregation';
+  static const String datasetWorkspaceAnalyticsFilteredResult =
+      'dataset.workspace.analytics.filtered_result';
+  static const String datasetWorkspaceAnalyticsUpdating =
+      'dataset.workspace.analytics.updating';
   static const String datasetWorkspaceAnalyticsGroupBy =
       'dataset.workspace.analytics.labels.group_by';
   static const String datasetWorkspaceAnalyticsValue =
@@ -327,6 +331,18 @@ class AppStrings {
       'dataset.workspace.analytics.agg.max';
   static const String datasetWorkspaceAnalyticsAddChart =
       'dataset.workspace.analytics.add_chart';
+  static const String datasetWorkspaceAnalyticsAddChartLineTitle =
+      'dataset.workspace.analytics.add_chart_options.line.title';
+  static const String datasetWorkspaceAnalyticsAddChartLineDescription =
+      'dataset.workspace.analytics.add_chart_options.line.description';
+  static const String datasetWorkspaceAnalyticsAddChartBarTitle =
+      'dataset.workspace.analytics.add_chart_options.bar.title';
+  static const String datasetWorkspaceAnalyticsAddChartBarDescription =
+      'dataset.workspace.analytics.add_chart_options.bar.description';
+  static const String datasetWorkspaceAnalyticsAddChartPieTitle =
+      'dataset.workspace.analytics.add_chart_options.pie.title';
+  static const String datasetWorkspaceAnalyticsAddChartPieDescription =
+      'dataset.workspace.analytics.add_chart_options.pie.description';
 
   /// Import errors
   static const String importNoExtension = 'import.error.no_extension';

@@ -1,4 +1,3 @@
-import 'package:exel_category/application/dto/chart_data.dart';
 import 'package:exel_category/application/services/analysis_service.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
@@ -634,9 +633,13 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
           currentState.dataset.uiStateJson,
         );
 
-        if (workspaceState.charts.isNotEmpty) {
+        final storedCharts = workspaceState.restoreCharts(
+          tableId: currentState.activeTable.id,
+        );
+
+        if (storedCharts.isNotEmpty) {
           final restored = [
-            for (final stored in workspaceState.charts)
+            for (final stored in storedCharts)
               (stored.id, stored.toChartSuggestion(currentState.columns)),
           ].where((pair) => pair.$2 != null).toList();
           ids = [for (final p in restored) p.$1];
@@ -829,7 +832,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
           c.copyWith(
             suggestion: event.suggestion,
             isLoading: true,
-            chartData: const EmptyChartData(),
+            error: null,
           )
         else
           c,

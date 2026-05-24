@@ -164,6 +164,8 @@
                     "no_numeric_column": "Select a numeric column to draw this chart."
                 },
                 "aggregation": "Aggregation",
+                "filtered_result": "Filtered result: {count} active filter(s)",
+                "updating": "Updating chart...",
                 "labels": {
                     "group_by": "Group by",
                     "value": "Value",
@@ -179,6 +181,20 @@
                 "x_column": "X axis",
                 "y_column": "Y axis",
                 "add_chart": "Add chart",
+                "add_chart_options": {
+                    "line": {
+                        "title": "Trend over time",
+                        "description": "Uses a date column and a numeric value to show how values change over time."
+                    },
+                    "bar": {
+                        "title": "Category comparison",
+                        "description": "Compares groups using a count or a numeric value."
+                    },
+                    "pie": {
+                        "title": "Share by category",
+                        "description": "Shows how a total is split across a small number of groups."
+                    }
+                },
                 "agg": {
                     "count": "Count",
                     "sum": "Sum",

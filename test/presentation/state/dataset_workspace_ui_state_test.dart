@@ -1,8 +1,12 @@
+import 'package:exel_category/domain/entities/chart_suggestion.dart';
+import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exel_category/domain/entities/dataset_table.dart';
 import 'package:exel_category/domain/value_objects/aggregation_type.dart';
 import 'package:exel_category/domain/value_objects/chart_type.dart';
 import 'package:exel_category/domain/value_objects/column_type.dart';
 import 'package:exel_category/domain/value_objects/filter_operator.dart';
+import 'package:exel_category/presentation/state/dataset_state.dart';
 import 'package:exel_category/presentation/state/dataset_workspace_ui_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -281,6 +285,110 @@ void main() {
       expect(json['tableStates']['1']['hiddenColumnDbNames'], ['cat']);
     });
 
+    test('fromJson restores table-specific charts', () {
+      final state = DatasetWorkspaceUiState.fromJson({
+        'tableStates': {
+          '2': {
+            'charts': [
+              {
+                'id': 'chart_2',
+                'chartType': 'bar',
+                'xColumn': 'cat',
+                'aggregation': 'count',
+              },
+            ],
+          },
+        },
+      });
+
+      final charts = state.restoreCharts(tableId: 2);
+
+      expect(charts.length, 1);
+      expect(charts.single.id, 'chart_2');
+      expect(state.restoreCharts(tableId: 1), isEmpty);
+    });
+
+    test('restoreCharts falls back to legacy top-level charts', () {
+      final state = DatasetWorkspaceUiState.fromJson({
+        'charts': [
+          {
+            'id': 'legacy_chart',
+            'chartType': 'pie',
+            'xColumn': 'cat',
+            'aggregation': 'count',
+          },
+        ],
+      });
+
+      expect(state.restoreCharts(tableId: 2).single.id, 'legacy_chart');
+    });
+
+    test('fromLoadedState stores analytics charts under active table', () {
+      final column = _col('cat', ColumnType.text);
+      final state = DatasetWorkspaceUiState.fromLoadedState(
+        DatasetLoadedState(
+          dataset: _dataset(),
+          tables: [_table()],
+          activeTable: _table(),
+          columns: [column],
+          rows: const [],
+          viewMode: DatasetViewMode.table,
+          rowLimit: 100,
+          pageIndex: 0,
+          totalRowCount: 0,
+          analyticsState: DatasetAnalyticsLoadedState(
+            charts: [
+              AnalyticsChart(
+                id: 'chart_0',
+                suggestion: ChartSuggestion(
+                  chartType: ChartType.bar,
+                  xColumn: column,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      final json = state.toJson();
+      final tableState = json['tableStates']['1'] as Map<String, dynamic>;
+
+      expect(json.containsKey('charts'), isFalse);
+      expect((tableState['charts'] as List).single['id'], 'chart_0');
+    });
+
+    test('fromLoadedState preserves previous table charts when analytics idle',
+        () {
+      final previous = DatasetWorkspaceUiState(
+        tableStates: {
+          1: const StoredTableWorkspaceState(
+            charts: [
+              StoredAnalyticsChart(
+                id: 'previous_chart',
+                chartTypeName: 'bar',
+                xColumnDbName: 'cat',
+              ),
+            ],
+          ),
+        },
+      );
+      final state = DatasetWorkspaceUiState.fromLoadedState(
+        DatasetLoadedState(
+          dataset: _dataset(uiStateJson: previous.toJsonString()),
+          tables: [_table()],
+          activeTable: _table(),
+          columns: [_col('cat', ColumnType.text)],
+          rows: const [],
+          viewMode: DatasetViewMode.table,
+          rowLimit: 100,
+          pageIndex: 0,
+          totalRowCount: 0,
+        ),
+      );
+
+      expect(state.restoreCharts(tableId: 1).single.id, 'previous_chart');
+    });
+
     test('chart round-trip through JSON preserves suggestion', () {
       const state = DatasetWorkspaceUiState(
         charts: [
@@ -303,6 +411,24 @@ void main() {
     });
   });
 }
+
+Dataset _dataset({String? uiStateJson}) => Dataset(
+      id: 1,
+      name: 'Dataset',
+      sourceFileName: 'source.csv',
+      createdAt: 1,
+      lastOpenedAt: 1,
+      uiStateJson: uiStateJson,
+    );
+
+DatasetTable _table() => const DatasetTable(
+      id: 1,
+      datasetId: 1,
+      sheetNameOriginal: 'Sheet1',
+      sqlTableName: 'sheet1',
+      rowCount: 0,
+      colCount: 1,
+    );
 
 DatasetColumn _col(String name, ColumnType type) => DatasetColumn(
       id: 0,

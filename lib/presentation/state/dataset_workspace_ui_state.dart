@@ -38,18 +38,13 @@ class DatasetWorkspaceUiState {
   factory DatasetWorkspaceUiState.fromLoadedState(
     DatasetLoadedState state,
   ) {
-    final analyticsState = state.analyticsState;
-    final charts = analyticsState is DatasetAnalyticsLoadedState
-        ? [
-            for (final chart in analyticsState.charts)
-              StoredAnalyticsChart.fromAnalyticsChart(chart),
-          ]
-        : <StoredAnalyticsChart>[];
-
     final previousState = DatasetWorkspaceUiState.fromJsonString(
       state.dataset.uiStateJson,
     );
-    final activeTableState = StoredTableWorkspaceState.fromLoadedState(state);
+    final activeTableState = StoredTableWorkspaceState.fromLoadedState(
+      state,
+      previousState: previousState.tableStates[state.activeTable.id],
+    );
     final tableStates = {
       ...previousState.tableStates,
       state.activeTable.id: activeTableState,
@@ -64,7 +59,6 @@ class DatasetWorkspaceUiState {
       filters: activeTableState.filters,
       sort: activeTableState.sort,
       tableStates: tableStates,
-      charts: charts,
     );
   }
 
@@ -201,22 +195,40 @@ class DatasetWorkspaceUiState {
 
     return tableStates[tableId];
   }
+
+  List<StoredAnalyticsChart> restoreCharts({int? tableId}) {
+    final tableCharts = _tableStateFor(tableId)?.charts;
+    if (tableCharts != null && tableCharts.isNotEmpty) {
+      return tableCharts;
+    }
+
+    return charts;
+  }
 }
 
 class StoredTableWorkspaceState {
   final List<String> hiddenColumnDbNames;
   final List<StoredDatasetFilter> filters;
   final StoredDatasetSort? sort;
+  final List<StoredAnalyticsChart> charts;
 
   const StoredTableWorkspaceState({
     this.hiddenColumnDbNames = const [],
     this.filters = const [],
     this.sort,
+    this.charts = const [],
   });
 
-  factory StoredTableWorkspaceState.fromLoadedState(
-    DatasetLoadedState state,
-  ) {
+  factory StoredTableWorkspaceState.fromLoadedState(DatasetLoadedState state,
+      {StoredTableWorkspaceState? previousState}) {
+    final analyticsState = state.analyticsState;
+    final charts = analyticsState is DatasetAnalyticsLoadedState
+        ? [
+            for (final chart in analyticsState.charts)
+              StoredAnalyticsChart.fromAnalyticsChart(chart),
+          ]
+        : previousState?.charts ?? const <StoredAnalyticsChart>[];
+
     return StoredTableWorkspaceState(
       hiddenColumnDbNames: state.hiddenColumnDbNames,
       filters: [
@@ -226,12 +238,14 @@ class StoredTableWorkspaceState {
       sort: state.sort == null
           ? null
           : StoredDatasetSort.fromDatasetSort(state.sort!),
+      charts: charts,
     );
   }
 
   factory StoredTableWorkspaceState.fromJson(Map<String, dynamic> json) {
     final hiddenColumnsJson = json['hiddenColumnDbNames'];
     final filtersJson = json['filters'];
+    final chartsJson = json['charts'];
 
     return StoredTableWorkspaceState(
       hiddenColumnDbNames: hiddenColumnsJson is List
@@ -250,6 +264,13 @@ class StoredTableWorkspaceState {
       sort: json['sort'] is Map<String, dynamic>
           ? StoredDatasetSort.fromJson(json['sort'] as Map<String, dynamic>)
           : null,
+      charts: chartsJson is List
+          ? [
+              for (final chartJson in chartsJson)
+                if (chartJson is Map<String, dynamic>)
+                  StoredAnalyticsChart.fromJson(chartJson),
+            ]
+          : const [],
     );
   }
 
@@ -260,6 +281,8 @@ class StoredTableWorkspaceState {
       if (filters.isNotEmpty)
         'filters': [for (final filter in filters) filter.toJson()],
       if (sort != null) 'sort': sort!.toJson(),
+      if (charts.isNotEmpty)
+        'charts': [for (final chart in charts) chart.toJson()],
     };
   }
 }
@@ -319,7 +342,9 @@ class StoredAnalyticsChart {
     final xColumn =
         xColumnDbName != null ? _findColumn(columns, xColumnDbName!) : null;
     if (xColumn == null) return null;
-    if (!chartType.validXColumnTypes.contains(xColumn.declaredType)) return null;
+    if (!chartType.validXColumnTypes.contains(xColumn.declaredType)) {
+      return null;
+    }
 
     final yColumn =
         yColumnDbName != null ? _findColumn(columns, yColumnDbName!) : null;

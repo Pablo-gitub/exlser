@@ -985,12 +985,77 @@ into the visible chart controls.
 
 ### Next Highest-Priority Work
 
-- [ ] Decide the final interaction for `COUNT`:
+- [x] Decide the final interaction for `COUNT`:
   - either keep the value dropdown available so users can switch to a numeric
     aggregation quickly;
   - or hide it and add a separate `Use a value column` action.
-- [ ] Add active-filter context to chart cards.
-- [ ] Keep the previous chart visible while a new chart configuration is
+- [x] Add active-filter context to chart cards.
+- [x] Keep the previous chart visible while a new chart configuration is
   loading.
-- [ ] Move chart persistence to per-sheet state so charts do not leak across
+- [x] Move chart persistence to per-sheet state so charts do not leak across
   incompatible sheets.
+
+## Implementation Update - Filter Context And Reload UX (Session 2026-05-24)
+
+The `COUNT` interaction is intentionally kept flexible: the value column remains
+available when numeric columns exist, but choosing `COUNT` clears the active
+value column because it is not used by that aggregation. This lets users switch
+back to `SUM`, `AVG`, `MIN`, or `MAX` by selecting a value column first, without
+adding a separate mode or extra action.
+
+### Completed In This Pass
+
+- [x] Chart cards now show when analytics are based on filtered rows.
+- [x] Expanded chart mode also shows the active filter context.
+- [x] Chart configuration reloads keep the previous chart data visible.
+- [x] Loading is shown as an overlay instead of replacing the chart with an
+  empty/spinner-only state.
+- [x] Added a BLoC regression test to ensure previous chart data is preserved
+  while a new configuration is loading.
+
+### Remaining High-Priority Analytics Work
+
+- [x] Move chart persistence from top-level `uiStateJson` to per-sheet state.
+- [ ] Improve the Add Chart dialog with descriptive chart choices.
+- [ ] Add top-N controls and pie/cardinality rules.
+
+## Implementation Update - Per-Sheet Chart Persistence (Session 2026-05-24)
+
+Chart configuration is now stored inside each sheet's `tableStates` entry,
+alongside filters, sorting, and hidden columns. Legacy top-level `charts` remain
+readable for old saved datasets, but new persisted workspace state writes charts
+under the active table.
+
+### Completed In This Pass
+
+- [x] Added `charts` to `StoredTableWorkspaceState`.
+- [x] Stored loaded analytics charts under the active table state.
+- [x] Restored charts from the active sheet before falling back to legacy
+  top-level charts.
+- [x] Preserved previous per-sheet charts when the active sheet is saved while
+  analytics are not loaded.
+- [x] Added unit and BLoC coverage for per-sheet chart restoration.
+
+### Remaining High-Priority Analytics Work
+
+- [x] Improve the Add Chart dialog with descriptive chart choices.
+- [ ] Add top-N controls and pie/cardinality rules.
+
+## Implementation Update - Add Chart Dialog (Session 2026-05-24)
+
+The add-chart dialog now uses user-facing choices instead of raw chart type
+names. It explains the purpose of each available chart and keeps unavailable
+chart types hidden based on the current sheet columns.
+
+### Completed In This Pass
+
+- [x] Replaced `Line`, `Bar`, and `Pie` rows with descriptive options:
+  - `Trend over time`;
+  - `Category comparison`;
+  - `Share by category`.
+- [x] Added localized descriptions explaining required column combinations.
+- [x] Added chart-specific icons to make choices easier to scan.
+
+### Remaining High-Priority Analytics Work
+
+- [ ] Add top-N controls and pie/cardinality rules.
