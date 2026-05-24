@@ -2,6 +2,7 @@ import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/value_objects/chart_type.dart';
 import 'package:exel_category/domain/value_objects/dataset_filter.dart';
+import 'package:exel_category/domain/value_objects/dataset_query_mode.dart';
 import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 
 import 'dataset_state.dart';
@@ -80,6 +81,36 @@ class ToggleSortColumnEvent extends DatasetEvent {
   final DatasetColumn column;
 
   const ToggleSortColumnEvent(this.column);
+}
+
+class ChangeQueryModeEvent extends DatasetEvent {
+  final DatasetQueryMode mode;
+
+  const ChangeQueryModeEvent(this.mode);
+}
+
+class UpdateReadOnlyQueryEvent extends DatasetEvent {
+  final String sql;
+
+  const UpdateReadOnlyQueryEvent(this.sql);
+}
+
+class ChangeReadOnlyQueryLimitEvent extends DatasetEvent {
+  final int limit;
+
+  const ChangeReadOnlyQueryLimitEvent(this.limit);
+}
+
+class RunReadOnlyQueryEvent extends DatasetEvent {
+  const RunReadOnlyQueryEvent();
+}
+
+class ClearReadOnlyQueryEvent extends DatasetEvent {
+  const ClearReadOnlyQueryEvent();
+}
+
+class ResetReadOnlyQueryEvent extends DatasetEvent {
+  const ResetReadOnlyQueryEvent();
 }
 
 class LoadAnalyticsEvent extends DatasetEvent {

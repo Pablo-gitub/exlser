@@ -41,6 +41,7 @@ void main() {
       expect(container.read(openDatasetUseCaseProvider), isNotNull);
       expect(container.read(updateDatasetUiStateUseCaseProvider), isNotNull);
       expect(container.read(applyFiltersUseCaseProvider), isNotNull);
+      expect(container.read(executeReadOnlyQueryUseCaseProvider), isNotNull);
       expect(container.read(getDistinctValuesUseCaseProvider), isNotNull);
       expect(container.read(datasetsRepositoryProvider), isNotNull);
       expect(container.read(schemaRepositoryProvider), isNotNull);

@@ -6,6 +6,7 @@ import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
 import 'package:exel_category/domain/repositories/schema_repository.dart';
 import 'package:exel_category/domain/value_objects/dataset_filter.dart';
+import 'package:exel_category/domain/value_objects/dataset_query_mode.dart';
 import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 import 'package:exel_category/domain/value_objects/export_format.dart';
 import 'package:exel_category/domain/value_objects/pdf_export_layout.dart';
@@ -45,6 +46,7 @@ class DatasetView extends ConsumerWidget {
         schemaRepository: ref.read(schemaRepositoryProvider),
         fetchRows: ref.read(fetchRowsUseCaseProvider),
         applyFilters: ref.read(applyFiltersUseCaseProvider),
+        executeReadOnlyQuery: ref.read(executeReadOnlyQueryUseCaseProvider),
         updateDatasetUiState: ref.read(updateDatasetUiStateUseCaseProvider),
         analysisService: ref.read(analysisServiceProvider),
       )..add(LoadDatasetEvent(datasetId)),
@@ -469,6 +471,10 @@ class _LoadedWorkspace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final visibleColumns = state.visibleColumns;
+    final isQueryMode = state.isReadOnlyQueryMode;
+    final resultColumns =
+        isQueryMode ? state.readOnlyQueryColumns : visibleColumns;
+    final resultRows = isQueryMode ? state.readOnlyQueryRows : state.rows;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -500,59 +506,404 @@ class _LoadedWorkspace extends StatelessWidget {
                     activeTable: state.activeTable,
                   ),
                   const SizedBox(height: 16),
-                  DatasetFilterPanel(
-                    columns: state.columns,
-                    rows: state.rows,
-                    filters: state.filters,
-                    onAddFilter: (filter) {
-                      context.read<DatasetBloc>().add(AddFilterEvent(filter));
-                    },
-                    onRemoveFilter: (filterId) {
-                      context
-                          .read<DatasetBloc>()
-                          .add(RemoveFilterEvent(filterId));
-                    },
-                    onClearFilters: () {
-                      context
-                          .read<DatasetBloc>()
-                          .add(const ClearFiltersEvent());
-                    },
-                  ),
+                  _DatasetQueryModePanel(state: state),
                   const SizedBox(height: 16),
-                  _ColumnVisibilitySection(
-                    columns: state.columns,
-                    hiddenColumnDbNames: state.hiddenColumnDbNames,
-                  ),
-                  const SizedBox(height: 16),
-                  if (state.rows.isEmpty)
-                    _NoRowsMessage(columns: visibleColumns)
+                  if (!isQueryMode) ...[
+                    _ColumnVisibilitySection(
+                      columns: state.columns,
+                      hiddenColumnDbNames: state.hiddenColumnDbNames,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (isQueryMode &&
+                      resultRows.isEmpty &&
+                      !state.hasReadOnlyQueryRun &&
+                      state.readOnlyQueryErrorCode == null)
+                    _QueryEmptyMessage()
+                  else if (resultRows.isEmpty)
+                    _NoRowsMessage(columns: resultColumns)
                   else if (state.viewMode == DatasetViewMode.table)
                     DatasetTableView(
-                      columns: visibleColumns,
-                      rows: state.rows,
-                      sort: state.sort,
-                      onSortColumn: (column) {
-                        context.read<DatasetBloc>().add(
-                              ToggleSortColumnEvent(column),
-                            );
-                      },
+                      columns: resultColumns,
+                      rows: resultRows,
+                      sort: isQueryMode ? null : state.sort,
+                      onSortColumn: isQueryMode
+                          ? null
+                          : (column) {
+                              context.read<DatasetBloc>().add(
+                                    ToggleSortColumnEvent(column),
+                                  );
+                            },
                     )
                   else
                     DatasetCardView(
-                      columns: visibleColumns,
-                      rows: state.rows,
+                      columns: resultColumns,
+                      rows: resultRows,
                     ),
                   const SizedBox(height: 12),
-                  _DatasetPaginationControls(state: state),
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  AnalyticsSection(state: state),
+                  if (!isQueryMode) ...[
+                    _DatasetPaginationControls(state: state),
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    AnalyticsSection(state: state),
+                  ],
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DatasetQueryModePanel extends StatelessWidget {
+  final DatasetLoadedState state;
+
+  const _DatasetQueryModePanel({
+    required this.state,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SegmentedButton<DatasetQueryMode>(
+            segments: [
+              ButtonSegment(
+                value: DatasetQueryMode.filters,
+                icon: const Icon(Icons.filter_alt_outlined),
+                label: Text(AppStrings.datasetWorkspaceQueryTabFilters.tr()),
+              ),
+              ButtonSegment(
+                value: DatasetQueryMode.sql,
+                icon: const Icon(Icons.terminal),
+                label: Text(AppStrings.datasetWorkspaceQueryTabSql.tr()),
+              ),
+            ],
+            selected: {state.queryMode},
+            onSelectionChanged: (selection) {
+              context.read<DatasetBloc>().add(
+                    ChangeQueryModeEvent(selection.single),
+                  );
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (state.queryMode == DatasetQueryMode.filters)
+          DatasetFilterPanel(
+            columns: state.columns,
+            rows: state.rows,
+            filters: state.filters,
+            onAddFilter: (filter) {
+              context.read<DatasetBloc>().add(AddFilterEvent(filter));
+            },
+            onRemoveFilter: (filterId) {
+              context.read<DatasetBloc>().add(RemoveFilterEvent(filterId));
+            },
+            onClearFilters: () {
+              context.read<DatasetBloc>().add(const ClearFiltersEvent());
+            },
+          )
+        else
+          _ReadOnlyQueryPanel(state: state),
+      ],
+    );
+  }
+}
+
+class _ReadOnlyQueryPanel extends StatefulWidget {
+  final DatasetLoadedState state;
+
+  const _ReadOnlyQueryPanel({
+    required this.state,
+  });
+
+  @override
+  State<_ReadOnlyQueryPanel> createState() => _ReadOnlyQueryPanelState();
+}
+
+class _ReadOnlyQueryPanelState extends State<_ReadOnlyQueryPanel> {
+  late final TextEditingController _queryController;
+  late final TextEditingController _limitController;
+  final FocusNode _queryFocusNode = FocusNode();
+  String? _limitError;
+
+  @override
+  void initState() {
+    super.initState();
+    _queryController = TextEditingController(
+      text: widget.state.readOnlyQuery.sql,
+    );
+    _limitController = TextEditingController(
+      text: widget.state.readOnlyQuery.limit.toString(),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _ReadOnlyQueryPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (_queryController.text != widget.state.readOnlyQuery.sql) {
+      _queryController.text = widget.state.readOnlyQuery.sql;
+    }
+    if (_limitController.text != widget.state.readOnlyQuery.limit.toString()) {
+      _limitController.text = widget.state.readOnlyQuery.limit.toString();
+      _limitError = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _queryController.dispose();
+    _limitController.dispose();
+    _queryFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final errorCode = widget.state.readOnlyQueryErrorCode;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).dividerColor),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    AppStrings.datasetWorkspaceQueryTitle.tr(),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                if (widget.state.isReadOnlyQueryRunning)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              AppStrings.datasetWorkspaceQueryIntro.tr(),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _queryController,
+              focusNode: _queryFocusNode,
+              minLines: 4,
+              maxLines: 8,
+              keyboardType: TextInputType.multiline,
+              decoration: InputDecoration(
+                labelText: AppStrings.datasetWorkspaceQueryEditor.tr(),
+                border: const OutlineInputBorder(),
+                errorText: errorCode == null
+                    ? null
+                    : _readOnlyQueryErrorMessage(errorCode).tr(),
+              ),
+              onChanged: (value) {
+                context.read<DatasetBloc>().add(
+                      UpdateReadOnlyQueryEvent(value),
+                    );
+              },
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                SizedBox(
+                  width: 140,
+                  child: TextField(
+                    controller: _limitController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      labelText: AppStrings.datasetWorkspaceQueryLimit.tr(),
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                      errorText: _limitError,
+                    ),
+                    onSubmitted: (_) => _applyLimit(context),
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: widget.state.isReadOnlyQueryRunning
+                      ? null
+                      : () {
+                          if (_applyLimit(context)) {
+                            context
+                                .read<DatasetBloc>()
+                                .add(const RunReadOnlyQueryEvent());
+                          }
+                        },
+                  icon: const Icon(Icons.play_arrow),
+                  label: Text(AppStrings.run.tr()),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    context
+                        .read<DatasetBloc>()
+                        .add(const ResetReadOnlyQueryEvent());
+                  },
+                  icon: const Icon(Icons.restart_alt),
+                  label: Text(AppStrings.datasetWorkspaceQueryReset.tr()),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    context
+                        .read<DatasetBloc>()
+                        .add(const ClearReadOnlyQueryEvent());
+                  },
+                  icon: const Icon(Icons.clear),
+                  label: Text(AppStrings.clear.tr()),
+                ),
+                if (widget.state.readOnlyQueryRows.isNotEmpty)
+                  Chip(
+                    avatar: const Icon(Icons.table_rows, size: 18),
+                    label: Text(
+                      AppStrings.datasetWorkspaceQueryResultCount.tr(
+                        namedArgs: {
+                          'count': '${widget.state.readOnlyQueryRows.length}',
+                        },
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _QuerySchemaHelper(
+              state: widget.state,
+              onInsert: _insertIdentifier,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _applyLimit(BuildContext context) {
+    final limit = int.tryParse(_limitController.text.trim());
+    if (limit == null || limit <= 0) {
+      setState(() {
+        _limitError = AppStrings.datasetWorkspaceQueryErrorInvalidLimit.tr();
+      });
+      return false;
+    }
+
+    setState(() {
+      _limitError = null;
+    });
+    context.read<DatasetBloc>().add(ChangeReadOnlyQueryLimitEvent(limit));
+    return true;
+  }
+
+  void _insertIdentifier(String text) {
+    final selection = _queryController.selection;
+    final start =
+        selection.start < 0 ? _queryController.text.length : selection.start;
+    final end =
+        selection.end < 0 ? _queryController.text.length : selection.end;
+    final updated = _queryController.text.replaceRange(start, end, text);
+
+    _queryController.value = TextEditingValue(
+      text: updated,
+      selection: TextSelection.collapsed(offset: start + text.length),
+    );
+    _queryFocusNode.requestFocus();
+    context.read<DatasetBloc>().add(UpdateReadOnlyQueryEvent(updated));
+  }
+}
+
+class _QuerySchemaHelper extends StatelessWidget {
+  final DatasetLoadedState state;
+  final ValueChanged<String> onInsert;
+
+  const _QuerySchemaHelper({
+    required this.state,
+    required this.onInsert,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppStrings.datasetWorkspaceQuerySchema.tr(),
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              AppStrings.datasetWorkspaceQueryActiveContext.tr(
+                namedArgs: {'table': state.activeTable.sqlTableName},
+              ),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                ActionChip(
+                  avatar: const Icon(Icons.short_text, size: 18),
+                  label: const Text('sheet'),
+                  tooltip: AppStrings.datasetWorkspaceQueryInsertTable.tr(),
+                  onPressed: () => onInsert('sheet'),
+                ),
+                for (final table in state.tables)
+                  ActionChip(
+                    avatar: Icon(
+                      table.id == state.activeTable.id
+                          ? Icons.article
+                          : Icons.article_outlined,
+                      size: 18,
+                    ),
+                    label: Text(table.sheetNameOriginal),
+                    tooltip: table.sqlTableName,
+                    onPressed: () =>
+                        onInsert(_quoteIdentifier(table.sqlTableName)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final column in state.columns)
+                  ActionChip(
+                    avatar: const Icon(Icons.view_column_outlined, size: 18),
+                    label: Text(column.originalName),
+                    tooltip: column.dbName,
+                    onPressed: () => onInsert(_quoteIdentifier(column.dbName)),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -982,6 +1333,31 @@ class _NoRowsMessage extends StatelessWidget {
   }
 }
 
+class _QueryEmptyMessage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).dividerColor),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const Icon(Icons.terminal, size: 40),
+            const SizedBox(height: 12),
+            Text(
+              AppStrings.datasetWorkspaceQueryEmptyResult.tr(),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _EmptyWorkspace extends StatelessWidget {
   final Dataset dataset;
 
@@ -1069,4 +1445,28 @@ String _workspaceErrorMessage(String code) {
     default:
       return AppStrings.datasetWorkspaceLoadFailed;
   }
+}
+
+String _readOnlyQueryErrorMessage(String code) {
+  switch (code) {
+    case 'empty':
+      return AppStrings.datasetWorkspaceQueryErrorEmpty;
+    case 'not_select':
+      return AppStrings.datasetWorkspaceQueryErrorNotSelect;
+    case 'unsafe_statement':
+      return AppStrings.datasetWorkspaceQueryErrorUnsafe;
+    case 'multiple_statements':
+      return AppStrings.datasetWorkspaceQueryErrorMultiple;
+    case 'unknown_table':
+      return AppStrings.datasetWorkspaceQueryErrorUnknownTable;
+    case 'invalid_limit':
+      return AppStrings.datasetWorkspaceQueryErrorInvalidLimit;
+    case 'execution_failed':
+    default:
+      return AppStrings.datasetWorkspaceQueryErrorExecution;
+  }
+}
+
+String _quoteIdentifier(String value) {
+  return '"${value.replaceAll('"', '""')}"';
 }

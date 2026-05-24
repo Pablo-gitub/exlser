@@ -13,9 +13,12 @@ import 'package:exel_category/domain/repositories/schema_repository.dart';
 import 'package:exel_category/domain/usecases/dataset/open_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
 import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
+import 'package:exel_category/domain/usecases/query/execute_read_only_query_usecase.dart';
 import 'package:exel_category/domain/usecases/query/fetch_rows_usecase.dart';
+import 'package:exel_category/domain/usecases/query/read_only_sql_validator.dart';
 import 'package:exel_category/domain/value_objects/column_type.dart';
 import 'package:exel_category/domain/value_objects/dataset_filter.dart';
+import 'package:exel_category/domain/value_objects/dataset_query_mode.dart';
 import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 import 'package:exel_category/domain/value_objects/filter_operator.dart';
 import 'package:exel_category/presentation/state/dataset_bloc.dart';
@@ -32,6 +35,9 @@ class MockFetchRowsUseCase extends Mock implements FetchRowsUseCase {}
 
 class MockApplyFiltersUseCase extends Mock implements ApplyFiltersUseCase {}
 
+class MockExecuteReadOnlyQueryUseCase extends Mock
+    implements ExecuteReadOnlyQueryUseCase {}
+
 class MockUpdateDatasetUiStateUseCase extends Mock
     implements UpdateDatasetUiStateUseCase {}
 
@@ -40,6 +46,7 @@ class MockAnalysisService extends Mock implements AnalysisService {}
 void main() {
   setUpAll(() {
     registerFallbackValue(<DatasetFilter>[]);
+    registerFallbackValue(<String>{});
     registerFallbackValue(
       DatasetSort(
         column: _column(),
@@ -54,6 +61,7 @@ void main() {
     late MockSchemaRepository schemaRepository;
     late MockFetchRowsUseCase fetchRows;
     late MockApplyFiltersUseCase applyFilters;
+    late MockExecuteReadOnlyQueryUseCase executeReadOnlyQuery;
     late MockUpdateDatasetUiStateUseCase updateDatasetUiState;
     late MockAnalysisService analysisService;
     late DatasetBloc bloc;
@@ -63,6 +71,7 @@ void main() {
       schemaRepository = MockSchemaRepository();
       fetchRows = MockFetchRowsUseCase();
       applyFilters = MockApplyFiltersUseCase();
+      executeReadOnlyQuery = MockExecuteReadOnlyQueryUseCase();
       updateDatasetUiState = MockUpdateDatasetUiStateUseCase();
       analysisService = MockAnalysisService();
       when(() => updateDatasetUiState.call(
@@ -78,6 +87,7 @@ void main() {
         schemaRepository: schemaRepository,
         fetchRows: fetchRows,
         applyFilters: applyFilters,
+        executeReadOnlyQuery: executeReadOnlyQuery,
         updateDatasetUiState: updateDatasetUiState,
         analysisService: analysisService,
       );
@@ -802,6 +812,114 @@ void main() {
             datasetId: 1,
             uiStateJson: any(named: 'uiStateJson'),
           )).called(1);
+    });
+
+    test('should switch to read-only query mode and run a SELECT query',
+        () async {
+      final dataset = _dataset();
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [_column()],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => executeReadOnlyQuery.call(
+            sql: any(named: 'sql'),
+            activeTableName: any(named: 'activeTableName'),
+            allowedTableNames: any(named: 'allowedTableNames'),
+            limit: any(named: 'limit'),
+          )).thenAnswer(
+        (_) async => const ReadOnlyQueryResult(
+          rows: [
+            {'product': 'Vans', 'count': 2},
+          ],
+          executedSql: 'SELECT * FROM (SELECT product, COUNT(*) AS count '
+              'FROM tbl_1) LIMIT 100',
+        ),
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((state) => state is DatasetLoadedState);
+
+      bloc
+        ..add(const ChangeQueryModeEvent(DatasetQueryMode.sql))
+        ..add(const UpdateReadOnlyQueryEvent(
+          'SELECT product, COUNT(*) AS count FROM sheet',
+        ))
+        ..add(const RunReadOnlyQueryEvent());
+
+      final queryState = await bloc.stream.firstWhere(
+        (state) =>
+            state is DatasetLoadedState &&
+            state.queryMode == DatasetQueryMode.sql &&
+            state.readOnlyQueryRows.isNotEmpty,
+      ) as DatasetLoadedState;
+
+      expect(queryState.readOnlyQueryRows, [
+        {'product': 'Vans', 'count': 2},
+      ]);
+      expect(
+        queryState.readOnlyQueryColumns.map((column) => column.dbName),
+        ['product', 'count'],
+      );
+      expect(queryState.readOnlyQueryErrorCode, isNull);
+      verify(() => executeReadOnlyQuery.call(
+            sql: 'SELECT product, COUNT(*) AS count FROM sheet',
+            activeTableName: 'tbl_1',
+            allowedTableNames: {'tbl_1'},
+            limit: 100,
+          )).called(1);
+    });
+
+    test('should expose read-only query validation errors', () async {
+      final dataset = _dataset();
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [_column()],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => executeReadOnlyQuery.call(
+            sql: any(named: 'sql'),
+            activeTableName: any(named: 'activeTableName'),
+            allowedTableNames: any(named: 'allowedTableNames'),
+            limit: any(named: 'limit'),
+          )).thenThrow(
+        const ReadOnlyQueryException(
+          ReadOnlySqlValidator.unsafeStatementCode,
+        ),
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((state) => state is DatasetLoadedState);
+
+      bloc
+        ..add(const ChangeQueryModeEvent(DatasetQueryMode.sql))
+        ..add(const UpdateReadOnlyQueryEvent('DROP TABLE tbl_1'))
+        ..add(const RunReadOnlyQueryEvent());
+
+      final queryState = await bloc.stream.firstWhere(
+        (state) =>
+            state is DatasetLoadedState &&
+            state.readOnlyQueryErrorCode ==
+                ReadOnlySqlValidator.unsafeStatementCode,
+      ) as DatasetLoadedState;
+
+      expect(queryState.queryMode, DatasetQueryMode.sql);
+      expect(queryState.isReadOnlyQueryRunning, isFalse);
+      expect(queryState.readOnlyQueryRows, isEmpty);
     });
 
     test('LoadAnalyticsEvent transitions to DatasetAnalyticsLoadedState',

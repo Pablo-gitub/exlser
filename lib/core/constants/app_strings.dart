@@ -24,6 +24,7 @@ class AppStrings {
   static const String add = 'common.add';
   static const String clear = 'common.clear';
   static const String apply = 'common.apply';
+  static const String run = 'common.run';
   static const String close = 'common.close';
   static const String expand = 'common.expand';
 
@@ -194,6 +195,44 @@ class AppStrings {
       'dataset.workspace.filters.operator_labels.is_true';
   static const String datasetWorkspaceFilterIsFalse =
       'dataset.workspace.filters.operator_labels.is_false';
+  static const String datasetWorkspaceQueryTabFilters =
+      'dataset.workspace.query.tabs.filters';
+  static const String datasetWorkspaceQueryTabSql =
+      'dataset.workspace.query.tabs.sql';
+  static const String datasetWorkspaceQueryTitle =
+      'dataset.workspace.query.title';
+  static const String datasetWorkspaceQueryIntro =
+      'dataset.workspace.query.intro';
+  static const String datasetWorkspaceQueryEditor =
+      'dataset.workspace.query.editor';
+  static const String datasetWorkspaceQueryLimit =
+      'dataset.workspace.query.limit';
+  static const String datasetWorkspaceQueryReset =
+      'dataset.workspace.query.reset';
+  static const String datasetWorkspaceQueryResultCount =
+      'dataset.workspace.query.result_count';
+  static const String datasetWorkspaceQuerySchema =
+      'dataset.workspace.query.schema';
+  static const String datasetWorkspaceQueryActiveContext =
+      'dataset.workspace.query.active_context';
+  static const String datasetWorkspaceQueryInsertTable =
+      'dataset.workspace.query.insert_table';
+  static const String datasetWorkspaceQueryEmptyResult =
+      'dataset.workspace.query.empty_result';
+  static const String datasetWorkspaceQueryErrorEmpty =
+      'dataset.workspace.query.errors.empty';
+  static const String datasetWorkspaceQueryErrorNotSelect =
+      'dataset.workspace.query.errors.not_select';
+  static const String datasetWorkspaceQueryErrorUnsafe =
+      'dataset.workspace.query.errors.unsafe_statement';
+  static const String datasetWorkspaceQueryErrorMultiple =
+      'dataset.workspace.query.errors.multiple_statements';
+  static const String datasetWorkspaceQueryErrorUnknownTable =
+      'dataset.workspace.query.errors.unknown_table';
+  static const String datasetWorkspaceQueryErrorInvalidLimit =
+      'dataset.workspace.query.errors.invalid_limit';
+  static const String datasetWorkspaceQueryErrorExecution =
+      'dataset.workspace.query.errors.execution_failed';
 
   static const String languageEnglish = 'settings.language_english';
   static const String languageItalian = 'settings.language_italian';

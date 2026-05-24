@@ -35,6 +35,7 @@
         "add": "Add",
         "clear": "Clear",
         "apply": "Apply",
+        "run": "Run",
         "close": "Close",
         "expand": "Expand"
     },
@@ -122,6 +123,31 @@
                     "is_not_empty": "is not empty",
                     "is_true": "is true",
                     "is_false": "is false"
+                }
+            },
+            "query": {
+                "tabs": {
+                    "filters": "Filters",
+                    "sql": "Query"
+                },
+                "title": "Read-only query",
+                "intro": "Write a SELECT query for advanced analysis. Only read-only queries are allowed and results are limited.",
+                "editor": "SQL query",
+                "limit": "Max rows",
+                "reset": "Reset to current sheet",
+                "result_count": "{count} row(s) returned",
+                "schema": "Schema helper",
+                "active_context": "Use sheet as an alias for the current sheet: {table}",
+                "insert_table": "Insert table name",
+                "empty_result": "Run a query to show results here.",
+                "errors": {
+                    "empty": "Write a SELECT query before running it.",
+                    "not_select": "Only SELECT queries are allowed.",
+                    "unsafe_statement": "This query contains a blocked SQL command.",
+                    "multiple_statements": "Run one SELECT query at a time without comments or semicolons.",
+                    "unknown_table": "Use only tables that belong to this dataset.",
+                    "invalid_limit": "Enter a positive row limit.",
+                    "execution_failed": "Could not run this query."
                 }
             },
             "error": {

@@ -7,9 +7,14 @@ import 'package:exel_category/domain/repositories/schema_repository.dart';
 import 'package:exel_category/domain/usecases/dataset/open_dataset_usecase.dart';
 import 'package:exel_category/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
 import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
+import 'package:exel_category/domain/usecases/query/execute_read_only_query_usecase.dart';
 import 'package:exel_category/domain/usecases/query/fetch_rows_usecase.dart';
+import 'package:exel_category/domain/usecases/query/read_only_sql_validator.dart';
 import 'package:exel_category/domain/value_objects/aggregation_type.dart';
+import 'package:exel_category/domain/value_objects/column_type.dart';
 import 'package:exel_category/domain/value_objects/dataset_filter.dart';
+import 'package:exel_category/domain/value_objects/dataset_query_mode.dart';
+import 'package:exel_category/domain/value_objects/dataset_read_query.dart';
 import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,6 +29,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
   final SchemaRepository _schemaRepository;
   final FetchRowsUseCase _fetchRows;
   final ApplyFiltersUseCase _applyFilters;
+  final ExecuteReadOnlyQueryUseCase _executeReadOnlyQuery;
   final UpdateDatasetUiStateUseCase _updateDatasetUiState;
   final AnalysisService _analysisService;
 
@@ -32,12 +38,14 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     required SchemaRepository schemaRepository,
     required FetchRowsUseCase fetchRows,
     required ApplyFiltersUseCase applyFilters,
+    required ExecuteReadOnlyQueryUseCase executeReadOnlyQuery,
     required UpdateDatasetUiStateUseCase updateDatasetUiState,
     required AnalysisService analysisService,
   })  : _openDataset = openDataset,
         _schemaRepository = schemaRepository,
         _fetchRows = fetchRows,
         _applyFilters = applyFilters,
+        _executeReadOnlyQuery = executeReadOnlyQuery,
         _updateDatasetUiState = updateDatasetUiState,
         _analysisService = analysisService,
         super(const DatasetInitialState()) {
@@ -53,6 +61,12 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     on<ClearFiltersEvent>(_onClearFilters);
     on<ChangeSortEvent>(_onChangeSort);
     on<ToggleSortColumnEvent>(_onToggleSortColumn);
+    on<ChangeQueryModeEvent>(_onChangeQueryMode);
+    on<UpdateReadOnlyQueryEvent>(_onUpdateReadOnlyQuery);
+    on<ChangeReadOnlyQueryLimitEvent>(_onChangeReadOnlyQueryLimit);
+    on<RunReadOnlyQueryEvent>(_onRunReadOnlyQuery);
+    on<ClearReadOnlyQueryEvent>(_onClearReadOnlyQuery);
+    on<ResetReadOnlyQueryEvent>(_onResetReadOnlyQuery);
     on<LoadAnalyticsEvent>(_onLoadAnalytics);
     on<AddChartEvent>(_onAddChart);
     on<RemoveChartEvent>(_onRemoveChart);
@@ -364,6 +378,139 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     );
   }
 
+  Future<void> _onChangeQueryMode(
+    ChangeQueryModeEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+
+    emit(currentState.copyWith(
+      queryMode: event.mode,
+      readOnlyQueryErrorCode: null,
+    ));
+  }
+
+  Future<void> _onUpdateReadOnlyQuery(
+    UpdateReadOnlyQueryEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+
+    emit(currentState.copyWith(
+      readOnlyQuery: currentState.readOnlyQuery.copyWith(sql: event.sql),
+      readOnlyQueryErrorCode: null,
+    ));
+  }
+
+  Future<void> _onChangeReadOnlyQueryLimit(
+    ChangeReadOnlyQueryLimitEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState || event.limit <= 0) return;
+
+    emit(currentState.copyWith(
+      readOnlyQuery: currentState.readOnlyQuery.copyWith(limit: event.limit),
+      readOnlyQueryErrorCode: null,
+    ));
+  }
+
+  Future<void> _onRunReadOnlyQuery(
+    RunReadOnlyQueryEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+
+    emit(currentState.copyWith(
+      queryMode: DatasetQueryMode.sql,
+      isReadOnlyQueryRunning: true,
+      readOnlyQueryErrorCode: null,
+    ));
+
+    try {
+      final result = await _executeReadOnlyQuery.call(
+        sql: currentState.readOnlyQuery.sql,
+        activeTableName: currentState.activeTable.sqlTableName,
+        allowedTableNames: {
+          for (final table in currentState.tables) table.sqlTableName,
+        },
+        limit: currentState.readOnlyQuery.limit,
+      );
+      final rows = _stripInternalColumns(result.rows);
+
+      final latestState = state;
+      if (latestState is! DatasetLoadedState) return;
+      if (latestState.activeTable.id != currentState.activeTable.id) return;
+
+      emit(latestState.copyWith(
+        queryMode: DatasetQueryMode.sql,
+        isReadOnlyQueryRunning: false,
+        hasReadOnlyQueryRun: true,
+        readOnlyQueryErrorCode: null,
+        readOnlyQueryRows: rows,
+        readOnlyQueryColumns: _queryColumnsFromRows(
+          rows,
+          tableId: currentState.activeTable.id,
+        ),
+      ));
+    } on ReadOnlyQueryException catch (error) {
+      final latestState = state;
+      if (latestState is! DatasetLoadedState) return;
+
+      emit(latestState.copyWith(
+        queryMode: DatasetQueryMode.sql,
+        isReadOnlyQueryRunning: false,
+        hasReadOnlyQueryRun: true,
+        readOnlyQueryErrorCode: error.code,
+      ));
+    } catch (_) {
+      final latestState = state;
+      if (latestState is! DatasetLoadedState) return;
+
+      emit(latestState.copyWith(
+        queryMode: DatasetQueryMode.sql,
+        isReadOnlyQueryRunning: false,
+        hasReadOnlyQueryRun: true,
+        readOnlyQueryErrorCode: 'execution_failed',
+      ));
+    }
+  }
+
+  Future<void> _onClearReadOnlyQuery(
+    ClearReadOnlyQueryEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+
+    emit(currentState.copyWith(
+      readOnlyQuery: currentState.readOnlyQuery.copyWith(sql: ''),
+      hasReadOnlyQueryRun: false,
+      readOnlyQueryErrorCode: null,
+      readOnlyQueryRows: const [],
+      readOnlyQueryColumns: const [],
+    ));
+  }
+
+  Future<void> _onResetReadOnlyQuery(
+    ResetReadOnlyQueryEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+
+    emit(currentState.copyWith(
+      readOnlyQuery: const DatasetReadQuery(),
+      hasReadOnlyQueryRun: false,
+      readOnlyQueryErrorCode: null,
+      readOnlyQueryRows: const [],
+      readOnlyQueryColumns: const [],
+    ));
+  }
+
   Future<void> _reloadCurrentTable({
     required Emitter<DatasetState> emit,
     required DatasetLoadedState currentState,
@@ -575,6 +722,49 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
             if (entry.key != 'id') entry.key: entry.value,
         },
     ];
+  }
+
+  List<DatasetColumn> _queryColumnsFromRows(
+    List<Map<String, dynamic>> rows, {
+    required int tableId,
+  }) {
+    if (rows.isEmpty) {
+      return const [];
+    }
+
+    final columnNames = rows.fold<Set<String>>(
+      <String>{},
+      (names, row) => names..addAll(row.keys),
+    ).toList();
+
+    return [
+      for (int i = 0; i < columnNames.length; i++)
+        DatasetColumn(
+          id: -i - 1,
+          datasetTableId: tableId,
+          originalName: columnNames[i],
+          dbName: columnNames[i],
+          declaredType: _inferQueryColumnType(
+            rows.map((row) => row[columnNames[i]]),
+          ),
+          inferredType: _inferQueryColumnType(
+            rows.map((row) => row[columnNames[i]]),
+          ),
+          nullable: rows.any((row) => row[columnNames[i]] == null),
+        ),
+    ];
+  }
+
+  ColumnType _inferQueryColumnType(Iterable<dynamic> values) {
+    for (final value in values) {
+      if (value == null) continue;
+      if (value is bool) return ColumnType.boolean;
+      if (value is int) return ColumnType.integer;
+      if (value is num) return ColumnType.real;
+      if (value is DateTime) return ColumnType.date;
+    }
+
+    return ColumnType.text;
   }
 
   DatasetTable _activeTableFromUiState({

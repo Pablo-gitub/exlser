@@ -21,7 +21,8 @@ class DatasetWorkspaceUiState {
   final List<StoredDatasetFilter> filters;
   final StoredDatasetSort? sort;
   final Map<int, StoredTableWorkspaceState> tableStates;
-  @Deprecated('Charts are now stored per-table in StoredTableWorkspaceState. This field is kept only for backward compatibility with old datasets.')
+  @Deprecated(
+      'Charts are now stored per-table in StoredTableWorkspaceState. This field is kept only for backward compatibility with old datasets.')
   final List<StoredAnalyticsChart> charts;
 
   const DatasetWorkspaceUiState({
@@ -134,6 +135,9 @@ class DatasetWorkspaceUiState {
   String toJsonString() => jsonEncode(toJson());
 
   Map<String, dynamic> toJson() {
+    // ignore: deprecated_member_use_from_same_package
+    final legacyCharts = charts;
+
     return {
       'activeTableId': activeTableId,
       'viewMode': viewMode.name,
@@ -152,8 +156,8 @@ class DatasetWorkspaceUiState {
       // This line handles backward compatibility: if there are global charts,
       // they are migrated to per-table on next load via restoreCharts() fallback.
       // New charts are always stored in tableStates[...].charts
-      if (charts.isNotEmpty)
-        'charts': [for (final chart in charts) chart.toJson()],
+      if (legacyCharts.isNotEmpty)
+        'charts': [for (final chart in legacyCharts) chart.toJson()],
     };
   }
 
@@ -211,7 +215,7 @@ class DatasetWorkspaceUiState {
 
     // Fallback to deprecated global charts for backward compatibility
     // (These will only exist in datasets created with old code)
-    // ignore: deprecated_member_use
+    // ignore: deprecated_member_use_from_same_package
     return charts;
   }
 
@@ -219,8 +223,10 @@ class DatasetWorkspaceUiState {
   /// Returns a new DatasetWorkspaceUiState with charts moved from global to per-table.
   /// If activeTableId is provided, global charts are moved to that table.
   DatasetWorkspaceUiState migrateGlobalChartsToPerTable({int? activeTableId}) {
-    // ignore: deprecated_member_use
-    if (charts.isEmpty) {
+    // ignore: deprecated_member_use_from_same_package
+    final legacyCharts = charts;
+
+    if (legacyCharts.isEmpty) {
       return this; // Nothing to migrate
     }
 
@@ -229,7 +235,7 @@ class DatasetWorkspaceUiState {
     // Get or create per-table state for target table
     final existingTableState = _tableStateFor(targetTableId);
     final migratedTableState = StoredTableWorkspaceState(
-      charts: charts,
+      charts: legacyCharts,
       hiddenColumnDbNames: existingTableState?.hiddenColumnDbNames ?? const [],
       filters: existingTableState?.filters ?? const [],
       sort: existingTableState?.sort,

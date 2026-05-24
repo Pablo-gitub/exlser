@@ -399,19 +399,19 @@ a read-only SQL surface for advanced users.
 
 ### Scope
 
-- [ ] Add a `Filters / Query` tab selector in the Dataset workspace panel.
-- [ ] Keep guided filters as the default tab.
-- [ ] Add a query editor textarea in the Query tab.
-- [ ] Add actions: Run, Clear, Reset to current sheet.
-- [ ] Execute only read-only `SELECT` queries.
-- [ ] Block write or schema-changing statements: `INSERT`, `UPDATE`, `DELETE`,
+- [x] Add a `Filters / Query` tab selector in the Dataset workspace panel.
+- [x] Keep guided filters as the default tab.
+- [x] Add a query editor textarea in the Query tab.
+- [x] Add actions: Run, Clear, Reset to current sheet.
+- [x] Execute only read-only `SELECT` queries.
+- [x] Block write or schema-changing statements: `INSERT`, `UPDATE`, `DELETE`,
       `DROP`, `ALTER`, `CREATE`, `REPLACE`, `ATTACH`, `DETACH`, `PRAGMA`,
       `VACUUM`, and other unsafe statements.
-- [ ] Block multiple statements and semicolon-separated SQL.
-- [ ] Enforce a row limit for query results.
-- [ ] Show clear validation errors before execution when a query is rejected.
-- [ ] Reuse the existing results table to display query output.
-- [ ] Allow simple aggregate/count queries such as `COUNT(*)`.
+- [x] Block multiple statements and semicolon-separated SQL.
+- [x] Enforce a row limit for query results.
+- [x] Show clear validation errors before execution when a query is rejected.
+- [x] Reuse the existing results table to display query output.
+- [x] Allow simple aggregate/count queries such as `COUNT(*)`.
 - [ ] Persist the last query per sheet in `uiStateJson` only after the first
       safe implementation is stable.
 
@@ -420,16 +420,16 @@ a read-only SQL surface for advanced users.
 Goal: make expert query writing fast without requiring users to memorize
 database table and column names.
 
-- [ ] Show a compact schema helper beside or below the query editor.
-- [ ] Display the dataset database name or active query context.
-- [ ] Display all available sheet/table names.
+- [x] Show a compact schema helper beside or below the query editor.
+- [x] Display the dataset database name or active query context.
+- [x] Display all available sheet/table names.
 - [ ] For each sheet/table, display its available columns.
-- [ ] Make sheet/table names clickable so clicking inserts the table name into
+- [x] Make sheet/table names clickable so clicking inserts the table name into
       the query editor at the cursor position.
-- [ ] Make column names clickable so clicking inserts the column name into the
+- [x] Make active-sheet column names clickable so clicking inserts them into the
       query editor at the cursor position.
-- [ ] Quote or escape inserted identifiers consistently.
-- [ ] Highlight the currently active sheet.
+- [x] Quote or escape inserted identifiers consistently.
+- [x] Highlight the currently active sheet.
 - [ ] Consider an alias for the active sheet, for example:
 
 ```sql
@@ -444,28 +444,28 @@ feature safer and easier to use.
 
 ### Safety Rules
 
-- [ ] Prefer querying only the active sheet in the first implementation.
-- [ ] If cross-sheet queries are allowed later, restrict them to known dataset
+- [x] Prefer querying the active sheet through the `sheet` alias.
+- [x] If cross-sheet queries are allowed later, restrict them to known dataset
       tables owned by the opened dataset.
-- [ ] Do not expose internal app tables directly.
-- [ ] Validate SQL before execution with a conservative read-only validator.
-- [ ] If the validator cannot confidently prove the query is safe, reject it.
-- [ ] Never allow write access from the Query tab.
+- [x] Do not expose internal app tables directly.
+- [x] Validate SQL before execution with a conservative read-only validator.
+- [x] If the validator cannot confidently prove the query is safe, reject it.
+- [x] Never allow write access from the Query tab.
 
 ### Architecture Notes
 
 Recommended building blocks:
 
-- [ ] `DatasetQueryMode` value object: `filters` / `sql`.
-- [ ] `DatasetReadQuery` value object for the query text and result limit.
-- [ ] `ReadOnlySqlValidator`.
-- [ ] `ExecuteReadOnlyQueryUseCase`.
-- [ ] Dataset BLoC events:
+- [x] `DatasetQueryMode` value object: `filters` / `sql`.
+- [x] `DatasetReadQuery` value object for the query text and result limit.
+- [x] `ReadOnlySqlValidator`.
+- [x] `ExecuteReadOnlyQueryUseCase`.
+- [x] Dataset BLoC events:
       - `ChangeQueryModeEvent`
       - `UpdateReadOnlyQueryEvent`
       - `RunReadOnlyQueryEvent`
       - `ClearReadOnlyQueryEvent`
-- [ ] Dataset BLoC state fields:
+- [x] Dataset BLoC state fields:
       - active query mode
       - query text
       - query loading state
@@ -474,14 +474,15 @@ Recommended building blocks:
 
 ### Definition of Done
 
-- [ ] A user can switch between guided filters and expert query mode.
-- [ ] A user can run safe read-only SELECT queries.
-- [ ] Unsafe SQL is blocked with an understandable message.
-- [ ] Query results are displayed in the workspace table.
-- [ ] Clicking a table or column name inserts it into the query editor.
-- [ ] Query execution has tests for accepted SELECT queries.
-- [ ] Query validation has tests for blocked write/schema statements.
-- [ ] The feature does not allow mutation of dataset or app metadata tables.
+- [x] A user can switch between guided filters and expert query mode.
+- [x] A user can run safe read-only SELECT queries.
+- [x] Unsafe SQL is blocked with an understandable message.
+- [x] Query results are displayed in the workspace table.
+- [x] Clicking a table or active-sheet column name inserts it into the query
+      editor.
+- [x] Query execution has tests for accepted SELECT queries.
+- [x] Query validation has tests for blocked write/schema statements.
+- [x] The feature does not allow mutation of dataset or app metadata tables.
 
 ### Milestone Reached: v0.2.0 - Filtering and Sorting
 

@@ -35,6 +35,7 @@
         "add": "Aggiungi",
         "clear": "Svuota",
         "apply": "Applica",
+        "run": "Esegui",
         "close": "Chiudi",
         "expand": "Espandi"
     },
@@ -122,6 +123,31 @@
                     "is_not_empty": "non è vuoto",
                     "is_true": "è vero",
                     "is_false": "è falso"
+                }
+            },
+            "query": {
+                "tabs": {
+                    "filters": "Filtri",
+                    "sql": "Query"
+                },
+                "title": "Query in sola lettura",
+                "intro": "Scrivi una query SELECT per analisi avanzate. Sono permesse solo query in lettura e i risultati sono limitati.",
+                "editor": "Query SQL",
+                "limit": "Righe massime",
+                "reset": "Riparti dal foglio corrente",
+                "result_count": "{count} righe restituite",
+                "schema": "Aiuto schema",
+                "active_context": "Usa sheet come alias del foglio corrente: {table}",
+                "insert_table": "Inserisci nome tabella",
+                "empty_result": "Esegui una query per mostrare qui i risultati.",
+                "errors": {
+                    "empty": "Scrivi una query SELECT prima di eseguirla.",
+                    "not_select": "Sono permesse solo query SELECT.",
+                    "unsafe_statement": "Questa query contiene un comando SQL bloccato.",
+                    "multiple_statements": "Esegui una sola query SELECT alla volta, senza commenti o punto e virgola.",
+                    "unknown_table": "Usa solo tabelle che appartengono a questo dataset.",
+                    "invalid_limit": "Inserisci un limite righe positivo.",
+                    "execution_failed": "Impossibile eseguire questa query."
                 }
             },
             "error": {

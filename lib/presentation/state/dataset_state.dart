@@ -4,6 +4,8 @@ import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';
 import 'package:exel_category/domain/entities/dataset_table.dart';
 import 'package:exel_category/domain/value_objects/dataset_filter.dart';
+import 'package:exel_category/domain/value_objects/dataset_query_mode.dart';
+import 'package:exel_category/domain/value_objects/dataset_read_query.dart';
 import 'package:exel_category/domain/value_objects/dataset_sort.dart';
 
 enum DatasetViewMode {
@@ -45,7 +47,9 @@ class AnalyticsChart {
       suggestion: suggestion ?? this.suggestion,
       chartData: chartData ?? this.chartData,
       isLoading: isLoading ?? this.isLoading,
-      error: identical(error, _errorNotProvided) ? this.error : error as ChartLoadError?,
+      error: identical(error, _errorNotProvided)
+          ? this.error
+          : error as ChartLoadError?,
     );
   }
 }
@@ -114,6 +118,13 @@ class DatasetLoadedState extends DatasetState {
   final List<DatasetFilter> filters;
   final DatasetSort? sort;
   final DatasetAnalyticsState analyticsState;
+  final DatasetQueryMode queryMode;
+  final DatasetReadQuery readOnlyQuery;
+  final bool isReadOnlyQueryRunning;
+  final bool hasReadOnlyQueryRun;
+  final String? readOnlyQueryErrorCode;
+  final List<DatasetColumn> readOnlyQueryColumns;
+  final List<Map<String, dynamic>> readOnlyQueryRows;
 
   const DatasetLoadedState({
     required this.dataset,
@@ -129,6 +140,13 @@ class DatasetLoadedState extends DatasetState {
     this.filters = const [],
     this.sort,
     this.analyticsState = const DatasetAnalyticsIdleState(),
+    this.queryMode = DatasetQueryMode.filters,
+    this.readOnlyQuery = const DatasetReadQuery(),
+    this.isReadOnlyQueryRunning = false,
+    this.hasReadOnlyQueryRun = false,
+    this.readOnlyQueryErrorCode,
+    this.readOnlyQueryColumns = const [],
+    this.readOnlyQueryRows = const [],
   });
 
   List<DatasetColumn> get visibleColumns => [
@@ -150,6 +168,8 @@ class DatasetLoadedState extends DatasetState {
 
   bool get canGoToNextPage => pageIndex + 1 < pageCount;
 
+  bool get isReadOnlyQueryMode => queryMode == DatasetQueryMode.sql;
+
   DatasetLoadedState copyWith({
     Dataset? dataset,
     List<DatasetTable>? tables,
@@ -164,6 +184,13 @@ class DatasetLoadedState extends DatasetState {
     List<DatasetFilter>? filters,
     Object? sort = _sortNotProvided,
     DatasetAnalyticsState? analyticsState,
+    DatasetQueryMode? queryMode,
+    DatasetReadQuery? readOnlyQuery,
+    bool? isReadOnlyQueryRunning,
+    bool? hasReadOnlyQueryRun,
+    Object? readOnlyQueryErrorCode = _readOnlyQueryErrorNotProvided,
+    List<DatasetColumn>? readOnlyQueryColumns,
+    List<Map<String, dynamic>>? readOnlyQueryRows,
   }) {
     return DatasetLoadedState(
       dataset: dataset ?? this.dataset,
@@ -180,11 +207,23 @@ class DatasetLoadedState extends DatasetState {
       sort:
           identical(sort, _sortNotProvided) ? this.sort : sort as DatasetSort?,
       analyticsState: analyticsState ?? this.analyticsState,
+      queryMode: queryMode ?? this.queryMode,
+      readOnlyQuery: readOnlyQuery ?? this.readOnlyQuery,
+      isReadOnlyQueryRunning:
+          isReadOnlyQueryRunning ?? this.isReadOnlyQueryRunning,
+      hasReadOnlyQueryRun: hasReadOnlyQueryRun ?? this.hasReadOnlyQueryRun,
+      readOnlyQueryErrorCode:
+          identical(readOnlyQueryErrorCode, _readOnlyQueryErrorNotProvided)
+              ? this.readOnlyQueryErrorCode
+              : readOnlyQueryErrorCode as String?,
+      readOnlyQueryColumns: readOnlyQueryColumns ?? this.readOnlyQueryColumns,
+      readOnlyQueryRows: readOnlyQueryRows ?? this.readOnlyQueryRows,
     );
   }
 }
 
 const Object _sortNotProvided = Object();
+const Object _readOnlyQueryErrorNotProvided = Object();
 
 class DatasetErrorState extends DatasetState {
   final String code;

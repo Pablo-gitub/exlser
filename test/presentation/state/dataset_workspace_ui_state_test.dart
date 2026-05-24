@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:exel_category/domain/entities/chart_suggestion.dart';
 import 'package:exel_category/domain/entities/dataset.dart';
 import 'package:exel_category/domain/entities/dataset_column.dart';

@@ -19,6 +19,7 @@ import 'package:exel_category/domain/usecases/export/export_json_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_pdf_usecase.dart';
 import 'package:exel_category/domain/usecases/export/export_sql_usecase.dart';
 import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
+import 'package:exel_category/domain/usecases/query/execute_read_only_query_usecase.dart';
 import 'package:exel_category/domain/usecases/query/fetch_rows_usecase.dart';
 import 'package:exel_category/domain/usecases/query/get_distinct_values_usecase.dart';
 import 'package:exel_category/domain/usecases/schema/build_dynamic_table_usecase.dart';
@@ -131,6 +132,13 @@ final fetchRowsUseCaseProvider = Provider<FetchRowsUseCase>((ref) {
 
 final applyFiltersUseCaseProvider = Provider<ApplyFiltersUseCase>((ref) {
   return ApplyFiltersUseCase(
+    repository: ref.watch(queryRepositoryProvider),
+  );
+});
+
+final executeReadOnlyQueryUseCaseProvider =
+    Provider<ExecuteReadOnlyQueryUseCase>((ref) {
+  return ExecuteReadOnlyQueryUseCase(
     repository: ref.watch(queryRepositoryProvider),
   );
 });
