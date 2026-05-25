@@ -33,7 +33,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
           );
         },
       ),
-      title: Text(title),
+      title: _AppBarTitle(title: title),
       centerTitle: true,
       actions: actions,
     );
@@ -41,4 +41,32 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _AppBarTitle extends StatelessWidget {
+  final String title;
+
+  const _AppBarTitle({
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (title.trim().toLowerCase() != 'exlser') {
+      return Text(title);
+    }
+
+    return Semantics(
+      label: title,
+      image: true,
+      child: ExcludeSemantics(
+        child: Image.asset(
+          'assets/images/Exlser_wordmark.png',
+          height: 36,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+        ),
+      ),
+    );
+  }
 }
