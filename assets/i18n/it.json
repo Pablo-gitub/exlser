@@ -42,7 +42,13 @@
     "menu": {
         "home": "Home",
         "works": "Lavori",
-        "settings": "Impostazioni"
+        "settings": "Impostazioni",
+        "developer": "Sviluppatore",
+        "developer_website": "paolopietrelli.com",
+        "open_website": "Apri sito web",
+        "open_github": "Apri GitHub",
+        "open_linkedin": "Apri LinkedIn",
+        "open_instagram": "Apri Instagram"
     },
     "works": {
         "empty": "Qui verrà mostrata la tua lista lavori",

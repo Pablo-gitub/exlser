@@ -42,7 +42,13 @@
     "menu": {
         "home": "首页",
         "works": "工作",
-        "settings": "设置"
+        "settings": "设置",
+        "developer": "开发者",
+        "developer_website": "paolopietrelli.com",
+        "open_website": "打开网站",
+        "open_github": "打开 GitHub",
+        "open_linkedin": "打开 LinkedIn",
+        "open_instagram": "打开 Instagram"
     },
     "works": {
         "empty": "这里将显示你的工作列表",

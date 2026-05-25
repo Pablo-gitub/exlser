@@ -42,7 +42,13 @@
     "menu": {
         "home": "Главная",
         "works": "Работы",
-        "settings": "Настройки"
+        "settings": "Настройки",
+        "developer": "Разработчик",
+        "developer_website": "paolopietrelli.com",
+        "open_website": "Открыть сайт",
+        "open_github": "Открыть GitHub",
+        "open_linkedin": "Открыть LinkedIn",
+        "open_instagram": "Открыть Instagram"
     },
     "works": {
         "empty": "Здесь будет показан список ваших работ",

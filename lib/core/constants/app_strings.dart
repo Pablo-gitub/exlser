@@ -31,6 +31,12 @@ class AppStrings {
   static const String home = 'menu.home';
   static const String works = 'menu.works';
   static const String settings = 'menu.settings';
+  static const String developer = 'menu.developer';
+  static const String developerWebsite = 'menu.developer_website';
+  static const String openWebsite = 'menu.open_website';
+  static const String openGithub = 'menu.open_github';
+  static const String openLinkedin = 'menu.open_linkedin';
+  static const String openInstagram = 'menu.open_instagram';
 
   static const String noWorksYet = 'works.empty';
   static const String goHome = 'works.go_home';

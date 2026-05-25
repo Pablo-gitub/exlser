@@ -42,7 +42,13 @@
     "menu": {
         "home": "Start",
         "works": "Arbeiten",
-        "settings": "Einstellungen"
+        "settings": "Einstellungen",
+        "developer": "Entwickler",
+        "developer_website": "paolopietrelli.com",
+        "open_website": "Website öffnen",
+        "open_github": "GitHub öffnen",
+        "open_linkedin": "LinkedIn öffnen",
+        "open_instagram": "Instagram öffnen"
     },
     "works": {
         "empty": "Hier wird Ihre Liste der Arbeiten angezeigt",
