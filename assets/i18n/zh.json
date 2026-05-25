@@ -244,15 +244,15 @@
     },
     "settings": {
         "language": "语言",
-        "language_english": "英语",
-        "language_italian": "意大利语",
-        "language_spanish": "西班牙语",
-        "language_french": "法语",
-        "language_german": "德语",
+        "language_english": "English",
+        "language_italian": "Italiano",
+        "language_spanish": "Español",
+        "language_french": "Français",
+        "language_german": "Deutsch",
         "language_chinese": "中文",
-        "language_russian": "俄语",
-        "language_japanese": "日语",
-        "language_portuguese": "葡萄牙语"
+        "language_russian": "Русский",
+        "language_japanese": "日本語",
+        "language_portuguese": "Português"
     },
     "import": {
         "title": "创建新 dataset",

@@ -244,14 +244,14 @@
     },
     "settings": {
         "language": "Idioma",
-        "language_english": "Inglês",
+        "language_english": "English",
         "language_italian": "Italiano",
-        "language_spanish": "Espanhol",
-        "language_french": "Francês",
-        "language_german": "Alemão",
-        "language_chinese": "Chinês",
-        "language_russian": "Russo",
-        "language_japanese": "Japonês",
+        "language_spanish": "Español",
+        "language_french": "Français",
+        "language_german": "Deutsch",
+        "language_chinese": "中文",
+        "language_russian": "Русский",
+        "language_japanese": "日本語",
         "language_portuguese": "Português"
     },
     "import": {

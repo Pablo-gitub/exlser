@@ -244,15 +244,15 @@
     },
     "settings": {
         "language": "Sprache",
-        "language_english": "Englisch",
-        "language_italian": "Italienisch",
-        "language_spanish": "Spanisch",
-        "language_french": "Französisch",
+        "language_english": "English",
+        "language_italian": "Italiano",
+        "language_spanish": "Español",
+        "language_french": "Français",
         "language_german": "Deutsch",
-        "language_chinese": "Chinesisch",
-        "language_russian": "Russisch",
-        "language_japanese": "Japanisch",
-        "language_portuguese": "Portugiesisch"
+        "language_chinese": "中文",
+        "language_russian": "Русский",
+        "language_japanese": "日本語",
+        "language_portuguese": "Português"
     },
     "import": {
         "title": "Neues Dataset erstellen",
