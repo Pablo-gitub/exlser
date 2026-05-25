@@ -139,6 +139,7 @@
                 "schema": "Schema helper",
                 "active_context": "Use sheet as an alias for the current sheet: {table}",
                 "insert_table": "Insert table name",
+                "insert_column": "Insert column name",
                 "empty_result": "Run a query to show results here.",
                 "errors": {
                     "empty": "Write a SELECT query before running it.",

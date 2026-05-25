@@ -217,6 +217,8 @@ class AppStrings {
       'dataset.workspace.query.active_context';
   static const String datasetWorkspaceQueryInsertTable =
       'dataset.workspace.query.insert_table';
+  static const String datasetWorkspaceQueryInsertColumn =
+      'dataset.workspace.query.insert_column';
   static const String datasetWorkspaceQueryEmptyResult =
       'dataset.workspace.query.empty_result';
   static const String datasetWorkspaceQueryErrorEmpty =

@@ -109,6 +109,7 @@ class DatasetLoadedState extends DatasetState {
   final List<DatasetTable> tables;
   final DatasetTable activeTable;
   final List<DatasetColumn> columns;
+  final Map<int, List<DatasetColumn>> columnsByTableId;
   final List<Map<String, dynamic>> rows;
   final DatasetViewMode viewMode;
   final int rowLimit;
@@ -131,6 +132,7 @@ class DatasetLoadedState extends DatasetState {
     required this.tables,
     required this.activeTable,
     required this.columns,
+    this.columnsByTableId = const {},
     required this.rows,
     required this.viewMode,
     required this.rowLimit,
@@ -175,6 +177,7 @@ class DatasetLoadedState extends DatasetState {
     List<DatasetTable>? tables,
     DatasetTable? activeTable,
     List<DatasetColumn>? columns,
+    Map<int, List<DatasetColumn>>? columnsByTableId,
     List<Map<String, dynamic>>? rows,
     DatasetViewMode? viewMode,
     int? rowLimit,
@@ -197,6 +200,7 @@ class DatasetLoadedState extends DatasetState {
       tables: tables ?? this.tables,
       activeTable: activeTable ?? this.activeTable,
       columns: columns ?? this.columns,
+      columnsByTableId: columnsByTableId ?? this.columnsByTableId,
       rows: rows ?? this.rows,
       viewMode: viewMode ?? this.viewMode,
       rowLimit: rowLimit ?? this.rowLimit,

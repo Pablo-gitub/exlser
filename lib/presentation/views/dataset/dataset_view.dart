@@ -873,38 +873,71 @@ class _QuerySchemaHelper extends StatelessWidget {
                   tooltip: AppStrings.datasetWorkspaceQueryInsertTable.tr(),
                   onPressed: () => onInsert('sheet'),
                 ),
-                for (final table in state.tables)
-                  ActionChip(
-                    avatar: Icon(
-                      table.id == state.activeTable.id
-                          ? Icons.article
-                          : Icons.article_outlined,
-                      size: 18,
-                    ),
-                    label: Text(table.sheetNameOriginal),
-                    tooltip: table.sqlTableName,
-                    onPressed: () =>
-                        onInsert(_quoteIdentifier(table.sqlTableName)),
-                  ),
               ],
             ),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final column in state.columns)
-                  ActionChip(
-                    avatar: const Icon(Icons.view_column_outlined, size: 18),
-                    label: Text(column.originalName),
-                    tooltip: column.dbName,
-                    onPressed: () => onInsert(_quoteIdentifier(column.dbName)),
-                  ),
-              ],
-            ),
+            for (final table in state.tables) ...[
+              _QuerySchemaTableRow(
+                table: table,
+                columns: state.columnsByTableId[table.id] ??
+                    (table.id == state.activeTable.id
+                        ? state.columns
+                        : const <DatasetColumn>[]),
+                isActive: table.id == state.activeTable.id,
+                onInsert: onInsert,
+              ),
+              if (table.id != state.tables.last.id) const SizedBox(height: 8),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _QuerySchemaTableRow extends StatelessWidget {
+  final DatasetTable table;
+  final List<DatasetColumn> columns;
+  final bool isActive;
+  final ValueChanged<String> onInsert;
+
+  const _QuerySchemaTableRow({
+    required this.table,
+    required this.columns,
+    required this.isActive,
+    required this.onInsert,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        ActionChip(
+          avatar: Icon(
+            isActive ? Icons.article : Icons.article_outlined,
+            size: 18,
+          ),
+          label: Text(table.sheetNameOriginal),
+          tooltip: '${AppStrings.datasetWorkspaceQueryInsertTable.tr()}: '
+              '${table.sqlTableName}',
+          onPressed: () => onInsert(_quoteIdentifier(table.sqlTableName)),
+        ),
+        Text(
+          ':',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        for (final column in columns)
+          ActionChip(
+            avatar: const Icon(Icons.view_column_outlined, size: 18),
+            label: Text(column.originalName),
+            tooltip: '${AppStrings.datasetWorkspaceQueryInsertColumn.tr()}: '
+                '${table.sqlTableName}.${column.dbName}',
+            onPressed: () => onInsert(_quoteIdentifier(column.dbName)),
+          ),
+      ],
     );
   }
 }

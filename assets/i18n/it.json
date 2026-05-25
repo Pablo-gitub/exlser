@@ -139,6 +139,7 @@
                 "schema": "Aiuto schema",
                 "active_context": "Usa sheet come alias del foglio corrente: {table}",
                 "insert_table": "Inserisci nome tabella",
+                "insert_column": "Inserisci nome colonna",
                 "empty_result": "Esegui una query per mostrare qui i risultati.",
                 "errors": {
                     "empty": "Scrivi una query SELECT prima di eseguirla.",

@@ -140,6 +140,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         dataset: currentState.dataset,
         tables: currentState.tables,
         activeTable: nextTable,
+        columnsByTableId: currentState.columnsByTableId,
         viewMode: currentState.viewMode,
         rowLimit: currentState.rowLimit,
         pageIndex: 0,
@@ -173,6 +174,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         dataset: currentState.dataset,
         tables: currentState.tables,
         activeTable: currentState.activeTable,
+        columnsByTableId: currentState.columnsByTableId,
         viewMode: currentState.viewMode,
         rowLimit: currentState.rowLimit,
         pageIndex: currentState.pageIndex,
@@ -583,6 +585,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     required Dataset dataset,
     required List<DatasetTable> tables,
     required DatasetTable activeTable,
+    Map<int, List<DatasetColumn>>? columnsByTableId,
     required DatasetViewMode viewMode,
     required int rowLimit,
     required int pageIndex,
@@ -590,7 +593,19 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     required DatasetSort? sort,
     DatasetWorkspaceUiState? workspaceState,
   }) async {
-    final columns = await _schemaRepository.getColumnsForTable(activeTable.id);
+    final cachedColumnsByTableId = columnsByTableId ?? const {};
+    final columns = cachedColumnsByTableId[activeTable.id] ??
+        await _schemaRepository.getColumnsForTable(activeTable.id);
+    final allColumnsByTableId = cachedColumnsByTableId.isEmpty
+        ? await _loadColumnsByTableId(
+            tables: tables,
+            activeTable: activeTable,
+            activeColumns: columns,
+          )
+        : {
+            ...cachedColumnsByTableId,
+            activeTable.id: columns,
+          };
     final activeFilters =
         workspaceState?.restoreFilters(columns, tableId: activeTable.id) ??
             filters;
@@ -623,6 +638,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       tables: tables,
       activeTable: activeTable,
       columns: columns,
+      columnsByTableId: allColumnsByTableId,
       rows: _stripInternalColumns(rows),
       viewMode: viewMode,
       rowLimit: rowLimit,
@@ -632,6 +648,31 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       filters: activeFilters,
       sort: activeSort,
     );
+  }
+
+  Future<Map<int, List<DatasetColumn>>> _loadColumnsByTableId({
+    required List<DatasetTable> tables,
+    required DatasetTable activeTable,
+    required List<DatasetColumn> activeColumns,
+  }) async {
+    final columnsByTableId = <int, List<DatasetColumn>>{
+      activeTable.id: activeColumns,
+    };
+
+    for (final table in tables) {
+      if (table.id == activeTable.id) {
+        continue;
+      }
+
+      try {
+        columnsByTableId[table.id] =
+            await _schemaRepository.getColumnsForTable(table.id);
+      } catch (_) {
+        columnsByTableId[table.id] = const [];
+      }
+    }
+
+    return columnsByTableId;
   }
 
   Future<List<Map<String, dynamic>>> _loadRows({
