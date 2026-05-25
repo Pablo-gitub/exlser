@@ -238,6 +238,13 @@ class AppStrings {
 
   static const String languageEnglish = 'settings.language_english';
   static const String languageItalian = 'settings.language_italian';
+  static const String languageSpanish = 'settings.language_spanish';
+  static const String languageFrench = 'settings.language_french';
+  static const String languageGerman = 'settings.language_german';
+  static const String languageChinese = 'settings.language_chinese';
+  static const String languageRussian = 'settings.language_russian';
+  static const String languageJapanese = 'settings.language_japanese';
+  static const String languagePortuguese = 'settings.language_portuguese';
   static const String languageLabel = 'settings.language';
 
   static const String homeDropFile = 'home.drop_file';

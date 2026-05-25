@@ -245,7 +245,14 @@
     "settings": {
         "language": "Lingua",
         "language_english": "Inglese",
-        "language_italian": "Italiano"
+        "language_italian": "Italiano",
+        "language_spanish": "Spagnolo",
+        "language_french": "Francese",
+        "language_german": "Tedesco",
+        "language_chinese": "Cinese",
+        "language_russian": "Russo",
+        "language_japanese": "Giapponese",
+        "language_portuguese": "Portoghese"
     },
     "import": {
         "title": "Crea nuovo dataset",

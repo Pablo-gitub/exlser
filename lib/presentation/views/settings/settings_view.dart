@@ -47,17 +47,41 @@ class SettingsView extends StatelessWidget {
                       border: OutlineInputBorder(),
                     ),
                     items: [
-                      DropdownMenuItem(
-                        value: const Locale('en'),
-                        child: Text(
-                          AppStrings.languageEnglish.tr(),
-                        ),
+                      _languageItem(
+                        locale: const Locale('en'),
+                        labelKey: AppStrings.languageEnglish,
                       ),
-                      DropdownMenuItem(
-                        value: const Locale('it'),
-                        child: Text(
-                          AppStrings.languageItalian.tr(),
-                        ),
+                      _languageItem(
+                        locale: const Locale('it'),
+                        labelKey: AppStrings.languageItalian,
+                      ),
+                      _languageItem(
+                        locale: const Locale('es'),
+                        labelKey: AppStrings.languageSpanish,
+                      ),
+                      _languageItem(
+                        locale: const Locale('fr'),
+                        labelKey: AppStrings.languageFrench,
+                      ),
+                      _languageItem(
+                        locale: const Locale('de'),
+                        labelKey: AppStrings.languageGerman,
+                      ),
+                      _languageItem(
+                        locale: const Locale('zh'),
+                        labelKey: AppStrings.languageChinese,
+                      ),
+                      _languageItem(
+                        locale: const Locale('ru'),
+                        labelKey: AppStrings.languageRussian,
+                      ),
+                      _languageItem(
+                        locale: const Locale('ja'),
+                        labelKey: AppStrings.languageJapanese,
+                      ),
+                      _languageItem(
+                        locale: const Locale('pt'),
+                        labelKey: AppStrings.languagePortuguese,
                       ),
                     ],
                     onChanged: (locale) {
@@ -72,6 +96,16 @@ class SettingsView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  DropdownMenuItem<Locale> _languageItem({
+    required Locale locale,
+    required String labelKey,
+  }) {
+    return DropdownMenuItem(
+      value: locale,
+      child: Text(labelKey.tr()),
     );
   }
 }

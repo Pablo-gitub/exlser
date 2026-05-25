@@ -99,6 +99,13 @@ flutter:
     - assets/
     - assets/i18n/en.json
     - assets/i18n/it.json
+    - assets/i18n/es.json
+    - assets/i18n/fr.json
+    - assets/i18n/de.json
+    - assets/i18n/zh.json
+    - assets/i18n/ru.json
+    - assets/i18n/ja.json
+    - assets/i18n/pt.json
     - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
