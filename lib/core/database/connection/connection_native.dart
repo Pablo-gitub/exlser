@@ -20,7 +20,7 @@ QueryExecutor openConnectionImpl() {
     final dbFolder = await getApplicationDocumentsDirectory();
 
     final file = File(
-      p.join(dbFolder.path, 'excel_category.sqlite'),
+      p.join(dbFolder.path, 'exlser.sqlite'),
     );
 
     return NativeDatabase(file);

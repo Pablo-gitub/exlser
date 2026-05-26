@@ -773,9 +773,8 @@ Repository readiness check:
   local Flutter SDK this means target SDK 36, which is above the current
   Google Play minimum requirement for new apps.
 - [x] The Android GitHub Action currently builds split APKs for GitHub releases.
-- [ ] Repository and project naming still use `exel_category` / `excel_category`
-  in places instead of the final `exlser` identity.
-- [ ] Android package name is still `com.example.exel_category`.
+- [x] Repository and project naming use the final `exlser` identity in tracked public metadata.
+- [x] Android package name is set to `com.paolopietrelli.exlser`.
 - [ ] Release builds are still signed with the debug signing config.
 - [ ] The GitHub Action does not yet build an Android App Bundle (`.aab`).
 - [ ] Play Console store listing, privacy policy, app content declarations,
@@ -786,41 +785,41 @@ Repository readiness check:
 Goal: align the public project identity with the final product name before
 publishing.
 
-- [ ] Rename the GitHub repository from `exel_category` / `excel_category` to
+- [x] Rename the GitHub repository from `exel_category` / `excel_category` to
   `exlser`.
-- [ ] Update the local checkout folder name to `exlser`.
-- [ ] Update the local Git remote URL after the GitHub repository rename.
+- [x] Update the local checkout folder name to `exlser`.
+- [x] Update the local Git remote URL after the GitHub repository rename.
 - [x] Decide whether to rename the Dart package in `pubspec.yaml` from
   `exel_category` to `exlser`.
 - [x] If the Dart package name changes, update all `package:exel_category/...`
   imports.
-- [ ] Update README, changelog, roadmap, GitHub Actions names, badges, release
+- [x] Update README, changelog, roadmap, GitHub Actions names, badges, release
   artifact names, and documentation references that still mention the old
   project name.
-- [ ] Verify that the app still builds and tests after the repository/project
+- [x] Verify that the app still builds and tests after the repository/project
   rename.
 
 Definition of done:
 
-- [ ] GitHub, local folder, documentation, workflows, and package metadata use
+- [x] GitHub, local folder, documentation, workflows, and package metadata use
   `exlser` consistently where the final public product identity is needed.
-- [ ] No user-facing or public release artifact still presents the old project
+- [x] No user-facing or public release artifact still presents the old project
   name.
 
 ### 2. Lock the Android Identity
 
 Goal: choose the permanent package identity before the first Play upload.
 
-- [ ] Choose the final Play package name/application ID.
-- [ ] Update `android/app/build.gradle.kts` `namespace`.
-- [ ] Update `android/app/build.gradle.kts` `applicationId`.
-- [ ] Update the Kotlin package under `android/app/src/main/kotlin/...`.
-- [ ] Verify that the app still launches after the package rename.
+- [x] Choose the final Play package name/application ID.
+- [x] Update `android/app/build.gradle.kts` `namespace`.
+- [x] Update `android/app/build.gradle.kts` `applicationId`.
+- [x] Update the Kotlin package under `android/app/src/main/kotlin/...`.
+- [x] Verify that the Android debug build still works after the package rename.
 
 Definition of done:
 
-- [ ] The project no longer contains `com.example.exel_category`.
-- [ ] The selected package name is considered permanent for Google Play.
+- [x] The project no longer contains `com.example.exel_category`.
+- [x] The selected package name is considered permanent for Google Play.
 
 ### 3. Add Release Signing
 

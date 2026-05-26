@@ -13,7 +13,7 @@ import 'package:drift/wasm.dart';
 QueryExecutor openConnectionImpl() {
   return LazyDatabase(() async {
     final db = await WasmDatabase.open(
-      databaseName: 'excel_category',
+      databaseName: 'exlser',
 
       // Path to the SQLite WASM binary
       sqlite3Uri: Uri.parse('sqlite3.wasm'),

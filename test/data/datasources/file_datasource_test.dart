@@ -58,7 +58,7 @@ void main() {
     test('should copy a path-based import into app storage', () async {
       final importedAt = DateTime(2026, 1, 2);
       tempDirectory = await Directory.systemTemp.createTemp(
-        'exel_category_file_datasource_',
+        'exlser_file_datasource_',
       );
       final sourceFile = File(p.join(tempDirectory!.path, 'source.csv'));
       await sourceFile.writeAsBytes([1, 2, 3, 4]);
@@ -92,7 +92,7 @@ void main() {
 
     test('should avoid overwriting copied files with the same name', () async {
       tempDirectory = await Directory.systemTemp.createTemp(
-        'exel_category_file_datasource_',
+        'exlser_file_datasource_',
       );
       final sourceFile = File(p.join(tempDirectory!.path, 'source.csv'));
       await sourceFile.writeAsString('content');
@@ -120,7 +120,7 @@ void main() {
 
     test('should throw when copying a missing source file', () async {
       tempDirectory = await Directory.systemTemp.createTemp(
-        'exel_category_file_datasource_',
+        'exlser_file_datasource_',
       );
       datasource = FileDatasource(
         storageRootPath: tempDirectory!.path,

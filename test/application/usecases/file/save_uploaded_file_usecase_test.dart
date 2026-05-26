@@ -48,7 +48,7 @@ void main() {
         () async {
       final importedAt = DateTime(2026, 1, 2);
       tempDirectory = await Directory.systemTemp.createTemp(
-        'exel_category_save_file_',
+        'exlser_save_file_',
       );
       final sourceFile = File(p.join(tempDirectory!.path, 'source.csv'));
       await sourceFile.writeAsBytes([1, 2, 3]);
