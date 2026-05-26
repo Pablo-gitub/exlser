@@ -1,6 +1,6 @@
-import 'package:exel_category/domain/entities/dataset.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/entities/dataset_table.dart';
+import 'package:exlser/domain/entities/dataset.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/dataset_table.dart';
 
 class ExportDatasetData {
   final Dataset dataset;

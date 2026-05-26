@@ -1,6 +1,6 @@
 import 'package:drift/native.dart';
-import 'package:exel_category/core/database/app_database.dart';
-import 'package:exel_category/core/database/daos/dataset_files_dao.dart';
+import 'package:exlser/core/database/app_database.dart';
+import 'package:exlser/core/database/daos/dataset_files_dao.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

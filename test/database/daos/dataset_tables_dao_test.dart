@@ -1,8 +1,8 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exel_category/core/database/app_database.dart';
-import 'package:exel_category/core/database/daos/dataset_tables_dao.dart';
+import 'package:exlser/core/database/app_database.dart';
+import 'package:exlser/core/database/daos/dataset_tables_dao.dart';
 
 void main() {
   late AppDatabase database;

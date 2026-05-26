@@ -1,4 +1,4 @@
-import 'package:exel_category/domain/repositories/datasets_repository.dart';
+import 'package:exlser/domain/repositories/datasets_repository.dart';
 
 class UpdateDatasetUiStateUseCase {
   final DatasetsRepository repository;

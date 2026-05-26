@@ -1,6 +1,6 @@
-import 'package:exel_category/domain/entities/dataset_file.dart';
-import 'package:exel_category/domain/entities/source_file_reference.dart';
-import 'package:exel_category/domain/repositories/dataset_file_repository.dart';
+import 'package:exlser/domain/entities/dataset_file.dart';
+import 'package:exlser/domain/entities/source_file_reference.dart';
+import 'package:exlser/domain/repositories/dataset_file_repository.dart';
 
 class RegisterDatasetFileUseCase {
   final DatasetFileRepository repository;

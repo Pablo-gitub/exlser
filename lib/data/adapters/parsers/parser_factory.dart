@@ -1,6 +1,6 @@
-import 'package:exel_category/data/adapters/parsers/csv_parser.dart';
-import 'package:exel_category/data/adapters/parsers/excel_parser.dart';
-import 'package:exel_category/data/adapters/parsers/spreadsheet_parser.dart';
+import 'package:exlser/data/adapters/parsers/csv_parser.dart';
+import 'package:exlser/data/adapters/parsers/excel_parser.dart';
+import 'package:exlser/data/adapters/parsers/spreadsheet_parser.dart';
 
 /// Factory responsible for selecting the correct parser
 /// based on file extension.

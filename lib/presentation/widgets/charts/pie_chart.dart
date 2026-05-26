@@ -1,4 +1,4 @@
-import 'package:exel_category/application/dto/chart_data.dart';
+import 'package:exlser/application/dto/chart_data.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 

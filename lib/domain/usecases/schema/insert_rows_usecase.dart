@@ -1,4 +1,4 @@
-import 'package:exel_category/domain/repositories/query_repository.dart';
+import 'package:exlser/domain/repositories/query_repository.dart';
 
 /// Inserts dataset rows into the dynamically created SQL table.
 ///

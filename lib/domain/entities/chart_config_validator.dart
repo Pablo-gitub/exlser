@@ -1,6 +1,6 @@
-import 'package:exel_category/domain/entities/chart_suggestion.dart';
-import 'package:exel_category/domain/value_objects/aggregation_type.dart';
-import 'package:exel_category/domain/value_objects/chart_type.dart';
+import 'package:exlser/domain/entities/chart_suggestion.dart';
+import 'package:exlser/domain/value_objects/aggregation_type.dart';
+import 'package:exlser/domain/value_objects/chart_type.dart';
 
 enum ChartValidationResult {
   valid,

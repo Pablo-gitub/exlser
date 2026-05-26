@@ -1,5 +1,5 @@
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/value_objects/filter_operator.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/value_objects/filter_operator.dart';
 
 class DatasetFilter {
   final String id;

@@ -1,4 +1,4 @@
-import 'package:exel_category/application/dto/prepared_sheet.dart';
+import 'package:exlser/application/dto/prepared_sheet.dart';
 
 /// Represents the result of the import preparation phase.
 ///

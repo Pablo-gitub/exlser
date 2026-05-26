@@ -1,4 +1,4 @@
-import 'package:exel_category/presentation/router/router_notifier.dart';
+import 'package:exlser/presentation/router/router_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

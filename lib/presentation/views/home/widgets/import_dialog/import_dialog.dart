@@ -1,6 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exel_category/application/dto/import_file.dart';
-import 'package:exel_category/core/constants/app_strings.dart';
+import 'package:exlser/application/dto/import_file.dart';
+import 'package:exlser/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

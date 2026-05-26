@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exel_category/application/dto/prepared_sheet.dart';
-import 'package:exel_category/core/constants/app_strings.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exlser/application/dto/prepared_sheet.dart';
+import 'package:exlser/core/constants/app_strings.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:flutter/material.dart';
 
 import '../import_dialog_viewmodel.dart';

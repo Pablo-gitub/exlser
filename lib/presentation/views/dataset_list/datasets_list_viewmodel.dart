@@ -1,7 +1,7 @@
-import 'package:exel_category/domain/entities/dataset.dart';
-import 'package:exel_category/domain/usecases/dataset/delete_dataset_usecase.dart';
-import 'package:exel_category/domain/usecases/dataset/get_datasets_usecase.dart';
-import 'package:exel_category/domain/usecases/dataset/open_dataset_usecase.dart';
+import 'package:exlser/domain/entities/dataset.dart';
+import 'package:exlser/domain/usecases/dataset/delete_dataset_usecase.dart';
+import 'package:exlser/domain/usecases/dataset/get_datasets_usecase.dart';
+import 'package:exlser/domain/usecases/dataset/open_dataset_usecase.dart';
 import 'package:flutter/foundation.dart';
 
 /// ViewModel responsible for the saved datasets list.

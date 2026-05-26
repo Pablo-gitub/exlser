@@ -1,4 +1,4 @@
-import 'package:exel_category/application/exceptions/import_exceptions.dart';
+import 'package:exlser/application/exceptions/import_exceptions.dart';
 
 /// Represents the input file used by the import pipeline.
 ///

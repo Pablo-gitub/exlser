@@ -1,8 +1,8 @@
-# ExlSer
+# Exlser
 
 [Refactoring Plan](REFACTORING_PLAN.md)
 
-ExlSer is a cross-platform CSV and Excel dataset workspace built with Flutter.
+Exlser is a cross-platform CSV and Excel dataset workspace built with Flutter.
 
 Originally designed as a simple Excel filtering utility, the project is now evolving into a structured, scalable data-processing engine with local relational persistence and a Clean Architecture foundation.
 
@@ -12,7 +12,7 @@ The goal is to transform it from a basic filtering app into a robust, extensible
 
 ## 🚀 Vision
 
-ExlSer is transitioning toward:
+Exlser is transitioning toward:
 
 - Clean Architecture (Domain-driven structure)
 - Local relational persistence using Drift (SQLite)

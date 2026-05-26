@@ -1,17 +1,17 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/entities/exported_file.dart';
-import 'package:exel_category/domain/usecases/export/export_dataset_data.dart';
-import 'package:exel_category/domain/value_objects/export_format.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/exported_file.dart';
+import 'package:exlser/domain/usecases/export/export_dataset_data.dart';
+import 'package:exlser/domain/value_objects/export_format.dart';
 
 class ExportSqlUseCase {
   const ExportSqlUseCase();
 
   ExportedFile call(ExportDatasetData data) {
     final buffer = StringBuffer()
-      ..writeln('-- ExlSer dataset export')
+      ..writeln('-- Exlser dataset export')
       ..writeln('-- Dataset: ${data.dataset.name}')
       ..writeln();
 

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:exel_category/data/adapters/parsers/excel_parser.dart';
+import 'package:exlser/data/adapters/parsers/excel_parser.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

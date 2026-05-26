@@ -1,4 +1,4 @@
-import 'package:exel_category/domain/entities/dataset_file.dart';
+import 'package:exlser/domain/entities/dataset_file.dart';
 
 /// Repository contract for source file metadata associated with datasets.
 abstract class DatasetFileRepository {

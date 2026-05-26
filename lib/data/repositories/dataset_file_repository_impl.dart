@@ -1,7 +1,7 @@
-import 'package:exel_category/core/database/daos/dataset_files_dao.dart';
-import 'package:exel_category/domain/entities/dataset_file.dart';
-import 'package:exel_category/domain/repositories/dataset_file_repository.dart';
-import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
+import 'package:exlser/core/database/daos/dataset_files_dao.dart';
+import 'package:exlser/domain/entities/dataset_file.dart';
+import 'package:exlser/domain/repositories/dataset_file_repository.dart';
+import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
 
 class DatasetFileRepositoryImpl implements DatasetFileRepository {
   final DatasetFilesDao dao;

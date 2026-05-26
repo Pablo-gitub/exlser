@@ -1,6 +1,6 @@
-import 'package:exel_category/application/dto/import_file.dart';
-import 'package:exel_category/presentation/providers/service_providers.dart';
-import 'package:exel_category/presentation/providers/usecase_providers.dart';
+import 'package:exlser/application/dto/import_file.dart';
+import 'package:exlser/presentation/providers/service_providers.dart';
+import 'package:exlser/presentation/providers/usecase_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'import_dialog_viewmodel.dart';

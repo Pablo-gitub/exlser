@@ -1,4 +1,4 @@
-import 'package:exel_category/core/constants/app_strings.dart';
+import 'package:exlser/core/constants/app_strings.dart';
 
 class ImportErrorMessages {
   const ImportErrorMessages._();

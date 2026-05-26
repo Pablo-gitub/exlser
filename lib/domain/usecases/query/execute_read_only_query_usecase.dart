@@ -1,5 +1,5 @@
-import 'package:exel_category/domain/repositories/query_repository.dart';
-import 'package:exel_category/domain/usecases/query/read_only_sql_validator.dart';
+import 'package:exlser/domain/repositories/query_repository.dart';
+import 'package:exlser/domain/usecases/query/read_only_sql_validator.dart';
 
 class ReadOnlyQueryResult {
   final List<Map<String, dynamic>> rows;

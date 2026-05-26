@@ -1,11 +1,11 @@
-import 'package:exel_category/application/services/create_dataset_service.dart';
-import 'package:exel_category/application/services/export_data_service.dart';
-import 'package:exel_category/application/services/import_data_service.dart';
-import 'package:exel_category/data/adapters/parsers/parser_factory.dart';
-import 'package:exel_category/data/services/drift_transaction_runner.dart';
-import 'package:exel_category/presentation/providers/database_providers.dart';
-import 'package:exel_category/presentation/providers/repository_providers.dart';
-import 'package:exel_category/presentation/providers/usecase_providers.dart';
+import 'package:exlser/application/services/create_dataset_service.dart';
+import 'package:exlser/application/services/export_data_service.dart';
+import 'package:exlser/application/services/import_data_service.dart';
+import 'package:exlser/data/adapters/parsers/parser_factory.dart';
+import 'package:exlser/data/services/drift_transaction_runner.dart';
+import 'package:exlser/presentation/providers/database_providers.dart';
+import 'package:exlser/presentation/providers/repository_providers.dart';
+import 'package:exlser/presentation/providers/usecase_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final parserFactoryProvider = Provider<ParserFactory>((ref) {

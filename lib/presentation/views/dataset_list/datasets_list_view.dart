@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exel_category/core/constants/app_strings.dart';
-import 'package:exel_category/domain/entities/dataset.dart';
-import 'package:exel_category/presentation/router/routes.dart';
-import 'package:exel_category/presentation/widgets/layout/app_scaffold.dart';
+import 'package:exlser/core/constants/app_strings.dart';
+import 'package:exlser/domain/entities/dataset.dart';
+import 'package:exlser/presentation/router/routes.dart';
+import 'package:exlser/presentation/widgets/layout/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

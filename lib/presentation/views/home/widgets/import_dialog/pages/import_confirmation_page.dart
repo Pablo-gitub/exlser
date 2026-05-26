@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exel_category/application/dto/confirmed_import.dart';
-import 'package:exel_category/core/constants/app_strings.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exlser/application/dto/confirmed_import.dart';
+import 'package:exlser/core/constants/app_strings.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:flutter/material.dart';
 
 import '../import_dialog_viewmodel.dart';

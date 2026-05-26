@@ -1,7 +1,7 @@
-import 'package:exel_category/application/dto/prepared_import_result.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/entities/parsed_sheet.dart';
-import 'package:exel_category/domain/entities/source_file_reference.dart';
+import 'package:exlser/application/dto/prepared_import_result.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/parsed_sheet.dart';
+import 'package:exlser/domain/entities/source_file_reference.dart';
 
 /// User-confirmed import configuration.
 ///

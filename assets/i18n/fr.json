@@ -1,6 +1,6 @@
 {
     "app": {
-        "name": "ExlSer"
+        "name": "Exlser"
     },
     "home": {
         "select_file": "Sélectionnez un fichier CSV ou XLSX",
@@ -9,7 +9,7 @@
         "browse_file": "Parcourir les fichiers"
     },
     "onboarding": {
-        "title": "Bienvenue sur ExlSer",
+        "title": "Bienvenue sur Exlser",
         "button": "Commencer",
         "welcome": {
             "title": "Bienvenue sur Exlser"

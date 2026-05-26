@@ -1,4 +1,4 @@
-import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
 
 enum SortDirection {
   ascending,

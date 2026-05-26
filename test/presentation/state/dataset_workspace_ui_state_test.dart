@@ -1,15 +1,15 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
-import 'package:exel_category/domain/entities/chart_suggestion.dart';
-import 'package:exel_category/domain/entities/dataset.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/entities/dataset_table.dart';
-import 'package:exel_category/domain/value_objects/aggregation_type.dart';
-import 'package:exel_category/domain/value_objects/chart_type.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
-import 'package:exel_category/domain/value_objects/filter_operator.dart';
-import 'package:exel_category/presentation/state/dataset_state.dart';
-import 'package:exel_category/presentation/state/dataset_workspace_ui_state.dart';
+import 'package:exlser/domain/entities/chart_suggestion.dart';
+import 'package:exlser/domain/entities/dataset.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/dataset_table.dart';
+import 'package:exlser/domain/value_objects/aggregation_type.dart';
+import 'package:exlser/domain/value_objects/chart_type.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
+import 'package:exlser/domain/value_objects/filter_operator.dart';
+import 'package:exlser/presentation/state/dataset_state.dart';
+import 'package:exlser/presentation/state/dataset_workspace_ui_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

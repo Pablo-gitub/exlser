@@ -1,14 +1,14 @@
-import 'package:exel_category/application/dto/chart_load_result.dart';
-import 'package:exel_category/domain/entities/chart_suggestion.dart';
-import 'package:exel_category/domain/entities/column_statistics.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/exceptions/invalid_chart_config_exception.dart';
-import 'package:exel_category/domain/usecases/analytics/get_category_distribution_usecase.dart';
-import 'package:exel_category/domain/usecases/analytics/get_column_statistics_usecase.dart';
-import 'package:exel_category/domain/usecases/analytics/get_time_series_usecase.dart';
-import 'package:exel_category/domain/usecases/analytics/suggest_charts_usecase.dart';
-import 'package:exel_category/domain/value_objects/chart_type.dart';
-import 'package:exel_category/presentation/state/dataset_state.dart';
+import 'package:exlser/application/dto/chart_load_result.dart';
+import 'package:exlser/domain/entities/chart_suggestion.dart';
+import 'package:exlser/domain/entities/column_statistics.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/exceptions/invalid_chart_config_exception.dart';
+import 'package:exlser/domain/usecases/analytics/get_category_distribution_usecase.dart';
+import 'package:exlser/domain/usecases/analytics/get_column_statistics_usecase.dart';
+import 'package:exlser/domain/usecases/analytics/get_time_series_usecase.dart';
+import 'package:exlser/domain/usecases/analytics/suggest_charts_usecase.dart';
+import 'package:exlser/domain/value_objects/chart_type.dart';
+import 'package:exlser/presentation/state/dataset_state.dart';
 
 /// Orchestrates analytical operations on dataset tables.
 ///

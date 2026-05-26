@@ -1,4 +1,4 @@
-import 'package:exel_category/data/adapters/mappers/table_row_mapper.dart';
+import 'package:exlser/data/adapters/mappers/table_row_mapper.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

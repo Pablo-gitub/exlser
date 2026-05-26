@@ -1,5 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exel_category/core/constants/app_strings.dart';
+import 'package:exlser/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
 import '../import_dialog_viewmodel.dart';

@@ -1,6 +1,6 @@
-import 'package:exel_category/domain/repositories/query_repository.dart';
-import 'package:exel_category/domain/usecases/query/execute_read_only_query_usecase.dart';
-import 'package:exel_category/domain/usecases/query/read_only_sql_validator.dart';
+import 'package:exlser/domain/repositories/query_repository.dart';
+import 'package:exlser/domain/usecases/query/execute_read_only_query_usecase.dart';
+import 'package:exlser/domain/usecases/query/read_only_sql_validator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

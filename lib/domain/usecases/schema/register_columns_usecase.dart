@@ -1,5 +1,5 @@
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/repositories/schema_repository.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/repositories/schema_repository.dart';
 
 /// Persists column metadata for a dataset table.
 ///

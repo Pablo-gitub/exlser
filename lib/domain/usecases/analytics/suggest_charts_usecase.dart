@@ -1,8 +1,8 @@
-import 'package:exel_category/domain/entities/chart_suggestion.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/value_objects/aggregation_type.dart';
-import 'package:exel_category/domain/value_objects/chart_type.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exlser/domain/entities/chart_suggestion.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/value_objects/aggregation_type.dart';
+import 'package:exlser/domain/value_objects/chart_type.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
 
 /// Suggests charts based on column types.
 ///

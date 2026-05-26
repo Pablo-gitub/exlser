@@ -1,7 +1,7 @@
-import 'package:exel_category/domain/repositories/dataset_file_repository.dart';
-import 'package:exel_category/domain/repositories/datasets_repository.dart';
-import 'package:exel_category/domain/repositories/schema_repository.dart';
-import 'package:exel_category/domain/usecases/dataset/delete_dataset_usecase.dart';
+import 'package:exlser/domain/repositories/dataset_file_repository.dart';
+import 'package:exlser/domain/repositories/datasets_repository.dart';
+import 'package:exlser/domain/repositories/schema_repository.dart';
+import 'package:exlser/domain/usecases/dataset/delete_dataset_usecase.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/usecases/export/export_dataset_data.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/usecases/export/export_dataset_data.dart';
 
 class DatasetJsonSerializer {
   const DatasetJsonSerializer._();

@@ -1,7 +1,7 @@
-import 'package:exel_category/core/database/daos/datasets_dao.dart';
-import 'package:exel_category/core/database/app_database.dart' as db;
-import 'package:exel_category/domain/entities/dataset.dart' as domain;
-import 'package:exel_category/domain/repositories/datasets_repository.dart';
+import 'package:exlser/core/database/daos/datasets_dao.dart';
+import 'package:exlser/core/database/app_database.dart' as db;
+import 'package:exlser/domain/entities/dataset.dart' as domain;
+import 'package:exlser/domain/repositories/datasets_repository.dart';
 
 /// Concrete implementation of [DatasetsRepository].
 ///

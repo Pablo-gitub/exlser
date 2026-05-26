@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:exel_category/data/adapters/parsers/csv_parser.dart';
-import 'package:exel_category/domain/entities/parsed_sheet.dart';
+import 'package:exlser/data/adapters/parsers/csv_parser.dart';
+import 'package:exlser/domain/entities/parsed_sheet.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exel_category/core/constants/app_strings.dart';
-import 'package:exel_category/core/theme/app_colors.dart';
-import 'package:exel_category/presentation/views/home/home_provider.dart';
+import 'package:exlser/core/constants/app_strings.dart';
+import 'package:exlser/core/theme/app_colors.dart';
+import 'package:exlser/presentation/views/home/home_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
 
-import 'package:exel_category/core/database/app_database.dart';
+import 'package:exlser/core/database/app_database.dart';
 
 void main() {
   late AppDatabase database;

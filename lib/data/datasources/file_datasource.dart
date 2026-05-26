@@ -1,6 +1,6 @@
-import 'package:exel_category/data/datasources/file_storage/local_file_storage.dart';
-import 'package:exel_category/domain/entities/source_file_reference.dart';
-import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
+import 'package:exlser/data/datasources/file_storage/local_file_storage.dart';
+import 'package:exlser/domain/entities/source_file_reference.dart';
+import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
 
 /// Data source responsible for representing imported source files.
 ///

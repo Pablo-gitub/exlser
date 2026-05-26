@@ -1,5 +1,5 @@
-import 'package:exel_category/application/services/transaction_runner.dart';
-import 'package:exel_category/data/datasources/drift_datasource.dart';
+import 'package:exlser/application/services/transaction_runner.dart';
+import 'package:exlser/data/datasources/drift_datasource.dart';
 
 /// Drift-backed implementation of [TransactionRunner].
 class DriftTransactionRunner implements TransactionRunner {

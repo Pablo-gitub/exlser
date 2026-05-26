@@ -1,6 +1,6 @@
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/repositories/query_repository.dart';
-import 'package:exel_category/data/datasources/drift_datasource.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/repositories/query_repository.dart';
+import 'package:exlser/data/datasources/drift_datasource.dart';
 
 /// Concrete implementation of [QueryRepository].
 ///

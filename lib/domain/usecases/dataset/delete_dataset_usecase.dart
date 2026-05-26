@@ -1,6 +1,6 @@
-import 'package:exel_category/domain/repositories/dataset_file_repository.dart';
-import 'package:exel_category/domain/repositories/datasets_repository.dart';
-import 'package:exel_category/domain/repositories/schema_repository.dart';
+import 'package:exlser/domain/repositories/dataset_file_repository.dart';
+import 'package:exlser/domain/repositories/datasets_repository.dart';
+import 'package:exlser/domain/repositories/schema_repository.dart';
 
 /// Deletes a dataset and its associated metadata.
 ///

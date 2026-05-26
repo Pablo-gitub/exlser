@@ -1,5 +1,5 @@
 //lib/domain/repositories/datasets_repository.dart
-import 'package:exel_category/domain/entities/dataset.dart';
+import 'package:exlser/domain/entities/dataset.dart';
 
 /// Repository contract for managing datasets.
 ///

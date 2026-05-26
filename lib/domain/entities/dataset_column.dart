@@ -1,6 +1,6 @@
 //lib/domain/entities/dataset_column.dart
 
-import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
 
 /// Domain entity representing metadata of a column inside a dataset table.
 class DatasetColumn {

@@ -1,10 +1,10 @@
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/exceptions/invalid_chart_config_exception.dart';
-import 'package:exel_category/domain/repositories/query_repository.dart';
-import 'package:exel_category/domain/usecases/analytics/get_category_distribution_usecase.dart';
-import 'package:exel_category/domain/value_objects/aggregation_type.dart';
-import 'package:exel_category/domain/value_objects/chart_type.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/exceptions/invalid_chart_config_exception.dart';
+import 'package:exlser/domain/repositories/query_repository.dart';
+import 'package:exlser/domain/usecases/analytics/get_category_distribution_usecase.dart';
+import 'package:exlser/domain/value_objects/aggregation_type.dart';
+import 'package:exlser/domain/value_objects/chart_type.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

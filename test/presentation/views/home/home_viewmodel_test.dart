@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:exel_category/presentation/views/home/home_viewmodel.dart';
+import 'package:exlser/presentation/views/home/home_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

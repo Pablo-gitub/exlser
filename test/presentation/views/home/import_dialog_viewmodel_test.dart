@@ -1,17 +1,17 @@
 import 'dart:async';
 
-import 'package:exel_category/application/dto/confirmed_import.dart';
-import 'package:exel_category/application/dto/created_dataset_result.dart';
-import 'package:exel_category/application/dto/import_file.dart';
-import 'package:exel_category/application/dto/prepared_import_result.dart';
-import 'package:exel_category/application/dto/prepared_sheet.dart';
-import 'package:exel_category/application/exceptions/import_exceptions.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/entities/parsed_sheet.dart';
-import 'package:exel_category/domain/entities/source_file_reference.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
-import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
-import 'package:exel_category/presentation/views/home/widgets/import_dialog/import_dialog_viewmodel.dart';
+import 'package:exlser/application/dto/confirmed_import.dart';
+import 'package:exlser/application/dto/created_dataset_result.dart';
+import 'package:exlser/application/dto/import_file.dart';
+import 'package:exlser/application/dto/prepared_import_result.dart';
+import 'package:exlser/application/dto/prepared_sheet.dart';
+import 'package:exlser/application/exceptions/import_exceptions.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/parsed_sheet.dart';
+import 'package:exlser/domain/entities/source_file_reference.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
+import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
+import 'package:exlser/presentation/views/home/widgets/import_dialog/import_dialog_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

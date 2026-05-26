@@ -1,5 +1,5 @@
-import 'package:exel_category/domain/entities/dataset.dart';
-import 'package:exel_category/domain/repositories/datasets_repository.dart';
+import 'package:exlser/domain/entities/dataset.dart';
+import 'package:exlser/domain/repositories/datasets_repository.dart';
 
 /// Retrieves all datasets stored in the system.
 ///

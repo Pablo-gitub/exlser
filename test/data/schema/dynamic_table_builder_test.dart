@@ -1,6 +1,6 @@
-import 'package:exel_category/data/schema/dynamic_table_builder.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exlser/data/schema/dynamic_table_builder.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

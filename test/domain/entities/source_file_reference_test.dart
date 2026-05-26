@@ -1,5 +1,5 @@
-import 'package:exel_category/domain/entities/source_file_reference.dart';
-import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
+import 'package:exlser/domain/entities/source_file_reference.dart';
+import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

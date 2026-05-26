@@ -1,9 +1,9 @@
 import 'package:drift/native.dart';
-import 'package:exel_category/core/database/app_database.dart' hide DatasetFile;
-import 'package:exel_category/core/database/daos/dataset_files_dao.dart';
-import 'package:exel_category/data/repositories/dataset_file_repository_impl.dart';
-import 'package:exel_category/domain/entities/dataset_file.dart';
-import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
+import 'package:exlser/core/database/app_database.dart' hide DatasetFile;
+import 'package:exlser/core/database/daos/dataset_files_dao.dart';
+import 'package:exlser/data/repositories/dataset_file_repository_impl.dart';
+import 'package:exlser/domain/entities/dataset_file.dart';
+import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

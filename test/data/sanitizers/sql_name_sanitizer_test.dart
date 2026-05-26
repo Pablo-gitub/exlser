@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:exel_category/data/adapters/sanitizers/sql_name_sanitizer.dart';
+import 'package:exlser/data/adapters/sanitizers/sql_name_sanitizer.dart';
 
 void main() {
   group("SqlNameSanitizer", () {

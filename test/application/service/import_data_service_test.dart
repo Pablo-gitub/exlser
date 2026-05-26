@@ -1,15 +1,15 @@
-import 'package:exel_category/application/exceptions/import_exceptions.dart';
-import 'package:exel_category/application/dto/import_file.dart';
+import 'package:exlser/application/exceptions/import_exceptions.dart';
+import 'package:exlser/application/dto/import_file.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:exel_category/application/services/import_data_service.dart';
-import 'package:exel_category/data/adapters/parsers/parser_factory.dart';
-import 'package:exel_category/data/adapters/parsers/spreadsheet_parser.dart';
-import 'package:exel_category/domain/entities/parsed_sheet.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/usecases/schema/infer_schema_usecase.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exlser/application/services/import_data_service.dart';
+import 'package:exlser/data/adapters/parsers/parser_factory.dart';
+import 'package:exlser/data/adapters/parsers/spreadsheet_parser.dart';
+import 'package:exlser/domain/entities/parsed_sheet.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/usecases/schema/infer_schema_usecase.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
 
 /// ---------------- MOCKS ----------------
 

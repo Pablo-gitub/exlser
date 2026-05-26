@@ -1,6 +1,6 @@
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/repositories/query_repository.dart';
-import 'package:exel_category/domain/value_objects/aggregation_type.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/repositories/query_repository.dart';
+import 'package:exlser/domain/value_objects/aggregation_type.dart';
 
 class AggregateColumnUseCase {
   final QueryRepository repository;

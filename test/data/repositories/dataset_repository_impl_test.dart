@@ -1,10 +1,10 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:exel_category/core/database/app_database.dart';
-import 'package:exel_category/core/database/daos/datasets_dao.dart';
-import 'package:exel_category/data/repositories/dataset_repository_impl.dart';
-import 'package:exel_category/domain/entities/dataset.dart' as domain;
+import 'package:exlser/core/database/app_database.dart';
+import 'package:exlser/core/database/daos/datasets_dao.dart';
+import 'package:exlser/data/repositories/dataset_repository_impl.dart';
+import 'package:exlser/domain/entities/dataset.dart' as domain;
 
 void main() {
   late AppDatabase database;

@@ -1,6 +1,6 @@
-import 'package:exel_category/domain/entities/dataset.dart';
-import 'package:exel_category/domain/repositories/datasets_repository.dart';
-import 'package:exel_category/domain/usecases/dataset/get_datasets_usecase.dart';
+import 'package:exlser/domain/entities/dataset.dart';
+import 'package:exlser/domain/repositories/datasets_repository.dart';
+import 'package:exlser/domain/usecases/dataset/get_datasets_usecase.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

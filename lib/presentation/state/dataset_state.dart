@@ -1,12 +1,12 @@
-import 'package:exel_category/application/dto/chart_data.dart';
-import 'package:exel_category/domain/entities/chart_suggestion.dart';
-import 'package:exel_category/domain/entities/dataset.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/entities/dataset_table.dart';
-import 'package:exel_category/domain/value_objects/dataset_filter.dart';
-import 'package:exel_category/domain/value_objects/dataset_query_mode.dart';
-import 'package:exel_category/domain/value_objects/dataset_read_query.dart';
-import 'package:exel_category/domain/value_objects/dataset_sort.dart';
+import 'package:exlser/application/dto/chart_data.dart';
+import 'package:exlser/domain/entities/chart_suggestion.dart';
+import 'package:exlser/domain/entities/dataset.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/dataset_table.dart';
+import 'package:exlser/domain/value_objects/dataset_filter.dart';
+import 'package:exlser/domain/value_objects/dataset_query_mode.dart';
+import 'package:exlser/domain/value_objects/dataset_read_query.dart';
+import 'package:exlser/domain/value_objects/dataset_sort.dart';
 
 enum DatasetViewMode {
   table,

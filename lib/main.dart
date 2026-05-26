@@ -1,4 +1,4 @@
-import 'package:exel_category/core/theme/app_theme.dart';
+import 'package:exlser/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -41,7 +41,7 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'ExlSer',
+      title: 'Exlser',
       theme: AppTheme.lightTheme,
       locale: context.locale,
       supportedLocales: context.supportedLocales,

@@ -1,8 +1,8 @@
-import 'package:exel_category/domain/entities/dataset.dart';
-import 'package:exel_category/domain/usecases/dataset/delete_dataset_usecase.dart';
-import 'package:exel_category/domain/usecases/dataset/get_datasets_usecase.dart';
-import 'package:exel_category/domain/usecases/dataset/open_dataset_usecase.dart';
-import 'package:exel_category/presentation/views/dataset_list/datasets_list_viewmodel.dart';
+import 'package:exlser/domain/entities/dataset.dart';
+import 'package:exlser/domain/usecases/dataset/delete_dataset_usecase.dart';
+import 'package:exlser/domain/usecases/dataset/get_datasets_usecase.dart';
+import 'package:exlser/domain/usecases/dataset/open_dataset_usecase.dart';
+import 'package:exlser/presentation/views/dataset_list/datasets_list_viewmodel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

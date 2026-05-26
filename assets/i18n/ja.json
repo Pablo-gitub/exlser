@@ -1,6 +1,6 @@
 {
     "app": {
-        "name": "ExlSer"
+        "name": "Exlser"
     },
     "home": {
         "select_file": "CSV または XLSX ファイルを選択",
@@ -9,7 +9,7 @@
         "browse_file": "ファイルを参照"
     },
     "onboarding": {
-        "title": "ExlSer へようこそ",
+        "title": "Exlser へようこそ",
         "button": "はじめる",
         "welcome": {
             "title": "Exlser へようこそ"

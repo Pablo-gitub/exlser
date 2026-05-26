@@ -1,5 +1,5 @@
-import 'package:exel_category/core/constants/app_strings.dart';
-import 'package:exel_category/presentation/views/home/widgets/import_dialog/import_error_messages.dart';
+import 'package:exlser/core/constants/app_strings.dart';
+import 'package:exlser/presentation/views/home/widgets/import_dialog/import_error_messages.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

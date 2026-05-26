@@ -1,10 +1,10 @@
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/repositories/query_repository.dart';
-import 'package:exel_category/domain/usecases/query/apply_filters_usecase.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
-import 'package:exel_category/domain/value_objects/dataset_filter.dart';
-import 'package:exel_category/domain/value_objects/dataset_sort.dart';
-import 'package:exel_category/domain/value_objects/filter_operator.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/repositories/query_repository.dart';
+import 'package:exlser/domain/usecases/query/apply_filters_usecase.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
+import 'package:exlser/domain/value_objects/dataset_filter.dart';
+import 'package:exlser/domain/value_objects/dataset_sort.dart';
+import 'package:exlser/domain/value_objects/filter_operator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

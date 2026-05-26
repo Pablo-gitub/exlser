@@ -1,5 +1,5 @@
-import 'package:exel_category/domain/entities/dataset_file.dart';
-import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
+import 'package:exlser/domain/entities/dataset_file.dart';
+import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
 
 /// Domain entity representing a prepared source file reference.
 ///

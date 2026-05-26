@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
-import 'package:exel_category/presentation/widgets/dataset_views/dataset_filter_panel.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
+import 'package:exlser/presentation/widgets/dataset_views/dataset_filter_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

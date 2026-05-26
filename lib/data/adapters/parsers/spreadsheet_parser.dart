@@ -1,4 +1,4 @@
-import 'package:exel_category/domain/entities/parsed_sheet.dart';
+import 'package:exlser/domain/entities/parsed_sheet.dart';
 
 abstract class SpreadsheetParser {
   Future<List<ParsedSheet>> parsePath(String path);

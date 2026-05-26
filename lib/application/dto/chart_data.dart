@@ -1,5 +1,5 @@
-import 'package:exel_category/domain/value_objects/aggregation_type.dart';
-import 'package:exel_category/domain/value_objects/chart_type.dart';
+import 'package:exlser/domain/value_objects/aggregation_type.dart';
+import 'package:exlser/domain/value_objects/chart_type.dart';
 
 class CategoryPoint {
   final String label;

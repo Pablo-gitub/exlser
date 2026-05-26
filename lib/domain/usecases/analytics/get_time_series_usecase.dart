@@ -1,7 +1,7 @@
-import 'package:exel_category/application/dto/chart_data.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/repositories/query_repository.dart';
-import 'package:exel_category/domain/value_objects/aggregation_type.dart';
+import 'package:exlser/application/dto/chart_data.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/repositories/query_repository.dart';
+import 'package:exlser/domain/value_objects/aggregation_type.dart';
 
 /// Computes an aggregated time series for a line chart.
 ///

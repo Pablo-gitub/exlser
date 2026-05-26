@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:excel_community/excel_community.dart';
-import 'package:exel_category/data/adapters/mappers/table_row_mapper.dart';
-import 'package:exel_category/data/adapters/parsers/spreadsheet_parser.dart';
-import 'package:exel_category/data/adapters/table_normalizers/header_detector.dart';
-import 'package:exel_category/domain/entities/parsed_sheet.dart';
+import 'package:exlser/data/adapters/mappers/table_row_mapper.dart';
+import 'package:exlser/data/adapters/parsers/spreadsheet_parser.dart';
+import 'package:exlser/data/adapters/table_normalizers/header_detector.dart';
+import 'package:exlser/domain/entities/parsed_sheet.dart';
 
 /// Parser responsible for reading Excel files.
 ///

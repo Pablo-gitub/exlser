@@ -1,16 +1,16 @@
 import 'package:drift/native.dart';
-import 'package:exel_category/application/dto/confirmed_import.dart';
-import 'package:exel_category/application/dto/import_file.dart';
-import 'package:exel_category/core/database/app_database.dart'
+import 'package:exlser/application/dto/confirmed_import.dart';
+import 'package:exlser/application/dto/import_file.dart';
+import 'package:exlser/core/database/app_database.dart'
     hide DatasetColumn, DatasetTable;
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/entities/parsed_sheet.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
-import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
-import 'package:exel_category/presentation/providers/database_providers.dart';
-import 'package:exel_category/presentation/providers/repository_providers.dart';
-import 'package:exel_category/presentation/providers/service_providers.dart';
-import 'package:exel_category/presentation/providers/usecase_providers.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/parsed_sheet.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
+import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
+import 'package:exlser/presentation/providers/database_providers.dart';
+import 'package:exlser/presentation/providers/repository_providers.dart';
+import 'package:exlser/presentation/providers/service_providers.dart';
+import 'package:exlser/presentation/providers/usecase_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

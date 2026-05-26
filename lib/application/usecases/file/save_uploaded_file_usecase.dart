@@ -1,6 +1,6 @@
-import 'package:exel_category/application/dto/import_file.dart';
-import 'package:exel_category/data/datasources/file_datasource.dart';
-import 'package:exel_category/domain/entities/source_file_reference.dart';
+import 'package:exlser/application/dto/import_file.dart';
+import 'package:exlser/data/datasources/file_datasource.dart';
+import 'package:exlser/domain/entities/source_file_reference.dart';
 
 /// Prepares source file metadata before dataset creation.
 ///

@@ -1,4 +1,4 @@
-# ExlSer Roadmap
+# Exlser Roadmap
 
 This document is the working roadmap for the project. It defines what is already complete, what must be done next, and which completion checkpoint each group of work unlocks.
 
@@ -766,9 +766,9 @@ ability to keep GitHub APK releases for direct installation.
 
 Repository readiness check:
 
-- [x] Android app label is set to `ExlSer`.
+- [x] Android app label is set to `Exlser`.
 - [x] Android launcher icon assets exist.
-- [x] Project version is currently `2.0.0+1`.
+- [x] Project version is currently `2.0.0+200`.
 - [x] The project inherits Flutter's Android SDK defaults; with the current
   local Flutter SDK this means target SDK 36, which is above the current
   Google Play minimum requirement for new apps.
@@ -790,9 +790,9 @@ publishing.
   `exlser`.
 - [ ] Update the local checkout folder name to `exlser`.
 - [ ] Update the local Git remote URL after the GitHub repository rename.
-- [ ] Decide whether to rename the Dart package in `pubspec.yaml` from
+- [x] Decide whether to rename the Dart package in `pubspec.yaml` from
   `exel_category` to `exlser`.
-- [ ] If the Dart package name changes, update all `package:exel_category/...`
+- [x] If the Dart package name changes, update all `package:exel_category/...`
   imports.
 - [ ] Update README, changelog, roadmap, GitHub Actions names, badges, release
   artifact names, and documentation references that still mention the old

@@ -1,9 +1,9 @@
-import 'package:exel_category/domain/entities/chart_suggestion.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/value_objects/chart_type.dart';
-import 'package:exel_category/domain/value_objects/dataset_filter.dart';
-import 'package:exel_category/domain/value_objects/dataset_query_mode.dart';
-import 'package:exel_category/domain/value_objects/dataset_sort.dart';
+import 'package:exlser/domain/entities/chart_suggestion.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/value_objects/chart_type.dart';
+import 'package:exlser/domain/value_objects/dataset_filter.dart';
+import 'package:exlser/domain/value_objects/dataset_query_mode.dart';
+import 'package:exlser/domain/value_objects/dataset_sort.dart';
 
 import 'dataset_state.dart';
 

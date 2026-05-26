@@ -1,6 +1,6 @@
 //lib/domain/repositories/schema_repository.dart
-import 'package:exel_category/domain/entities/dataset_table.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/dataset_table.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
 
 /// Repository contract responsible for managing dataset schema.
 ///

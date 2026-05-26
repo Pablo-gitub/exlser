@@ -1,5 +1,5 @@
-import 'package:exel_category/application/dto/import_file.dart';
-import 'package:exel_category/application/exceptions/import_exceptions.dart';
+import 'package:exlser/application/dto/import_file.dart';
+import 'package:exlser/application/exceptions/import_exceptions.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

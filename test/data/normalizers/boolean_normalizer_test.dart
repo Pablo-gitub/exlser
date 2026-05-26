@@ -1,4 +1,4 @@
-import 'package:exel_category/data/adapters/normalizers/boolean_normalizer.dart';
+import 'package:exlser/data/adapters/normalizers/boolean_normalizer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -1,5 +1,5 @@
-import 'package:exel_category/domain/repositories/query_repository.dart';
-import 'package:exel_category/domain/usecases/query/fetch_rows_usecase.dart';
+import 'package:exlser/domain/repositories/query_repository.dart';
+import 'package:exlser/domain/usecases/query/fetch_rows_usecase.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:exel_category/data/datasources/file_datasource.dart';
-import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
+import 'package:exlser/data/datasources/file_datasource.dart';
+import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 

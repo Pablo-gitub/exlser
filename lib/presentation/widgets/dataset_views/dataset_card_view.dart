@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exel_category/core/constants/app_strings.dart';
-import 'package:exel_category/core/serializers/dataset_json_serializer.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exlser/core/constants/app_strings.dart';
+import 'package:exlser/core/serializers/dataset_json_serializer.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:flutter/material.dart';
 import 'package:qr/qr.dart';
 

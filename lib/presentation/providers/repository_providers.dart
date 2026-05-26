@@ -1,13 +1,13 @@
-import 'package:exel_category/data/repositories/dataset_file_repository_impl.dart';
-import 'package:exel_category/data/repositories/dataset_repository_impl.dart';
-import 'package:exel_category/data/repositories/query_repository_impl.dart';
-import 'package:exel_category/data/repositories/schema_repository_impl.dart';
-import 'package:exel_category/data/schema/dynamic_table_builder.dart';
-import 'package:exel_category/domain/repositories/dataset_file_repository.dart';
-import 'package:exel_category/domain/repositories/datasets_repository.dart';
-import 'package:exel_category/domain/repositories/query_repository.dart';
-import 'package:exel_category/domain/repositories/schema_repository.dart';
-import 'package:exel_category/presentation/providers/database_providers.dart';
+import 'package:exlser/data/repositories/dataset_file_repository_impl.dart';
+import 'package:exlser/data/repositories/dataset_repository_impl.dart';
+import 'package:exlser/data/repositories/query_repository_impl.dart';
+import 'package:exlser/data/repositories/schema_repository_impl.dart';
+import 'package:exlser/data/schema/dynamic_table_builder.dart';
+import 'package:exlser/domain/repositories/dataset_file_repository.dart';
+import 'package:exlser/domain/repositories/datasets_repository.dart';
+import 'package:exlser/domain/repositories/query_repository.dart';
+import 'package:exlser/domain/repositories/schema_repository.dart';
+import 'package:exlser/presentation/providers/database_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final dynamicTableBuilderProvider = Provider<DynamicTableBuilder>((ref) {

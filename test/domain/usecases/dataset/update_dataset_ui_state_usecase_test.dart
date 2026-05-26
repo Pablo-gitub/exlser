@@ -1,5 +1,5 @@
-import 'package:exel_category/domain/repositories/datasets_repository.dart';
-import 'package:exel_category/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
+import 'package:exlser/domain/repositories/datasets_repository.dart';
+import 'package:exlser/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 

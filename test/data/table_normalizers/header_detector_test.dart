@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:exel_category/data/adapters/table_normalizers/header_detector.dart';
+import 'package:exlser/data/adapters/table_normalizers/header_detector.dart';
 
 void main() {
   group("HeaderDetector", () {

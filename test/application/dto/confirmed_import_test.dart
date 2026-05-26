@@ -1,11 +1,11 @@
-import 'package:exel_category/application/dto/confirmed_import.dart';
-import 'package:exel_category/application/dto/prepared_import_result.dart';
-import 'package:exel_category/application/dto/prepared_sheet.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/entities/parsed_sheet.dart';
-import 'package:exel_category/domain/entities/source_file_reference.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
-import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
+import 'package:exlser/application/dto/confirmed_import.dart';
+import 'package:exlser/application/dto/prepared_import_result.dart';
+import 'package:exlser/application/dto/prepared_sheet.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/parsed_sheet.dart';
+import 'package:exlser/domain/entities/source_file_reference.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
+import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

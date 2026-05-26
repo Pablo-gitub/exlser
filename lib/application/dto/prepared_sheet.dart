@@ -1,5 +1,5 @@
-import 'package:exel_category/domain/entities/parsed_sheet.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/parsed_sheet.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
 
 /// Represents a parsed sheet enriched with inferred schema.
 ///

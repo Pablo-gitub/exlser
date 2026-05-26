@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:exel_category/application/dto/import_file.dart';
-import 'package:exel_category/application/usecases/file/save_uploaded_file_usecase.dart';
-import 'package:exel_category/data/datasources/file_datasource.dart';
-import 'package:exel_category/domain/value_objects/dataset_file_storage_mode.dart';
+import 'package:exlser/application/dto/import_file.dart';
+import 'package:exlser/application/usecases/file/save_uploaded_file_usecase.dart';
+import 'package:exlser/data/datasources/file_datasource.dart';
+import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 

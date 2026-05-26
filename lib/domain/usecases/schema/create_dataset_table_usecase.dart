@@ -1,6 +1,6 @@
-import 'package:exel_category/data/adapters/sanitizers/sql_name_sanitizer.dart';
-import 'package:exel_category/domain/entities/dataset_table.dart';
-import 'package:exel_category/domain/repositories/schema_repository.dart';
+import 'package:exlser/data/adapters/sanitizers/sql_name_sanitizer.dart';
+import 'package:exlser/domain/entities/dataset_table.dart';
+import 'package:exlser/domain/repositories/schema_repository.dart';
 
 /// Creates metadata for a dataset table.
 ///

@@ -1,9 +1,9 @@
-import 'package:exel_category/data/adapters/normalizers/boolean_normalizer.dart';
-import 'package:exel_category/data/adapters/normalizers/date_normalizer.dart';
-import 'package:exel_category/data/adapters/normalizers/number_normalizer.dart';
-import 'package:exel_category/core/normalizers/sql_name_sanitizer.dart';
-import 'package:exel_category/domain/entities/dataset_column.dart';
-import 'package:exel_category/domain/value_objects/column_type.dart';
+import 'package:exlser/data/adapters/normalizers/boolean_normalizer.dart';
+import 'package:exlser/data/adapters/normalizers/date_normalizer.dart';
+import 'package:exlser/data/adapters/normalizers/number_normalizer.dart';
+import 'package:exlser/core/normalizers/sql_name_sanitizer.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
 
 /// Infers the schema of a dataset from parsed tabular data.
 ///

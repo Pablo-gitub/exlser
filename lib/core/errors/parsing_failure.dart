@@ -1,4 +1,4 @@
-import 'package:exel_category/core/errors/failures.dart';
+import 'package:exlser/core/errors/failures.dart';
 
 /// Failure related to file parsing.
 ///
