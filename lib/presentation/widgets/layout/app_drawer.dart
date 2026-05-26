@@ -15,7 +15,8 @@ import '../../router/routes.dart';
 class AppDrawer extends StatelessWidget {
   static final Uri _developerWebsiteUri =
       Uri.parse('https://paolopietrelli.com');
-  static final Uri _githubUri = Uri.parse('https://github.com/Pablo-gitub');
+  static final Uri _githubUri =
+      Uri.parse('https://github.com/Pablo-gitub/exlser');
   static final Uri _linkedinUri =
       Uri.parse('https://www.linkedin.com/in/paolo-pietrelli');
   static final Uri _instagramUri =
