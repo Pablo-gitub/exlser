@@ -62,3 +62,9 @@ scripts/
 # Excel temporary files
 ~$*.xlsx
 ~$*.xls
+
+# Key files
+**/android/key.properties
+**/android/**/keystore.properties
+*.jks
+*.keystore
