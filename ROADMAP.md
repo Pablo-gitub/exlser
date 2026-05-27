@@ -51,9 +51,15 @@ column names, and column types.
 
 ## Current Status
 
-v0.1.0 (First Publishable Preview), v0.2.0 (Filtering and Sorting), and
-v0.4.0 (Basic Analytics) are complete. The next major work is Export (v0.3.0),
-which was deferred after analytics per the team's chosen delivery order.
+v0.1.0 (First Publishable Preview), v0.2.0 (Filtering and Sorting),
+v0.3.0 (Export), and v0.4.0 (Basic Analytics) are complete. The current
+operational focus is preparing the first Google Play release: release signing,
+Android App Bundle generation, store listing, privacy/app-content declarations,
+and testing tracks.
+
+Export is complete for Excel, CSV, PDF table/card layouts with QR codes, SQL,
+and JSON. Exports respect selected sheets, persisted per-sheet filters, sorting,
+and visible columns.
 
 Analytics was implemented in five phases:
 - Value objects and domain entities (`ChartType`, `AggregationType`,
@@ -933,10 +939,10 @@ Publish criteria:
 
 Legacy code should be removed only after the equivalent new flow is complete:
 
-- [ ] `features/excel/*`
-- [ ] old model/control/provider/view folders if still present.
-- [ ] legacy export use cases once replaced by the new domain/application export flow.
-- [ ] placeholder widgets no longer used by real screens.
+- [x] `features/excel/*` removed
+- [x] old model/control/provider/view folders removed where replaced by the new flow.
+- [x] legacy export flow replaced by the domain/application export flow.
+- [ ] placeholder or generated platform artifacts no longer used by real screens.
 
 Removal rule:
 
@@ -962,15 +968,15 @@ These are not part of the first publishable release:
 
 Immediate next step:
 
-- [ ] Path to Export (v0.3.0) — deferred after analytics, now the priority.
+- [ ] Add release signing and produce a Play-uploadable Android App Bundle.
 
 Practical order:
 
-1. Export the current sheet using active filters, sorting, and visible columns.
-2. Complete `ExportCsvUseCase`.
-3. Complete `ExportExcelUseCase` and `ExportPdfUseCase`.
-4. Implement `ExportDataService` orchestrating the use cases.
-5. Add export dialog triggered from `DatasetView`.
-6. Integrate share sheet/download fallback (handle web vs native).
-7. Write export use case and service tests.
-8. Ship v0.3.0.
+1. Generate a dedicated Android upload key.
+2. Add local `key.properties` support without committing secrets.
+3. Wire release signing in `android/app/build.gradle.kts`.
+4. Add GitHub Actions support for signed `.aab` builds if CI will produce Play artifacts.
+5. Run `flutter build appbundle --release`.
+6. Create the Play Console app record with package `com.paolopietrelli.exlser`.
+7. Complete store listing, privacy policy, and app content declarations.
+8. Upload to an internal testing track before production.

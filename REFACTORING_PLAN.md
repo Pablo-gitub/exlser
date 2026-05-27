@@ -160,7 +160,7 @@ All current development happens on `main` or feature branches merged into `main`
 | Formula evaluation in Excel cells not handled | Open |
 | Web file references are temporary (no persistent path) | By design — WASM constraint |
 | Multi-file batch import | Not yet implemented (v0.5.0+) |
-| Settings screen mostly placeholder | Planned for v0.6.0 |
+| Settings beyond language selection | Planned for v0.6.0 |
 
 ---
 

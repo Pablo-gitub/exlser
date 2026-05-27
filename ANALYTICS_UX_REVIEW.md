@@ -40,7 +40,7 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
   - `AnalyticsChart.error?` - errore per chart
   - Service layer cattura e mappa eccezioni
   - BLoC propaga errori a state
-  - Tutti 365 test ✅
+  - Test coverage added ✅
 
 ---
 
@@ -51,11 +51,11 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 
 ✅ **COMPLETATO!** Il sistema di messaggi d'errore è pienamente implementato:
 
-- ✅ **i18n strings:** Tutti in place in en.json e it.json
+- ✅ **i18n strings:** Presenti nei file lingua supportati
 - ✅ **AppStrings constants:** Mappati correttamente in app_strings.dart
 - ✅ **UI Widget:** `_ChartErrorMessage` implementato in analytics_section.dart (lines 856-902)
 - ✅ **Integration:** `AnalyticsChart.error` propagato dal BLoC
-- ✅ **Tests:** 365 test passing, inclusi 11 test di validazione per eccezioni
+- ✅ **Tests:** suite passing at implementation time, inclusi 11 test di validazione per eccezioni
 
 ---
 
@@ -75,7 +75,7 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
   - Scatter: `AppStrings.datasetWorkspaceAnalyticsYColumn` → "Y axis"
 
 - ✅ **Integration:** Usate in analytics_section.dart linee 375 e 386
-- ✅ **i18n:** Tutti gli i18n keys presenti in en.json e it.json
+- ✅ **i18n:** Tutti gli i18n keys presenti nei file lingua supportati
 
 ---
 
@@ -135,7 +135,7 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 - Marked global `charts` field as `@Deprecated`
 - Added migration helper method
 - Added backward-compatibility fallback logic
-- All 365 tests still passing
+- Test suite passing at implementation time
 
 ---
 
@@ -159,7 +159,7 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 - ✅ Etichette user-friendly ("Group by", "Value", "Date", "Value over time")
 - ✅ Chart title sentences visible per ogni chart
 - ✅ UI previene selezione config invalide (dropdown disabilitati/filtrati)
-- ✅ Tutti 365 test passing (inclusi 27 nuovi test per validator e handler)
+- ✅ Test suite passing at implementation time (inclusi test per validator e handler)
 - ✅ Documentazione aggiornata (questo file)
 - ✅ Validazione a livello domain + service + UI
 - ✅ Error propagation complete: BLoC → Widget → User message
@@ -173,14 +173,14 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 **1. Prevent Numeric Aggregations Without A Numeric Value Column**
 - ✅ SOLVED by ChartConfigValidator
 - ✅ SOLVED by GetCategoryDistributionUseCase guard
-- 🔄 TODO: UI validation to prevent selection
+- ✅ SOLVED by UI-compatible dropdowns and domain validation
 
 **2. Make Line Charts Always Require A Date Column And Numeric Value Column**
 - ✅ SOLVED by ChartConfigValidator
-- 🔄 TODO: UI to show as required
+- ✅ SOLVED by compatible column selectors and validation messages
 
 **3. Replace Generic Empty Messages With Specific Reasons**
-- 🔄 TODO: Phase 1B - Error messages
+- ✅ SOLVED in Phase 1B - Error messages
 
 **4. Add Per-Chart Error State**
 - ✅ SOLVED by ChartLoadError enum + AnalyticsChart.error field
@@ -188,13 +188,13 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 ### Priority 2 - Make Controls Match User Language
 
 **5. Rename X/Y Controls Per Chart Type**
-- 🔄 TODO: Phase 1C - User-facing labels
+- ✅ SOLVED in Phase 1C - User-facing labels
 
 **6. Rename Aggregations In Plain User Terms**
-- 🔄 TODO: Phase 1C + Phase 1D
+- ✅ SOLVED in Phase 1C + Phase 1D
 
 **7. Hide Irrelevant Controls**
-- 🔄 TODO: Phase 1A UI - Hide Y when COUNT
+- ✅ SOLVED in Phase 1A UI - hide irrelevant controls
 
 ### Priority 3 - Better Chart Defaults
 
@@ -204,7 +204,7 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 ### Priority 4 - Chart Readability
 
 **12. Show Chart Titles And Axis Meaning**
-- 🔄 TODO: Phase 1D - Chart title sentences
+- ✅ SOLVED in Phase 1D - Chart title sentences
 
 **13-17.** Bar labels, tooltips, pie legend, date formatting, number formatting
 - ℹ️ DEFERRED: Polish improvements
@@ -217,7 +217,7 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 ### Priority 6 - Filters, Hidden Columns, Workspace State
 
 **23-26.** Filter indicators, hidden column handling, per-sheet persistence
-- 🔄 TODO: Phase 1E (deferred)
+- ✅ SOLVED in Phase 1E for per-sheet chart persistence; remaining filter indicators are polish
 
 ### Priority 7 - Analytics Depth
 
@@ -227,7 +227,7 @@ Il sistema di analytics ha identificato 36 aree di miglioramento distribuite in 
 ### Priority 8 - Accessibility
 
 **33-36.** Localization, chart labels, color accessibility, screen readers
-- 🔄 TODO: Phase 1C+1D (i18n)
+- ✅ SOLVED for core i18n; advanced accessibility labels remain deferred
 - ℹ️ DEFERRED: Advanced accessibility
 
 ---
@@ -244,7 +244,7 @@ Tutte le fasi della Fase 1 sono completate e testate:
 - ✅ Validator integrato in UI
 - ✅ Per-sheet chart persistence (architettura)
 
-**365/365 test passing - Nessuna regressione**
+**Test suite passing at implementation time - Nessuna regressione nota**
 
 ---
 
@@ -274,4 +274,4 @@ Tutte le fasi della Fase 1 sono completate e testate:
    - Filter persisted per chart
    - Faceted drill-down
 
-**Quale preferisci implementare per primo?**
+**Suggerimento:** partire dagli scatter chart, poi statistic cards e histogram.

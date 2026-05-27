@@ -160,7 +160,7 @@ Tutto lo sviluppo corrente avviene su `main` o su feature branch mergiati in `ma
 | Valutazione formule nelle celle Excel non gestita | Aperto |
 | Riferimenti file web temporanei (nessun path persistente) | By design — vincolo WASM |
 | Import batch di più file | Non ancora implementato (v0.5.0+) |
-| Schermata Settings quasi placeholder | Pianificato per v0.6.0 |
+| Settings oltre la selezione lingua | Pianificato per v0.6.0 |
 
 ---
 

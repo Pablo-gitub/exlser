@@ -15,26 +15,11 @@ Exlser is a cross-platform app that turns CSV and Excel files into persistent, q
 
 <p align="center">
   <img src="assets/screenshot/home.jpeg" width="23%" alt="Import"/>
-  <img src="assets/screenshot/filtring.jpeg" width="23%" alt="Filter & sort"/>
+  <img src="assets/screenshot/filtering.jpeg" width="23%" alt="Filter & sort"/>
   <img src="assets/screenshot/data_analysis.jpeg" width="23%" alt="Analytics"/>
   <img src="assets/screenshot/card_view.jpeg" width="23%" alt="Card view with QR"/>
 </p>
 
-<!--
-  🎬 VIDEO NEEDED — DEMO DEL CORE LOOP (30–60 secondi)
-  Registrazione schermo che mostra l'intero flusso import → export:
-    1. Trascina un file CSV o XLSX sull'app (o usa il file picker)
-    2. Percorri il wizard schema (conferma i tipi colonna)
-    3. Il dataset appare nella lista Works
-    4. Apri il dataset — le righe caricano nella tabella
-    5. Applica uno o due filtri
-    6. Passa alla card view (si vedono i QR code)
-    7. Apri analytics — un grafico si renderizza automaticamente
-    8. Tap export → scegli PDF → il file viene salvato/condiviso
-  Carica su YouTube, converti in GIF, o usa GitHub video embed.
-  Sostituisci questo commento con:
-    [![Demo video](assets/screenshot/demo_thumb.png)](https://youtu.be/YOUR_LINK)
--->
 
 ---
 
@@ -85,7 +70,7 @@ Every dataset you create is persisted locally. Search by name or filter by date,
 16+ type-aware filter operators. Toggle column visibility — hidden state is saved per sheet so it survives reopen.
 
 <p align="center">
-  <img src="assets/screenshot/filtring.jpeg" width="40%" alt="Filtering and column visibility"/>
+  <img src="assets/screenshot/filtering.jpeg" width="40%" alt="Filtering and column visibility"/>
 </p>
 
 ---
@@ -163,19 +148,6 @@ Change language from Settings. Every language is listed in its own script — It
 | Linux | ✅ |
 | Web (SQLite WASM) | ✅ |
 
-<!--
-  📸 SCREENSHOT NEEDED — COLLAGE PIATTAFORME
-  Griglia 2×2 o affiancata che mostra lo stesso dataset aperto su:
-    - macOS o Windows (desktop, larghezza piena)
-    - Android phone (portrait, layout mobile)
-    - Browser (Chrome o Safari, stesso dataset)
-  Dimostra che il layout si adatta ai form factor.
-  Didascalia: "One codebase. Six platforms."
-  Quando pronta, aggiungi:
-    <p align="center">
-      <img src="assets/screenshot/platforms.png" width="80%" alt="Platforms"/>
-    </p>
--->
 
 ---
 
@@ -277,12 +249,12 @@ Full decision log: [REFACTORING_PLAN.md](REFACTORING_PLAN.md)
 |---|---|---|
 | v0.1.0 | Import wizard, schema inference, local persistence, dataset workspace | ✅ Done |
 | v0.2.0 | Filtering (16 operators), sorting, pagination, column visibility, SQL query mode | ✅ Done |
+| v0.3.0 | Multi-format export (Excel, CSV, PDF+QR, SQL, JSON) | ✅ Done |
 | v0.4.0 | Analytics: auto chart suggestions, line / bar / pie, aggregations | ✅ Done |
-| v0.3.0 | Multi-format export (Excel, CSV, PDF+QR, SQL, JSON) | 🔄 Next |
 | v0.5.0 | Cross-sheet and multi-dataset analysis | ⏳ Planned |
 | v0.6.0 | UX polish, settings, theme switcher | ⏳ Planned |
 | v1.0.0 | Stable public release | ⏳ Planned |
-| v2.0.0 | First Google Play release | ⏳ Planned |
+| v2.0.0 | First Google Play release | 🔄 In progress |
 
 Full detail and checklist: [ROADMAP.md](ROADMAP.md)
 

@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.0.0 - Google Play Preparation
+
+Current release candidate for the first Google Play publication.
+
+### Added
+
+- Type-aware filtering, sorting, pagination, and column visibility.
+- Read-only SQL query mode with schema helper and validation.
+- Automatic analytics with line, bar, and pie chart suggestions.
+- Multi-format export: Excel, CSV, PDF, SQL, and JSON.
+- PDF card export with per-row JSON QR codes.
+- Nine supported UI languages.
+- GitHub README screenshots and MIT license.
+
+### Changed
+
+- Renamed the project and public repository identity to Exlser.
+- Renamed the Dart package to `exlser`.
+- Locked the Android application ID to `com.paolopietrelli.exlser`.
+- Aligned macOS, iOS, Linux, Windows, web, and local database naming.
+
+### Removed
+
+- Unused dependency injection placeholder.
+- Generated iOS files that should not be tracked.
+
 ## 0.1.0 - First Publishable Preview
 
 Initial preview focused on the local import workflow.
