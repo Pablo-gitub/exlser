@@ -142,6 +142,7 @@
                 "limit": "Nombre max. de lignes",
                 "reset": "Réinitialiser sur la feuille actuelle",
                 "result_count": "{count} ligne(s) renvoyée(s)",
+                "result_summary": "Affichage de {shown} sur {total} ligne(s) correspondantes",
                 "schema": "Assistant de schéma",
                 "active_context": "Utilisez sheet comme alias de la feuille actuelle : {table}",
                 "insert_table": "Insérer le nom de la table",

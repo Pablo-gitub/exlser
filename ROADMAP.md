@@ -418,8 +418,10 @@ a read-only SQL surface for advanced users.
 - [x] Show clear validation errors before execution when a query is rejected.
 - [x] Reuse the existing results table to display query output.
 - [x] Allow simple aggregate/count queries such as `COUNT(*)`.
-- [ ] Persist the last query per sheet in `uiStateJson` only after the first
-      safe implementation is stable.
+- [x] Persist the last query per sheet in `uiStateJson`.
+- [x] Show how many rows are loaded and how many rows match the query by
+      running a parallel safe `COUNT` query.
+- [x] Highlight common SQL keywords inside the query editor.
 
 ### Query Authoring Assistance
 
@@ -429,14 +431,14 @@ database table and column names.
 - [x] Show a compact schema helper beside or below the query editor.
 - [x] Display the dataset database name or active query context.
 - [x] Display all available sheet/table names.
-- [ ] For each sheet/table, display its available columns.
+- [x] For each sheet/table, display its available columns.
 - [x] Make sheet/table names clickable so clicking inserts the table name into
       the query editor at the cursor position.
 - [x] Make active-sheet column names clickable so clicking inserts them into the
       query editor at the cursor position.
 - [x] Quote or escape inserted identifiers consistently.
 - [x] Highlight the currently active sheet.
-- [ ] Consider an alias for the active sheet, for example:
+- [x] Provide an alias for the active sheet, for example:
 
 ```sql
 SELECT *
@@ -447,6 +449,19 @@ LIMIT 100
 
 Internally, `sheet` can be mapped to the real SQL table name. This keeps the
 feature safer and easier to use.
+
+### Query Analytics
+
+Goal: let expert users analyze the result of a read-only query without
+returning to guided filters.
+
+- [x] Reuse the analytics section when query results are available.
+- [x] Build query charts from the currently loaded query result rows.
+- [x] Persist query chart configurations separately from normal sheet chart
+      configurations in `uiStateJson`.
+- [ ] Future improvement: compute analytics on the full SQL query result through
+      a validated read-only subquery/CTE instead of only the loaded result
+      window.
 
 ### Safety Rules
 
@@ -484,6 +499,7 @@ Recommended building blocks:
 - [x] A user can run safe read-only SELECT queries.
 - [x] Unsafe SQL is blocked with an understandable message.
 - [x] Query results are displayed in the workspace table.
+- [x] Query result analytics are available after a query returns rows.
 - [x] Clicking a table or active-sheet column name inserts it into the query
       editor.
 - [x] Query execution has tests for accepted SELECT queries.

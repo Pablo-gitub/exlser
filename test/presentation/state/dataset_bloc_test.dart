@@ -841,6 +841,7 @@ void main() {
           ],
           executedSql: 'SELECT * FROM (SELECT product, COUNT(*) AS count '
               'FROM tbl_1) LIMIT 100',
+          rowCount: 8,
         ),
       );
 
@@ -869,6 +870,7 @@ void main() {
         ['product', 'count'],
       );
       expect(queryState.readOnlyQueryErrorCode, isNull);
+      expect(queryState.readOnlyQueryTotalRowCount, 8);
       verify(() => executeReadOnlyQuery.call(
             sql: 'SELECT product, COUNT(*) AS count FROM sheet',
             activeTableName: 'tbl_1',

@@ -142,6 +142,7 @@
                 "limit": "最大行数",
                 "reset": "現在のシートにリセット",
                 "result_count": "{count} 行が返されました",
+                "result_summary": "{total} 件中 {shown} 件を表示",
                 "schema": "スキーマヘルパー",
                 "active_context": "sheet を現在のシートのエイリアスとして使用: {table}",
                 "insert_table": "テーブル名を挿入",

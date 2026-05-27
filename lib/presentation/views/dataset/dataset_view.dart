@@ -547,6 +547,11 @@ class _LoadedWorkspace extends StatelessWidget {
                     const Divider(),
                     const SizedBox(height: 8),
                     AnalyticsSection(state: state),
+                  ] else if (resultRows.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    AnalyticsSection(state: state),
                   ],
                 ],
               ),
@@ -616,6 +621,46 @@ class _DatasetQueryModePanel extends StatelessWidget {
   }
 }
 
+class _SqlHighlightingTextEditingController extends TextEditingController {
+  static final RegExp _keywordPattern = RegExp(
+    r'\b(SELECT|FROM|WHERE|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AS|AND|OR|NOT|IN|IS|NULL|LIKE|BETWEEN|GROUP|BY|ORDER|HAVING|LIMIT|OFFSET|DISTINCT|COUNT|SUM|AVG|MIN|MAX)\b',
+    caseSensitive: false,
+  );
+
+  _SqlHighlightingTextEditingController({super.text});
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    final keywordStyle = style?.copyWith(
+      color: const Color(0xFFC2185B),
+      fontWeight: FontWeight.w600,
+    );
+    final spans = <TextSpan>[];
+    var currentIndex = 0;
+
+    for (final match in _keywordPattern.allMatches(text)) {
+      if (match.start > currentIndex) {
+        spans.add(TextSpan(text: text.substring(currentIndex, match.start)));
+      }
+      spans.add(TextSpan(
+        text: text.substring(match.start, match.end),
+        style: keywordStyle,
+      ));
+      currentIndex = match.end;
+    }
+
+    if (currentIndex < text.length) {
+      spans.add(TextSpan(text: text.substring(currentIndex)));
+    }
+
+    return TextSpan(style: style, children: spans);
+  }
+}
+
 class _ReadOnlyQueryPanel extends StatefulWidget {
   final DatasetLoadedState state;
 
@@ -628,7 +673,7 @@ class _ReadOnlyQueryPanel extends StatefulWidget {
 }
 
 class _ReadOnlyQueryPanelState extends State<_ReadOnlyQueryPanel> {
-  late final TextEditingController _queryController;
+  late final _SqlHighlightingTextEditingController _queryController;
   late final TextEditingController _limitController;
   final FocusNode _queryFocusNode = FocusNode();
   String? _limitError;
@@ -636,7 +681,7 @@ class _ReadOnlyQueryPanelState extends State<_ReadOnlyQueryPanel> {
   @override
   void initState() {
     super.initState();
-    _queryController = TextEditingController(
+    _queryController = _SqlHighlightingTextEditingController(
       text: widget.state.readOnlyQuery.sql,
     );
     _limitController = TextEditingController(
@@ -772,16 +817,11 @@ class _ReadOnlyQueryPanelState extends State<_ReadOnlyQueryPanel> {
                   icon: const Icon(Icons.clear),
                   label: Text(AppStrings.clear.tr()),
                 ),
-                if (widget.state.readOnlyQueryRows.isNotEmpty)
-                  Chip(
-                    avatar: const Icon(Icons.table_rows, size: 18),
-                    label: Text(
-                      AppStrings.datasetWorkspaceQueryResultCount.tr(
-                        namedArgs: {
-                          'count': '${widget.state.readOnlyQueryRows.length}',
-                        },
-                      ),
-                    ),
+                if (widget.state.hasReadOnlyQueryRun &&
+                    widget.state.readOnlyQueryErrorCode == null)
+                  _QueryResultSummaryNotice(
+                    shownRows: widget.state.readOnlyQueryRows.length,
+                    totalRows: widget.state.readOnlyQueryTotalRowCount,
                   ),
               ],
             ),
@@ -826,6 +866,58 @@ class _ReadOnlyQueryPanelState extends State<_ReadOnlyQueryPanel> {
     );
     _queryFocusNode.requestFocus();
     context.read<DatasetBloc>().add(UpdateReadOnlyQueryEvent(updated));
+  }
+}
+
+class _QueryResultSummaryNotice extends StatelessWidget {
+  final int shownRows;
+  final int totalRows;
+
+  const _QueryResultSummaryNotice({
+    required this.shownRows,
+    required this.totalRows,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasResults = totalRows > 0;
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = hasResults ? Colors.green.shade700 : colorScheme.error;
+    final background = hasResults
+        ? Colors.green.withValues(alpha: 0.08)
+        : colorScheme.errorContainer.withValues(alpha: 0.35);
+    final icon = hasResults ? Icons.check_circle_outline : Icons.info_outline;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                AppStrings.datasetWorkspaceQueryResultSummary.tr(
+                  namedArgs: {
+                    'shown': '$shownRows',
+                    'total': '$totalRows',
+                  },
+                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

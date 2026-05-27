@@ -142,6 +142,7 @@
                 "limit": "最大行数",
                 "reset": "重置为当前工作表",
                 "result_count": "返回 {count} 行",
+                "result_summary": "显示 {total} 条匹配结果中的 {shown} 条",
                 "schema": "架构助手",
                 "active_context": "使用 sheet 作为当前工作表的别名：{table}",
                 "insert_table": "插入表名",

@@ -17,9 +17,17 @@ void main() {
 
   test('executes a wrapped SELECT query with a forced limit', () async {
     when(() => repository.executeRawQuery(any(), null)).thenAnswer(
-      (_) async => [
-        {'product': 'book'},
-      ],
+      (invocation) async {
+        final sql = invocation.positionalArguments.first as String;
+        if (sql.startsWith('SELECT COUNT(*)')) {
+          return [
+            {'__row_count': 12},
+          ];
+        }
+        return [
+          {'product': 'book'},
+        ];
+      },
     );
 
     final result = await useCase(
@@ -32,10 +40,61 @@ void main() {
     expect(result.rows, [
       {'product': 'book'},
     ]);
-    final sql = verify(() => repository.executeRawQuery(captureAny(), null))
-        .captured
-        .single as String;
-    expect(sql, 'SELECT * FROM (SELECT product FROM tbl_sales) LIMIT 50');
+    expect(result.rowCount, 12);
+    final capturedSql = verify(() => repository.executeRawQuery(
+          captureAny(),
+          null,
+        )).captured.cast<String>();
+    expect(
+      capturedSql,
+      contains('SELECT * FROM (SELECT product FROM tbl_sales) LIMIT 50'),
+    );
+    expect(
+      capturedSql,
+      contains(
+        'SELECT COUNT(*) AS __row_count FROM (SELECT product FROM tbl_sales)',
+      ),
+    );
+  });
+
+  test('counts matching rows before the display limit', () async {
+    when(() => repository.executeRawQuery(any(), null)).thenAnswer(
+      (invocation) async {
+        final sql = invocation.positionalArguments.first as String;
+        if (sql.startsWith('SELECT COUNT(*)')) {
+          return [
+            {'__row_count': 756},
+          ];
+        }
+        return List.generate(100, (index) => {'product': 'item_$index'});
+      },
+    );
+
+    final result = await useCase(
+      sql: 'SELECT product FROM sheet LIMIT 100',
+      activeTableName: 'tbl_sales',
+      allowedTableNames: {'tbl_sales'},
+      limit: 100,
+    );
+
+    expect(result.rows.length, 100);
+    expect(result.rowCount, 756);
+    final capturedSql = verify(() => repository.executeRawQuery(
+          captureAny(),
+          null,
+        )).captured.cast<String>();
+    expect(
+      capturedSql,
+      contains(
+        'SELECT COUNT(*) AS __row_count FROM (SELECT product FROM tbl_sales)',
+      ),
+    );
+    expect(
+      capturedSql,
+      isNot(contains(
+        'SELECT COUNT(*) AS __row_count FROM (SELECT product FROM tbl_sales LIMIT 100)',
+      )),
+    );
   });
 
   test('allows known dataset tables and rejects unknown tables', () async {

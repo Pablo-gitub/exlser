@@ -7,6 +7,8 @@ import 'package:exlser/domain/entities/dataset_table.dart';
 import 'package:exlser/domain/value_objects/aggregation_type.dart';
 import 'package:exlser/domain/value_objects/chart_type.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
+import 'package:exlser/domain/value_objects/dataset_query_mode.dart';
+import 'package:exlser/domain/value_objects/dataset_read_query.dart';
 import 'package:exlser/domain/value_objects/filter_operator.dart';
 import 'package:exlser/presentation/state/dataset_state.dart';
 import 'package:exlser/presentation/state/dataset_workspace_ui_state.dart';
@@ -325,6 +327,37 @@ void main() {
       expect(state.restoreCharts(tableId: 2).single.id, 'legacy_chart');
     });
 
+    test('round-trips table query state and query charts', () {
+      const state = DatasetWorkspaceUiState(
+        tableStates: {
+          1: StoredTableWorkspaceState(
+            queryMode: DatasetQueryMode.sql,
+            readOnlyQuery: DatasetReadQuery(
+              sql: 'SELECT product FROM sheet',
+              limit: 250,
+            ),
+            queryCharts: [
+              StoredAnalyticsChart(
+                id: 'query_chart',
+                chartTypeName: 'bar',
+                xColumnDbName: 'product',
+              ),
+            ],
+          ),
+        },
+      );
+
+      final restored = DatasetWorkspaceUiState.fromJsonString(
+        state.toJsonString(),
+      );
+
+      expect(restored.restoreQueryMode(tableId: 1), DatasetQueryMode.sql);
+      expect(restored.restoreReadOnlyQuery(tableId: 1).sql,
+          'SELECT product FROM sheet');
+      expect(restored.restoreReadOnlyQuery(tableId: 1).limit, 250);
+      expect(restored.restoreQueryCharts(tableId: 1).single.id, 'query_chart');
+    });
+
     test('fromLoadedState stores analytics charts under active table', () {
       final column = _col('cat', ColumnType.text);
       final state = DatasetWorkspaceUiState.fromLoadedState(
@@ -357,6 +390,44 @@ void main() {
 
       expect(json.containsKey('charts'), isFalse);
       expect((tableState['charts'] as List).single['id'], 'chart_0');
+    });
+
+    test('fromLoadedState stores query analytics separately from table charts',
+        () {
+      final column = _col('cat', ColumnType.text);
+      final state = DatasetWorkspaceUiState.fromLoadedState(
+        DatasetLoadedState(
+          dataset: _dataset(),
+          tables: [_table()],
+          activeTable: _table(),
+          columns: [column],
+          rows: const [],
+          viewMode: DatasetViewMode.table,
+          rowLimit: 100,
+          pageIndex: 0,
+          totalRowCount: 0,
+          queryMode: DatasetQueryMode.sql,
+          readOnlyQuery: const DatasetReadQuery(
+            sql: 'SELECT cat FROM sheet',
+            limit: 50,
+          ),
+          analyticsState: DatasetAnalyticsLoadedState(
+            charts: [
+              AnalyticsChart(
+                id: 'query_chart',
+                suggestion: ChartSuggestion(
+                  chartType: ChartType.bar,
+                  xColumn: column,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(state.restoreCharts(tableId: 1), isEmpty);
+      expect(state.restoreQueryCharts(tableId: 1).single.id, 'query_chart');
+      expect(state.restoreReadOnlyQuery(tableId: 1).limit, 50);
     });
 
     test('fromLoadedState preserves previous table charts when analytics idle',

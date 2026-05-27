@@ -142,6 +142,7 @@
                 "limit": "Máx. linhas",
                 "reset": "Redefinir para a planilha atual",
                 "result_count": "{count} linha(s) retornada(s)",
+                "result_summary": "Mostrando {shown} de {total} linha(s) correspondentes",
                 "schema": "Auxiliar de esquema",
                 "active_context": "Use sheet como alias da planilha atual: {table}",
                 "insert_table": "Inserir nome da tabela",

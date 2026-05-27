@@ -217,6 +217,8 @@ class AppStrings {
       'dataset.workspace.query.reset';
   static const String datasetWorkspaceQueryResultCount =
       'dataset.workspace.query.result_count';
+  static const String datasetWorkspaceQueryResultSummary =
+      'dataset.workspace.query.result_summary';
   static const String datasetWorkspaceQuerySchema =
       'dataset.workspace.query.schema';
   static const String datasetWorkspaceQueryActiveContext =

@@ -142,6 +142,7 @@
                 "limit": "Max. Zeilen",
                 "reset": "Auf aktuelles Blatt zurücksetzen",
                 "result_count": "{count} Zeile(n) zurückgegeben",
+                "result_summary": "Zeige {shown} von {total} passenden Zeile(n)",
                 "schema": "Schema-Hilfe",
                 "active_context": "Verwenden Sie sheet als Alias für das aktuelle Blatt: {table}",
                 "insert_table": "Tabellennamen einfügen",

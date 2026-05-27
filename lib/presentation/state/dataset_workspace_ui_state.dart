@@ -5,6 +5,8 @@ import 'package:exlser/domain/entities/chart_suggestion.dart';
 import 'package:exlser/domain/value_objects/aggregation_type.dart';
 import 'package:exlser/domain/value_objects/chart_type.dart';
 import 'package:exlser/domain/value_objects/dataset_filter.dart';
+import 'package:exlser/domain/value_objects/dataset_query_mode.dart';
+import 'package:exlser/domain/value_objects/dataset_read_query.dart';
 import 'package:exlser/domain/value_objects/dataset_sort.dart';
 import 'package:exlser/domain/value_objects/filter_operator.dart';
 
@@ -197,6 +199,18 @@ class DatasetWorkspaceUiState {
     return restored;
   }
 
+  DatasetQueryMode restoreQueryMode({int? tableId}) {
+    return _tableStateFor(tableId)?.queryMode ?? DatasetQueryMode.filters;
+  }
+
+  DatasetReadQuery restoreReadOnlyQuery({int? tableId}) {
+    return _tableStateFor(tableId)?.readOnlyQuery ?? const DatasetReadQuery();
+  }
+
+  List<StoredAnalyticsChart> restoreQueryCharts({int? tableId}) {
+    return _tableStateFor(tableId)?.queryCharts ?? const [];
+  }
+
   StoredTableWorkspaceState? _tableStateFor(int? tableId) {
     if (tableId == null) {
       return null;
@@ -239,6 +253,10 @@ class DatasetWorkspaceUiState {
       hiddenColumnDbNames: existingTableState?.hiddenColumnDbNames ?? const [],
       filters: existingTableState?.filters ?? const [],
       sort: existingTableState?.sort,
+      queryMode: existingTableState?.queryMode ?? DatasetQueryMode.filters,
+      readOnlyQuery:
+          existingTableState?.readOnlyQuery ?? const DatasetReadQuery(),
+      queryCharts: existingTableState?.queryCharts ?? const [],
     );
 
     // Update tableStates with migrated charts
@@ -267,23 +285,31 @@ class StoredTableWorkspaceState {
   final List<StoredDatasetFilter> filters;
   final StoredDatasetSort? sort;
   final List<StoredAnalyticsChart> charts;
+  final DatasetQueryMode queryMode;
+  final DatasetReadQuery readOnlyQuery;
+  final List<StoredAnalyticsChart> queryCharts;
 
   const StoredTableWorkspaceState({
     this.hiddenColumnDbNames = const [],
     this.filters = const [],
     this.sort,
     this.charts = const [],
+    this.queryMode = DatasetQueryMode.filters,
+    this.readOnlyQuery = const DatasetReadQuery(),
+    this.queryCharts = const [],
   });
 
-  factory StoredTableWorkspaceState.fromLoadedState(DatasetLoadedState state,
-      {StoredTableWorkspaceState? previousState}) {
+  factory StoredTableWorkspaceState.fromLoadedState(
+    DatasetLoadedState state, {
+    StoredTableWorkspaceState? previousState,
+  }) {
     final analyticsState = state.analyticsState;
-    final charts = analyticsState is DatasetAnalyticsLoadedState
+    final analyticsCharts = analyticsState is DatasetAnalyticsLoadedState
         ? [
             for (final chart in analyticsState.charts)
               StoredAnalyticsChart.fromAnalyticsChart(chart),
           ]
-        : previousState?.charts ?? const <StoredAnalyticsChart>[];
+        : null;
 
     return StoredTableWorkspaceState(
       hiddenColumnDbNames: state.hiddenColumnDbNames,
@@ -294,7 +320,14 @@ class StoredTableWorkspaceState {
       sort: state.sort == null
           ? null
           : StoredDatasetSort.fromDatasetSort(state.sort!),
-      charts: charts,
+      charts: state.isReadOnlyQueryMode
+          ? previousState?.charts ?? const []
+          : analyticsCharts ?? previousState?.charts ?? const [],
+      queryMode: state.queryMode,
+      readOnlyQuery: state.readOnlyQuery,
+      queryCharts: state.isReadOnlyQueryMode
+          ? analyticsCharts ?? previousState?.queryCharts ?? const []
+          : previousState?.queryCharts ?? const [],
     );
   }
 
@@ -302,6 +335,7 @@ class StoredTableWorkspaceState {
     final hiddenColumnsJson = json['hiddenColumnDbNames'];
     final filtersJson = json['filters'];
     final chartsJson = json['charts'];
+    final queryChartsJson = json['queryCharts'];
 
     return StoredTableWorkspaceState(
       hiddenColumnDbNames: hiddenColumnsJson is List
@@ -327,6 +361,19 @@ class StoredTableWorkspaceState {
                   StoredAnalyticsChart.fromJson(chartJson),
             ]
           : const [],
+      queryMode: _queryModeFromName(json['queryMode']),
+      readOnlyQuery: json['readOnlyQuery'] is Map<String, dynamic>
+          ? StoredReadOnlyQuery.fromJson(
+              json['readOnlyQuery'] as Map<String, dynamic>,
+            ).toDatasetReadQuery()
+          : const DatasetReadQuery(),
+      queryCharts: queryChartsJson is List
+          ? [
+              for (final chartJson in queryChartsJson)
+                if (chartJson is Map<String, dynamic>)
+                  StoredAnalyticsChart.fromJson(chartJson),
+            ]
+          : const [],
     );
   }
 
@@ -339,7 +386,50 @@ class StoredTableWorkspaceState {
       if (sort != null) 'sort': sort!.toJson(),
       if (charts.isNotEmpty)
         'charts': [for (final chart in charts) chart.toJson()],
+      if (queryMode != DatasetQueryMode.filters) 'queryMode': queryMode.name,
+      if (readOnlyQuery.sql != DatasetReadQuery.defaultQueryText ||
+          readOnlyQuery.limit != DatasetReadQuery.defaultLimit)
+        'readOnlyQuery': StoredReadOnlyQuery.fromDatasetReadQuery(
+          readOnlyQuery,
+        ).toJson(),
+      if (queryCharts.isNotEmpty)
+        'queryCharts': [for (final chart in queryCharts) chart.toJson()],
     };
+  }
+}
+
+class StoredReadOnlyQuery {
+  final String sql;
+  final int limit;
+
+  const StoredReadOnlyQuery({
+    required this.sql,
+    required this.limit,
+  });
+
+  factory StoredReadOnlyQuery.fromDatasetReadQuery(DatasetReadQuery query) {
+    return StoredReadOnlyQuery(sql: query.sql, limit: query.limit);
+  }
+
+  factory StoredReadOnlyQuery.fromJson(Map<String, dynamic> json) {
+    return StoredReadOnlyQuery(
+      sql: json['sql']?.toString() ?? DatasetReadQuery.defaultQueryText,
+      limit: _positiveIntFromJson(
+        json['limit'],
+        fallback: DatasetReadQuery.defaultLimit,
+      ),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'sql': sql,
+      'limit': limit,
+    };
+  }
+
+  DatasetReadQuery toDatasetReadQuery() {
+    return DatasetReadQuery(sql: sql, limit: limit);
   }
 }
 
@@ -515,6 +605,16 @@ class StoredDatasetSort {
       direction: direction,
     );
   }
+}
+
+DatasetQueryMode _queryModeFromName(Object? value) {
+  for (final mode in DatasetQueryMode.values) {
+    if (mode.name == value) {
+      return mode;
+    }
+  }
+
+  return DatasetQueryMode.filters;
 }
 
 DatasetColumn? _findColumn(List<DatasetColumn> columns, String dbName) {

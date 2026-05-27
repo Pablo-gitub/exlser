@@ -142,6 +142,7 @@
                 "limit": "Max rows",
                 "reset": "Reset to current sheet",
                 "result_count": "{count} row(s) returned",
+                "result_summary": "Showing {shown} of {total} matching row(s)",
                 "schema": "Schema helper",
                 "active_context": "Use sheet as an alias for the current sheet: {table}",
                 "insert_table": "Insert table name",

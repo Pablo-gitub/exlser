@@ -1,3 +1,4 @@
+import 'package:exlser/application/dto/chart_load_result.dart';
 import 'package:exlser/application/services/analysis_service.dart';
 import 'package:exlser/domain/entities/dataset.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
@@ -387,10 +388,15 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     final currentState = state;
     if (currentState is! DatasetLoadedState) return;
 
-    emit(currentState.copyWith(
-      queryMode: event.mode,
-      readOnlyQueryErrorCode: null,
-    ));
+    final nextState = _attachWorkspaceStateJson(
+      currentState.copyWith(
+        queryMode: event.mode,
+        readOnlyQueryErrorCode: null,
+        analyticsState: const DatasetAnalyticsIdleState(),
+      ),
+    );
+    emit(nextState);
+    await _persistWorkspaceState(nextState);
   }
 
   Future<void> _onUpdateReadOnlyQuery(
@@ -402,7 +408,12 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
 
     emit(currentState.copyWith(
       readOnlyQuery: currentState.readOnlyQuery.copyWith(sql: event.sql),
+      hasReadOnlyQueryRun: false,
       readOnlyQueryErrorCode: null,
+      readOnlyQueryRows: const [],
+      readOnlyQueryColumns: const [],
+      readOnlyQueryTotalRowCount: 0,
+      analyticsState: const DatasetAnalyticsIdleState(),
     ));
   }
 
@@ -415,7 +426,12 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
 
     emit(currentState.copyWith(
       readOnlyQuery: currentState.readOnlyQuery.copyWith(limit: event.limit),
+      hasReadOnlyQueryRun: false,
       readOnlyQueryErrorCode: null,
+      readOnlyQueryRows: const [],
+      readOnlyQueryColumns: const [],
+      readOnlyQueryTotalRowCount: 0,
+      analyticsState: const DatasetAnalyticsIdleState(),
     ));
   }
 
@@ -447,17 +463,23 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       if (latestState is! DatasetLoadedState) return;
       if (latestState.activeTable.id != currentState.activeTable.id) return;
 
-      emit(latestState.copyWith(
-        queryMode: DatasetQueryMode.sql,
-        isReadOnlyQueryRunning: false,
-        hasReadOnlyQueryRun: true,
-        readOnlyQueryErrorCode: null,
-        readOnlyQueryRows: rows,
-        readOnlyQueryColumns: _queryColumnsFromRows(
-          rows,
-          tableId: currentState.activeTable.id,
+      final nextState = _attachWorkspaceStateJson(
+        latestState.copyWith(
+          queryMode: DatasetQueryMode.sql,
+          isReadOnlyQueryRunning: false,
+          hasReadOnlyQueryRun: true,
+          readOnlyQueryErrorCode: null,
+          readOnlyQueryRows: rows,
+          readOnlyQueryColumns: _queryColumnsFromRows(
+            rows,
+            tableId: currentState.activeTable.id,
+          ),
+          readOnlyQueryTotalRowCount: result.rowCount,
+          analyticsState: const DatasetAnalyticsIdleState(),
         ),
-      ));
+      );
+      emit(nextState);
+      await _persistWorkspaceState(nextState);
     } on ReadOnlyQueryException catch (error) {
       final latestState = state;
       if (latestState is! DatasetLoadedState) return;
@@ -467,6 +489,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         isReadOnlyQueryRunning: false,
         hasReadOnlyQueryRun: true,
         readOnlyQueryErrorCode: error.code,
+        readOnlyQueryTotalRowCount: 0,
+        analyticsState: const DatasetAnalyticsIdleState(),
       ));
     } catch (_) {
       final latestState = state;
@@ -477,6 +501,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         isReadOnlyQueryRunning: false,
         hasReadOnlyQueryRun: true,
         readOnlyQueryErrorCode: 'execution_failed',
+        readOnlyQueryTotalRowCount: 0,
+        analyticsState: const DatasetAnalyticsIdleState(),
       ));
     }
   }
@@ -488,13 +514,19 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     final currentState = state;
     if (currentState is! DatasetLoadedState) return;
 
-    emit(currentState.copyWith(
-      readOnlyQuery: currentState.readOnlyQuery.copyWith(sql: ''),
-      hasReadOnlyQueryRun: false,
-      readOnlyQueryErrorCode: null,
-      readOnlyQueryRows: const [],
-      readOnlyQueryColumns: const [],
-    ));
+    final nextState = _attachWorkspaceStateJson(
+      currentState.copyWith(
+        readOnlyQuery: currentState.readOnlyQuery.copyWith(sql: ''),
+        hasReadOnlyQueryRun: false,
+        readOnlyQueryErrorCode: null,
+        readOnlyQueryRows: const [],
+        readOnlyQueryColumns: const [],
+        readOnlyQueryTotalRowCount: 0,
+        analyticsState: const DatasetAnalyticsIdleState(),
+      ),
+    );
+    emit(nextState);
+    await _persistWorkspaceState(nextState);
   }
 
   Future<void> _onResetReadOnlyQuery(
@@ -504,13 +536,19 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     final currentState = state;
     if (currentState is! DatasetLoadedState) return;
 
-    emit(currentState.copyWith(
-      readOnlyQuery: const DatasetReadQuery(),
-      hasReadOnlyQueryRun: false,
-      readOnlyQueryErrorCode: null,
-      readOnlyQueryRows: const [],
-      readOnlyQueryColumns: const [],
-    ));
+    final nextState = _attachWorkspaceStateJson(
+      currentState.copyWith(
+        readOnlyQuery: const DatasetReadQuery(),
+        hasReadOnlyQueryRun: false,
+        readOnlyQueryErrorCode: null,
+        readOnlyQueryRows: const [],
+        readOnlyQueryColumns: const [],
+        readOnlyQueryTotalRowCount: 0,
+        analyticsState: const DatasetAnalyticsIdleState(),
+      ),
+    );
+    emit(nextState);
+    await _persistWorkspaceState(nextState);
   }
 
   Future<void> _reloadCurrentTable({
@@ -633,6 +671,15 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       pageIndex: safePageIndex,
     );
 
+    final restoredQueryMode = workspaceState?.restoreQueryMode(
+          tableId: activeTable.id,
+        ) ??
+        DatasetQueryMode.filters;
+    final restoredReadOnlyQuery = workspaceState?.restoreReadOnlyQuery(
+          tableId: activeTable.id,
+        ) ??
+        const DatasetReadQuery();
+
     return DatasetLoadedState(
       dataset: dataset,
       tables: tables,
@@ -647,6 +694,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       hiddenColumnDbNames: hiddenColumnDbNames,
       filters: activeFilters,
       sort: activeSort,
+      queryMode: restoredQueryMode,
+      readOnlyQuery: restoredReadOnlyQuery,
     );
   }
 
@@ -803,6 +852,9 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       if (value is int) return ColumnType.integer;
       if (value is num) return ColumnType.real;
       if (value is DateTime) return ColumnType.date;
+      if (value is String && DateTime.tryParse(value) != null) {
+        return ColumnType.date;
+      }
     }
 
     return ColumnType.text;
@@ -848,6 +900,32 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     }
   }
 
+  List<DatasetColumn> _analyticsColumns(DatasetLoadedState state) {
+    return state.isReadOnlyQueryMode
+        ? state.readOnlyQueryColumns
+        : state.columns;
+  }
+
+  Future<ChartLoadResult> _loadChartDataForState(
+    DatasetLoadedState state,
+    ChartSuggestion suggestion,
+  ) {
+    if (state.isReadOnlyQueryMode) {
+      return _analysisService.loadChartDataFromRows(
+        rows: state.readOnlyQueryRows,
+        suggestion: suggestion,
+      );
+    }
+
+    final whereClause = _applyFilters.buildWhereClause(state.filters);
+    return _analysisService.loadChartData(
+      tableName: state.activeTable.sqlTableName,
+      suggestion: suggestion,
+      whereClause: whereClause?.sql,
+      whereArguments: whereClause?.arguments,
+    );
+  }
+
   Future<DatasetLoadedState> _loadAnalyticsForState(
     DatasetLoadedState currentState, {
     List<AnalyticsChart>? charts,
@@ -870,33 +948,34 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
           activeTableId: currentState.activeTable.id,
         );
 
-        final storedCharts = workspaceState.restoreCharts(
-          tableId: currentState.activeTable.id,
-        );
+        final storedCharts = currentState.isReadOnlyQueryMode
+            ? workspaceState.restoreQueryCharts(
+                tableId: currentState.activeTable.id,
+              )
+            : workspaceState.restoreCharts(
+                tableId: currentState.activeTable.id,
+              );
 
         if (storedCharts.isNotEmpty) {
           final restored = [
             for (final stored in storedCharts)
-              (stored.id, stored.toChartSuggestion(currentState.columns)),
+              (
+                stored.id,
+                stored.toChartSuggestion(_analyticsColumns(currentState))
+              ),
           ].where((pair) => pair.$2 != null).toList();
           ids = [for (final p in restored) p.$1];
           suggestions = [for (final p in restored) p.$2!];
         } else {
-          suggestions = _analysisService.suggestAllCharts(currentState.columns);
+          suggestions = _analysisService
+              .suggestAllCharts(_analyticsColumns(currentState));
           ids = List.generate(suggestions.length, (i) => 'chart_$i');
         }
       }
 
-      final whereClause = _applyFilters.buildWhereClause(currentState.filters);
-
       final chartsResults = await Future.wait([
         for (final suggestion in suggestions)
-          _analysisService.loadChartData(
-            tableName: currentState.activeTable.sqlTableName,
-            suggestion: suggestion,
-            whereClause: whereClause?.sql,
-            whereArguments: whereClause?.arguments,
-          ),
+          _loadChartDataForState(currentState, suggestion),
       ]);
 
       final loadedCharts = [
@@ -958,14 +1037,15 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     final analyticsState = currentState.analyticsState;
     if (analyticsState is! DatasetAnalyticsLoadedState) return;
 
-    final validXCols = currentState.columns
+    final analyticsColumns = _analyticsColumns(currentState);
+    final validXCols = analyticsColumns
         .where(
           (c) => event.chartType.validXColumnTypes.contains(c.declaredType),
         )
         .toList();
     if (validXCols.isEmpty) return;
 
-    final validYCols = currentState.columns.where((c) => c.isNumeric).toList();
+    final validYCols = analyticsColumns.where((c) => c.isNumeric).toList();
 
     final suggestion = ChartSuggestion(
       chartType: event.chartType,
@@ -985,13 +1065,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     ));
 
     try {
-      final whereClause = _applyFilters.buildWhereClause(currentState.filters);
-      final result = await _analysisService.loadChartData(
-        tableName: currentState.activeTable.sqlTableName,
-        suggestion: suggestion,
-        whereClause: whereClause?.sql,
-        whereArguments: whereClause?.arguments,
-      );
+      final result = await _loadChartDataForState(currentState, suggestion);
 
       final latest = state;
       if (latest is! DatasetLoadedState) return;
@@ -1079,13 +1153,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     ));
 
     try {
-      final whereClause = _applyFilters.buildWhereClause(currentState.filters);
-      final result = await _analysisService.loadChartData(
-        tableName: currentState.activeTable.sqlTableName,
-        suggestion: event.suggestion,
-        whereClause: whereClause?.sql,
-        whereArguments: whereClause?.arguments,
-      );
+      final result =
+          await _loadChartDataForState(currentState, event.suggestion);
 
       final latest = state;
       if (latest is! DatasetLoadedState) return;

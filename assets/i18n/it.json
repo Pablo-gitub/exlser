@@ -142,6 +142,7 @@
                 "limit": "Righe massime",
                 "reset": "Riparti dal foglio corrente",
                 "result_count": "{count} righe restituite",
+                "result_summary": "Mostrate {shown} di {total} righe corrispondenti",
                 "schema": "Aiuto schema",
                 "active_context": "Usa sheet come alias del foglio corrente: {table}",
                 "insert_table": "Inserisci nome tabella",

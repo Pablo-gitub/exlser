@@ -126,6 +126,7 @@ class DatasetLoadedState extends DatasetState {
   final String? readOnlyQueryErrorCode;
   final List<DatasetColumn> readOnlyQueryColumns;
   final List<Map<String, dynamic>> readOnlyQueryRows;
+  final int readOnlyQueryTotalRowCount;
 
   const DatasetLoadedState({
     required this.dataset,
@@ -149,6 +150,7 @@ class DatasetLoadedState extends DatasetState {
     this.readOnlyQueryErrorCode,
     this.readOnlyQueryColumns = const [],
     this.readOnlyQueryRows = const [],
+    this.readOnlyQueryTotalRowCount = 0,
   });
 
   List<DatasetColumn> get visibleColumns => [
@@ -194,6 +196,7 @@ class DatasetLoadedState extends DatasetState {
     Object? readOnlyQueryErrorCode = _readOnlyQueryErrorNotProvided,
     List<DatasetColumn>? readOnlyQueryColumns,
     List<Map<String, dynamic>>? readOnlyQueryRows,
+    int? readOnlyQueryTotalRowCount,
   }) {
     return DatasetLoadedState(
       dataset: dataset ?? this.dataset,
@@ -222,6 +225,8 @@ class DatasetLoadedState extends DatasetState {
               : readOnlyQueryErrorCode as String?,
       readOnlyQueryColumns: readOnlyQueryColumns ?? this.readOnlyQueryColumns,
       readOnlyQueryRows: readOnlyQueryRows ?? this.readOnlyQueryRows,
+      readOnlyQueryTotalRowCount:
+          readOnlyQueryTotalRowCount ?? this.readOnlyQueryTotalRowCount,
     );
   }
 }

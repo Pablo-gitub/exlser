@@ -142,6 +142,7 @@
                 "limit": "Filas máximas",
                 "reset": "Restablecer a la hoja actual",
                 "result_count": "{count} fila(s) devuelta(s)",
+                "result_summary": "Mostrando {shown} de {total} fila(s) coincidentes",
                 "schema": "Ayuda de esquema",
                 "active_context": "Usa sheet como alias de la hoja actual: {table}",
                 "insert_table": "Insertar nombre de tabla",

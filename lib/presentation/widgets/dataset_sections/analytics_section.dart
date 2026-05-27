@@ -25,6 +25,13 @@ class AnalyticsSection extends StatefulWidget {
 }
 
 class _AnalyticsSectionState extends State<AnalyticsSection> {
+  List<DatasetColumn> get _analyticsColumns => widget.state.isReadOnlyQueryMode
+      ? widget.state.readOnlyQueryColumns
+      : widget.state.columns;
+
+  int get _activeFilterCount =>
+      widget.state.isReadOnlyQueryMode ? 0 : widget.state.filters.length;
+
   @override
   void initState() {
     super.initState();
@@ -38,14 +45,18 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
   @override
   void didUpdateWidget(covariant AnalyticsSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.state.activeTable.id != oldWidget.state.activeTable.id &&
+    final queryRowsChanged = widget.state.isReadOnlyQueryMode &&
+        !identical(
+            widget.state.readOnlyQueryRows, oldWidget.state.readOnlyQueryRows);
+    if ((widget.state.activeTable.id != oldWidget.state.activeTable.id ||
+            queryRowsChanged) &&
         widget.state.analyticsState is DatasetAnalyticsIdleState) {
       context.read<DatasetBloc>().add(const LoadAnalyticsEvent());
     }
   }
 
   void _showAddChartDialog() {
-    final columns = widget.state.columns;
+    final columns = _analyticsColumns;
     final availableTypes = ChartType.values
         .where((t) => t.isImplemented)
         .where(
@@ -157,8 +168,8 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
                               child: _ChartCard(
                                 key: ValueKey(chart.id),
                                 chart: chart,
-                                allColumns: widget.state.columns,
-                                activeFilterCount: widget.state.filters.length,
+                                allColumns: _analyticsColumns,
+                                activeFilterCount: _activeFilterCount,
                                 onRemove: () {
                                   context
                                       .read<DatasetBloc>()
@@ -183,8 +194,8 @@ class _AnalyticsSectionState extends State<AnalyticsSection> {
                           _ChartCard(
                             key: ValueKey(chart.id),
                             chart: chart,
-                            allColumns: widget.state.columns,
-                            activeFilterCount: widget.state.filters.length,
+                            allColumns: _analyticsColumns,
+                            activeFilterCount: _activeFilterCount,
                             onRemove: () {
                               context
                                   .read<DatasetBloc>()
