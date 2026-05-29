@@ -1160,11 +1160,20 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       if (latest is! DatasetLoadedState) return;
       final latestAnalytics = latest.analyticsState;
       if (latestAnalytics is! DatasetAnalyticsLoadedState) return;
+      final latestChart = _findAnalyticsChart(
+        latestAnalytics.charts,
+        event.chartId,
+      );
+      if (latestChart == null ||
+          !_isSameChartSuggestion(latestChart.suggestion, event.suggestion)) {
+        return;
+      }
 
       final loadedCharts = [
         for (final c in latestAnalytics.charts)
           if (c.id == event.chartId)
             c.copyWith(
+              suggestion: event.suggestion,
               chartData: result.data,
               isLoading: false,
               error: result.error,
@@ -1183,6 +1192,14 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       if (latest is! DatasetLoadedState) return;
       final latestAnalytics = latest.analyticsState;
       if (latestAnalytics is! DatasetAnalyticsLoadedState) return;
+      final latestChart = _findAnalyticsChart(
+        latestAnalytics.charts,
+        event.chartId,
+      );
+      if (latestChart == null ||
+          !_isSameChartSuggestion(latestChart.suggestion, event.suggestion)) {
+        return;
+      }
 
       final errorCharts = [
         for (final c in latestAnalytics.charts)
@@ -1195,4 +1212,33 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       await _persistWorkspaceState(nextState);
     }
   }
+}
+
+AnalyticsChart? _findAnalyticsChart(
+  List<AnalyticsChart> charts,
+  String chartId,
+) {
+  for (final chart in charts) {
+    if (chart.id == chartId) return chart;
+  }
+
+  return null;
+}
+
+bool _isSameChartSuggestion(
+  ChartSuggestion first,
+  ChartSuggestion second,
+) {
+  return first.chartType == second.chartType &&
+      first.aggregationType == second.aggregationType &&
+      _isSameChartColumn(first.xColumn, second.xColumn) &&
+      _isSameChartColumn(first.yColumn, second.yColumn) &&
+      _isSameChartColumn(first.groupColumn, second.groupColumn);
+}
+
+bool _isSameChartColumn(
+  DatasetColumn? first,
+  DatasetColumn? second,
+) {
+  return first?.dbName == second?.dbName;
 }

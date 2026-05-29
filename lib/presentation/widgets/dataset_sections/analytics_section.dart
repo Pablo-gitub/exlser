@@ -561,37 +561,45 @@ class _ColumnDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveSelected =
-        selected != null && columns.any((c) => c.dbName == selected!.dbName)
-            ? selected
-            : null;
+    final effectiveSelected = selected == null
+        ? null
+        : columns.where((c) => c.dbName == selected!.dbName).firstOrNull;
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 220),
-      child: DropdownButtonFormField<DatasetColumn?>(
-        key: ValueKey(effectiveSelected?.dbName),
+      child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
           isDense: true,
         ),
-        initialValue: effectiveSelected,
-        items: [
-          if (nullable)
-            DropdownMenuItem<DatasetColumn?>(
-              value: null,
-              child: Text(
-                '-',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-          for (final col in columns)
-            DropdownMenuItem<DatasetColumn?>(
-              value: col,
-              child: Text(col.originalName),
-            ),
-        ],
-        onChanged: onChanged,
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<DatasetColumn?>(
+            value: effectiveSelected,
+            isDense: true,
+            isExpanded: true,
+            hint: nullable ? const Text('-') : null,
+            items: [
+              if (nullable)
+                DropdownMenuItem<DatasetColumn?>(
+                  value: null,
+                  child: Text(
+                    '-',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              for (final col in columns)
+                DropdownMenuItem<DatasetColumn?>(
+                  value: col,
+                  child: Text(
+                    col.originalName,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+            onChanged: onChanged,
+          ),
+        ),
       ),
     );
   }
@@ -620,22 +628,30 @@ class _AggregationDropdown extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Expanded(
-            child: DropdownButtonFormField<AggregationType>(
-              key: ValueKey(effectiveSelected),
+            child: InputDecorator(
               decoration: InputDecoration(
                 labelText: AppStrings.datasetWorkspaceAnalyticsAggregation.tr(),
                 border: const OutlineInputBorder(),
                 isDense: true,
               ),
-              initialValue: effectiveSelected,
-              items: [
-                for (final option in options)
-                  DropdownMenuItem(
-                    value: option,
-                    child: Text(_aggregationLabel(option).tr()),
-                  ),
-              ],
-              onChanged: options.isEmpty ? null : onChanged,
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<AggregationType>(
+                  value: effectiveSelected,
+                  isDense: true,
+                  isExpanded: true,
+                  items: [
+                    for (final option in options)
+                      DropdownMenuItem(
+                        value: option,
+                        child: Text(
+                          _aggregationLabel(option).tr(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: options.isEmpty ? null : onChanged,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 4),

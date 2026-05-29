@@ -1233,6 +1233,133 @@ void main() {
       expect(updatedAnalytics.charts.single.suggestion, newSuggestion);
     });
 
+    test('UpdateChartConfigEvent ignores stale chart reload results', () async {
+      final dataset = _dataset();
+      final column = _column();
+      final initialSuggestion = ChartSuggestion(
+        chartType: ChartType.bar,
+        xColumn: column,
+      );
+      final firstSuggestion = ChartSuggestion(
+        chartType: ChartType.pie,
+        xColumn: column,
+      );
+      final secondSuggestion = ChartSuggestion(
+        chartType: ChartType.bar,
+        xColumn: column,
+        aggregationType: AggregationType.count,
+      );
+      const initialChartData = CategoryChartData(
+        chartType: ChartType.bar,
+        xLabel: 'product',
+        yLabel: 'COUNT',
+        points: [CategoryPoint(label: 'book', value: 1)],
+        aggregationType: AggregationType.count,
+      );
+      const staleChartData = CategoryChartData(
+        chartType: ChartType.pie,
+        xLabel: 'product',
+        yLabel: 'COUNT',
+        points: [CategoryPoint(label: 'stale', value: 1)],
+        aggregationType: AggregationType.count,
+      );
+      const currentChartData = CategoryChartData(
+        chartType: ChartType.bar,
+        xLabel: 'product',
+        yLabel: 'COUNT',
+        points: [CategoryPoint(label: 'current', value: 1)],
+        aggregationType: AggregationType.count,
+      );
+      final firstUpdateCompleter = Completer<ChartLoadResult>();
+      final secondUpdateCompleter = Completer<ChartLoadResult>();
+      var loadCount = 0;
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [column],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => analysisService.suggestAllCharts(any()))
+          .thenReturn([initialSuggestion]);
+      when(() => applyFilters.buildWhereClause(any())).thenReturn(null);
+      when(() => analysisService.loadChartData(
+            tableName: any(named: 'tableName'),
+            suggestion: any(named: 'suggestion'),
+            whereClause: any(named: 'whereClause'),
+            whereArguments: any(named: 'whereArguments'),
+          )).thenAnswer((_) {
+        loadCount += 1;
+        return switch (loadCount) {
+          1 => Future.value(ChartLoadResult.success(initialChartData)),
+          2 => firstUpdateCompleter.future,
+          _ => secondUpdateCompleter.future,
+        };
+      });
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
+
+      bloc.add(const LoadAnalyticsEvent());
+      await bloc.stream.firstWhere((s) {
+        if (s is! DatasetLoadedState) return false;
+        final analytics = s.analyticsState;
+        if (analytics is! DatasetAnalyticsLoadedState) return false;
+        return analytics.charts.single.chartData == initialChartData;
+      });
+
+      bloc.add(UpdateChartConfigEvent(
+        chartId: 'chart_0',
+        suggestion: firstSuggestion,
+      ));
+      await bloc.stream.firstWhere((s) {
+        if (s is! DatasetLoadedState) return false;
+        final analytics = s.analyticsState;
+        if (analytics is! DatasetAnalyticsLoadedState) return false;
+        final chart = analytics.charts.single;
+        return chart.suggestion == firstSuggestion && chart.isLoading;
+      });
+
+      bloc.add(UpdateChartConfigEvent(
+        chartId: 'chart_0',
+        suggestion: secondSuggestion,
+      ));
+      await bloc.stream.firstWhere((s) {
+        if (s is! DatasetLoadedState) return false;
+        final analytics = s.analyticsState;
+        if (analytics is! DatasetAnalyticsLoadedState) return false;
+        final chart = analytics.charts.single;
+        return chart.suggestion == secondSuggestion && chart.isLoading;
+      });
+
+      secondUpdateCompleter.complete(ChartLoadResult.success(currentChartData));
+      await bloc.stream.firstWhere((s) {
+        if (s is! DatasetLoadedState) return false;
+        final analytics = s.analyticsState;
+        if (analytics is! DatasetAnalyticsLoadedState) return false;
+        final chart = analytics.charts.single;
+        return chart.suggestion == secondSuggestion &&
+            chart.chartData == currentChartData &&
+            !chart.isLoading;
+      });
+
+      firstUpdateCompleter.complete(ChartLoadResult.success(staleChartData));
+      await Future<void>.delayed(Duration.zero);
+
+      final latestState = bloc.state as DatasetLoadedState;
+      final latestAnalytics =
+          latestState.analyticsState as DatasetAnalyticsLoadedState;
+      final latestChart = latestAnalytics.charts.single;
+      expect(latestChart.suggestion, secondSuggestion);
+      expect(latestChart.chartData, currentChartData);
+      expect(latestChart.chartData, isNot(staleChartData));
+    });
+
     test('RemoveChartEvent removes chart from loaded state', () async {
       final dataset = _dataset();
       final column = _column();

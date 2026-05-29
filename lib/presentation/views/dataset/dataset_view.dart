@@ -481,6 +481,10 @@ class _LoadedWorkspace extends StatelessWidget {
         context.read<DatasetBloc>().add(const RefreshResultsEvent());
       },
       child: ListView(
+        key: PageStorageKey(
+          'dataset_workspace_${state.dataset.id}_'
+          '${state.activeTable.id}_${state.queryMode.name}',
+        ),
         padding: const EdgeInsets.all(16),
         children: [
           Center(
