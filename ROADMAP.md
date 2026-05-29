@@ -53,9 +53,9 @@ column names, and column types.
 
 v0.1.0 (First Publishable Preview), v0.2.0 (Filtering and Sorting),
 v0.3.0 (Export), and v0.4.0 (Basic Analytics) are complete. The current
-operational focus is preparing the first Google Play release: release signing,
-Android App Bundle generation, store listing, privacy/app-content declarations,
-and testing tracks.
+operational focus is completing the first Google Play closed beta cycle: fixing
+closed tester feedback, release signing, Android App Bundle generation, store
+listing, privacy/app-content declarations, and testing tracks.
 
 Export is complete for Excel, CSV, PDF table/card layouts with QR codes, SQL,
 and JSON. Exports respect selected sheets, persisted per-sheet filters, sorting,
@@ -966,6 +966,84 @@ Removal rule:
 Do not remove legacy code if it breaks a flow that has not been replaced yet.
 Every removal should have a test or a manual verification of the equivalent flow.
 ```
+
+## Path to Beta Polish
+
+Goal: address closed beta feedback before widening the Google Play rollout.
+
+- [x] Fix onboarding footer overlap with Android system navigation controls.
+- [x] Fix Android system Back behavior from the language selection screen.
+- [ ] Replace social footer icons with recognizable GitHub, Instagram, and
+      LinkedIn icons.
+- [ ] Auto-play onboarding video and show a replay action when it ends.
+- [ ] Open the side navigation by default on medium and wide layouts.
+
+Definition of done:
+
+- [ ] Closed beta testers can complete onboarding and settings navigation
+      without layout overlap or accidental app exits.
+- [ ] Navigation behavior is verified on a real Android device.
+- [ ] Tablet/desktop layouts expose navigation immediately while phones remain
+      compact.
+
+## Path to Multi-Sheet Analysis
+
+Goal: make cross-sheet analysis approachable without forcing users to write SQL
+by hand. This feature acts as a guided query builder for comparing multiple
+sheets.
+
+Entry point:
+
+- [ ] Add a Multi-sheet Analysis action beside the sheet selector in
+      `DatasetView`.
+- [ ] Open a dedicated view or panel for choosing the sheets to compare.
+
+Guided analysis flow:
+
+- [ ] Let the user select one or more sheets.
+- [ ] For each selected sheet, let the user choose the columns to include.
+- [ ] Reuse the existing filter controls for selected columns.
+- [ ] Ask how selected sheets are connected before building queries that use
+      more than one sheet.
+- [ ] Build a safe read-only SQL query from the selected sheets, columns, and
+      filters.
+- [ ] Show the generated result in the existing table/card result workspace.
+- [ ] Reuse query analytics on top of the generated multi-sheet result.
+- [ ] Persist the selected sheets, columns, filters, generated query, and chart
+      configuration in `uiStateJson`.
+
+Relationship assistance:
+
+- [ ] Detect candidate relationship columns by comparing normalized column
+      names, compatible data types, overlapping values, uniqueness, and common
+      business identifiers such as `id`, `code`, `sku`, `email`, or
+      `product_id`.
+- [ ] Show relationship suggestions in user-facing language, for example
+      `Products.product` connected to `Sales.product`.
+- [ ] Let the user confirm, change, or reject each suggested relationship.
+- [ ] Support initial `INNER JOIN` and `LEFT JOIN` choices with clear labels.
+- [ ] Use generated row IDs only as internal row references or as an explicit
+      row-order matching option, not as automatic cross-sheet relationships.
+- [ ] Persist confirmed relationships in `uiStateJson` for the opened dataset.
+- [ ] Later promote stable relationships into a domain entity such as
+      `DatasetRelationship` if they become part of the dataset model.
+
+Future refinement:
+
+- [ ] Add relationship confidence labels such as high, medium, or low.
+- [ ] Detect row-order matches when sheets have the same length and the user
+      explicitly confirms that rows correspond by position.
+- [ ] Add fuzzy matching for messy text values that refer to the same business
+      object with slightly different spelling.
+- [ ] Explain the generated query in human-readable form before execution.
+- [ ] Allow advanced users to switch from guided mode to raw SQL while keeping
+      the generated query as a starting point.
+
+Definition of done:
+
+- [ ] Users can compare multiple sheets without manually writing SQL.
+- [ ] The generated query remains read-only and limited to the opened dataset.
+- [ ] Multi-sheet result state is restored when reopening the dataset.
 
 ## Future Ideas
 

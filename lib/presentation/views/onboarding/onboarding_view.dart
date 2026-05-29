@@ -45,54 +45,57 @@ class _OnboardingViewState extends ConsumerState<OnboardingView> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: viewModel.pageController,
-                itemCount: viewModel.pages.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    viewModel.onPageChanged(index);
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return OnboardingPage(
-                    page: viewModel.pages[index],
-                  );
-                },
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  onPressed: viewModel.canGoBack
-                      ? () async {
-                          await viewModel.previousPage();
-
-                          setState(() {});
-                        }
-                      : null,
-                  child: Text(
-                    AppStrings.previous.tr(),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await viewModel.nextPage();
-
-                    setState(() {});
+      body: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: viewModel.pageController,
+                  itemCount: viewModel.pages.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      viewModel.onPageChanged(index);
+                    });
                   },
-                  child: Text(
-                    isLastPage ? AppStrings.start.tr() : AppStrings.next.tr(),
-                  ),
+                  itemBuilder: (context, index) {
+                    return OnboardingPage(
+                      page: viewModel.pages[index],
+                    );
+                  },
                 ),
-              ],
-            ),
-          ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: viewModel.canGoBack
+                        ? () async {
+                            await viewModel.previousPage();
+
+                            setState(() {});
+                          }
+                        : null,
+                    child: Text(
+                      AppStrings.previous.tr(),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await viewModel.nextPage();
+
+                      setState(() {});
+                    },
+                    child: Text(
+                      isLastPage ? AppStrings.start.tr() : AppStrings.next.tr(),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
