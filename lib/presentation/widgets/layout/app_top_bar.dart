@@ -26,6 +26,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isBrandTitle = title.trim().toLowerCase() == 'exlser';
+
     return AppBar(
       leading: Builder(
         builder: (BuildContext context) {
@@ -36,7 +38,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
         },
       ),
       title: _AppBarTitle(title: title),
-      centerTitle: true,
+      centerTitle: isBrandTitle,
+      titleSpacing: isBrandTitle ? null : 0,
       actions: actions,
     );
   }
@@ -55,7 +58,12 @@ class _AppBarTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (title.trim().toLowerCase() != 'exlser') {
-      return Text(title);
+      return Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+      );
     }
 
     return Semantics(

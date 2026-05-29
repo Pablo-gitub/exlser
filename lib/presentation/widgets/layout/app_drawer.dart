@@ -24,96 +24,143 @@ class AppDrawer extends StatelessWidget {
       Uri.parse('https://www.instagram.com/ing_paolo_pietrelli/');
 
   final bool closeOnNavigate;
+  final VoidCallback? onCloseRequested;
 
   const AppDrawer({
     super.key,
     this.closeOnNavigate = true,
+    this.onCloseRequested,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: Text(AppStrings.home.tr()),
-              onTap: () => _go(context, AppRoutes.homePath),
-            ),
-            ListTile(
-              leading: const Icon(Icons.folder_copy),
-              title: Text(AppStrings.works.tr()),
-              onTap: () => _go(context, AppRoutes.datasetListPath),
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: Text(AppStrings.settings.tr()),
-              onTap: () => _go(context, AppRoutes.settingsPath),
-            ),
-            const Spacer(),
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-              child: Column(
-                children: [
-                  Tooltip(
-                    message: AppStrings.openWebsite.tr(),
-                    child: ListTile(
-                      leading: const Icon(Icons.account_circle_outlined),
-                      title: Text(AppStrings.developer.tr()),
-                      subtitle: Text(AppStrings.developerWebsite.tr()),
-                      onTap: () => _openExternalLink(
-                        context,
-                        _developerWebsiteUri,
-                      ),
+    final content = SafeArea(
+      child: Column(
+        children: [
+          const SizedBox(height: 24),
+          ListTile(
+            selected: _isHomeSelected(context),
+            leading: const Icon(Icons.home),
+            title: Text(AppStrings.home.tr()),
+            onTap: () => _go(context, AppRoutes.homePath),
+          ),
+          ListTile(
+            selected: _isWorksSelected(context),
+            leading: const Icon(Icons.folder_copy),
+            title: Text(AppStrings.works.tr()),
+            onTap: () => _go(context, AppRoutes.datasetListPath),
+          ),
+          ListTile(
+            selected: _isSettingsSelected(context),
+            leading: const Icon(Icons.settings),
+            title: Text(AppStrings.settings.tr()),
+            onTap: () => _go(context, AppRoutes.settingsPath),
+          ),
+          const Spacer(),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+            child: Column(
+              children: [
+                Tooltip(
+                  message: AppStrings.openWebsite.tr(),
+                  child: ListTile(
+                    leading: const Icon(Icons.account_circle_outlined),
+                    title: Text(AppStrings.developer.tr()),
+                    subtitle: Text(AppStrings.developerWebsite.tr()),
+                    onTap: () => _openExternalLink(
+                      context,
+                      _developerWebsiteUri,
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        tooltip: AppStrings.openGithub.tr(),
-                        icon: const FaIcon(FontAwesomeIcons.github),
-                        onPressed: () => _openExternalLink(
-                          context,
-                          _githubUri,
-                        ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      tooltip: AppStrings.openGithub.tr(),
+                      icon: const FaIcon(FontAwesomeIcons.github),
+                      onPressed: () => _openExternalLink(
+                        context,
+                        _githubUri,
                       ),
-                      IconButton(
-                        tooltip: AppStrings.openLinkedin.tr(),
-                        icon: const FaIcon(FontAwesomeIcons.linkedin),
-                        onPressed: () => _openExternalLink(
-                          context,
-                          _linkedinUri,
-                        ),
+                    ),
+                    IconButton(
+                      tooltip: AppStrings.openLinkedin.tr(),
+                      icon: const FaIcon(FontAwesomeIcons.linkedin),
+                      onPressed: () => _openExternalLink(
+                        context,
+                        _linkedinUri,
                       ),
-                      IconButton(
-                        tooltip: AppStrings.openInstagram.tr(),
-                        icon: const FaIcon(FontAwesomeIcons.instagram),
-                        onPressed: () => _openExternalLink(
-                          context,
-                          _instagramUri,
-                        ),
+                    ),
+                    IconButton(
+                      tooltip: AppStrings.openInstagram.tr(),
+                      icon: const FaIcon(FontAwesomeIcons.instagram),
+                      onPressed: () => _openExternalLink(
+                        context,
+                        _instagramUri,
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+
+    if (closeOnNavigate) {
+      return Drawer(child: content);
+    }
+
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+      child: content,
     );
   }
 
   void _go(BuildContext context, String path) {
-    if (closeOnNavigate) {
-      Navigator.of(context).pop();
+    final currentPath = GoRouterState.of(context).uri.path;
+    final router = GoRouter.of(context);
+    final scaffold = Scaffold.maybeOf(context);
+    final shouldNavigate = currentPath != path;
+
+    if (!closeOnNavigate) {
+      if (shouldNavigate) {
+        router.go(path);
+      }
+      return;
     }
 
-    context.go(path);
+    onCloseRequested?.call();
+    if (onCloseRequested == null) {
+      scaffold?.closeDrawer();
+    }
+
+    if (shouldNavigate) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        router.go(path);
+      });
+    }
+  }
+
+  bool _isHomeSelected(BuildContext context) {
+    return GoRouterState.of(context).matchedLocation == AppRoutes.homePath;
+  }
+
+  bool _isWorksSelected(BuildContext context) {
+    return switch (GoRouterState.of(context).matchedLocation) {
+      AppRoutes.datasetListPath ||
+      AppRoutes.datasetPath ||
+      AppRoutes.multiDatasetAnalyticsPath =>
+        true,
+      _ => false,
+    };
+  }
+
+  bool _isSettingsSelected(BuildContext context) {
+    return GoRouterState.of(context).matchedLocation == AppRoutes.settingsPath;
   }
 
   Future<void> _openExternalLink(BuildContext context, Uri uri) async {

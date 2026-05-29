@@ -52,77 +52,87 @@ class _DatasetTableViewState extends State<DatasetTableView> {
     final height = _tableHeight(context, widget.rows.length);
     final borderColor = Theme.of(context).dividerColor;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Scrollbar(
-          controller: _horizontalController,
-          thumbVisibility: true,
-          notificationPredicate: (notification) =>
-              notification.metrics.axis == Axis.horizontal,
-          child: SingleChildScrollView(
-            key: DatasetTableView.horizontalScrollKey,
-            controller: _horizontalController,
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              height: height,
-              child: Scrollbar(
-                controller: _verticalController,
-                thumbVisibility: true,
-                notificationPredicate: (notification) =>
-                    notification.metrics.axis == Axis.vertical,
-                child: SingleChildScrollView(
-                  key: DatasetTableView.verticalScrollKey,
-                  controller: _verticalController,
-                  scrollDirection: Axis.vertical,
-                  child: DataTable(
-                    sortColumnIndex: _sortColumnIndex,
-                    sortAscending:
-                        widget.sort?.direction != SortDirection.descending,
-                    headingRowHeight: _headingRowHeight,
-                    dataRowMinHeight: _dataRowHeight,
-                    dataRowMaxHeight: _dataRowHeight,
-                    horizontalMargin: 16,
-                    columnSpacing: 24,
-                    border: TableBorder(
-                      horizontalInside: BorderSide(color: borderColor),
-                    ),
-                    columns: [
-                      for (final column in widget.columns)
-                        DataColumn(
-                          label: _HeaderCell(label: column.originalName),
-                          onSort: widget.onSortColumn == null
-                              ? null
-                              : (_, __) => widget.onSortColumn!(column),
-                        ),
-                    ],
-                    rows: [
-                      for (final row in widget.rows)
-                        DataRow(
-                          cells: [
-                            for (final column in widget.columns)
-                              DataCell(
-                                _DataCellText(
-                                  value: _formatCellValue(
-                                    row[column.dbName],
-                                    columnType: column.declaredType,
-                                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border.all(color: borderColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Scrollbar(
+              controller: _horizontalController,
+              thumbVisibility: true,
+              notificationPredicate: (notification) =>
+                  notification.metrics.axis == Axis.horizontal,
+              child: SingleChildScrollView(
+                key: DatasetTableView.horizontalScrollKey,
+                controller: _horizontalController,
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                  child: IntrinsicWidth(
+                    child: SizedBox(
+                      height: height,
+                      child: Scrollbar(
+                        controller: _verticalController,
+                        thumbVisibility: true,
+                        notificationPredicate: (notification) =>
+                            notification.metrics.axis == Axis.vertical,
+                        child: SingleChildScrollView(
+                          key: DatasetTableView.verticalScrollKey,
+                          controller: _verticalController,
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            sortColumnIndex: _sortColumnIndex,
+                            sortAscending: widget.sort?.direction !=
+                                SortDirection.descending,
+                            headingRowHeight: _headingRowHeight,
+                            dataRowMinHeight: _dataRowHeight,
+                            dataRowMaxHeight: _dataRowHeight,
+                            horizontalMargin: 16,
+                            columnSpacing: 24,
+                            border: TableBorder(
+                              horizontalInside: BorderSide(color: borderColor),
+                            ),
+                            columns: [
+                              for (final column in widget.columns)
+                                DataColumn(
+                                  label:
+                                      _HeaderCell(label: column.originalName),
+                                  onSort: widget.onSortColumn == null
+                                      ? null
+                                      : (_, __) => widget.onSortColumn!(column),
                                 ),
-                              ),
-                          ],
+                            ],
+                            rows: [
+                              for (final row in widget.rows)
+                                DataRow(
+                                  cells: [
+                                    for (final column in widget.columns)
+                                      DataCell(
+                                        _DataCellText(
+                                          value: _formatCellValue(
+                                            row[column.dbName],
+                                            columnType: column.declaredType,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                            ],
+                          ),
                         ),
-                    ],
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

@@ -231,6 +231,28 @@ void main() {
       expect(state.code, 'load_failed');
     });
 
+    test('should ignore pending load when closed before async result',
+        () async {
+      final loadCompleter = Completer<Dataset>();
+      final errors = <Object>[];
+
+      when(() => openDataset.call(1)).thenAnswer((_) => loadCompleter.future);
+
+      await runZonedGuarded(() async {
+        bloc.add(const LoadDatasetEvent(1));
+        await Future<void>.delayed(Duration.zero);
+
+        final closeFuture = bloc.close();
+        loadCompleter.complete(_dataset());
+        await closeFuture;
+        await Future<void>.delayed(Duration.zero);
+      }, (error, _) {
+        errors.add(error);
+      });
+
+      expect(errors, isEmpty);
+    });
+
     test('should change active sheet and reload columns and rows', () async {
       final dataset = _dataset();
       final firstTable = _table(id: 10, name: 'Sheet1', tableName: 'tbl_1');

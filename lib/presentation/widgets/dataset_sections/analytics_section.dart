@@ -952,17 +952,41 @@ class _ErrorTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(Icons.error_outline),
-        const SizedBox(width: 8),
-        Text(AppStrings.datasetWorkspaceAnalyticsError.tr()),
-        const Spacer(),
-        TextButton(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final message = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(AppStrings.datasetWorkspaceAnalyticsError.tr()),
+            ),
+          ],
+        );
+        final retryButton = TextButton(
           onPressed: onRetry,
           child: Text(AppStrings.retry.tr()),
-        ),
-      ],
+        );
+
+        if (constraints.maxWidth < 420) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              message,
+              const SizedBox(height: 8),
+              retryButton,
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: message),
+            retryButton,
+          ],
+        );
+      },
     );
   }
 }

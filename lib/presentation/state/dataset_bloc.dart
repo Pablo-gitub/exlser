@@ -82,7 +82,10 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
 
     try {
       final dataset = await _openDataset.call(event.datasetId);
+      if (emit.isDone) return;
+
       final tables = await _schemaRepository.getTablesForDataset(dataset.id);
+      if (emit.isDone) return;
 
       if (tables.isEmpty) {
         emit(DatasetEmptyState(dataset: dataset));
@@ -97,7 +100,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         activeTableId: workspaceState.activeTableId,
       );
 
-      emit(await _loadTableState(
+      final loadedState = await _loadTableState(
         dataset: dataset,
         tables: tables,
         activeTable: activeTable,
@@ -107,8 +110,12 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         filters: const [],
         sort: null,
         workspaceState: workspaceState,
-      ));
+      );
+      if (emit.isDone) return;
+
+      emit(loadedState);
     } catch (_) {
+      if (emit.isDone) return;
       emit(const DatasetErrorState('load_failed'));
     }
   }
@@ -149,11 +156,13 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         sort: null,
         workspaceState: workspaceState,
       );
+      if (emit.isDone) return;
 
       final persistedState = _attachWorkspaceStateJson(nextState);
       emit(persistedState);
       await _persistWorkspaceState(persistedState);
     } catch (_) {
+      if (emit.isDone) return;
       emit(const DatasetErrorState('sheet_failed'));
     }
   }
@@ -171,7 +180,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final workspaceState = DatasetWorkspaceUiState.fromJsonString(
         currentState.dataset.uiStateJson,
       );
-      emit(await _loadTableState(
+      final loadedState = await _loadTableState(
         dataset: currentState.dataset,
         tables: currentState.tables,
         activeTable: currentState.activeTable,
@@ -182,8 +191,12 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         filters: currentState.filters,
         sort: currentState.sort,
         workspaceState: workspaceState,
-      ));
+      );
+      if (emit.isDone) return;
+
+      emit(loadedState);
     } catch (_) {
+      if (emit.isDone) return;
       emit(const DatasetErrorState('refresh_failed'));
     }
   }
@@ -457,6 +470,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         },
         limit: currentState.readOnlyQuery.limit,
       );
+      if (emit.isDone) return;
+
       final rows = _stripInternalColumns(result.rows);
 
       final latestState = state;
@@ -481,6 +496,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       emit(nextState);
       await _persistWorkspaceState(nextState);
     } on ReadOnlyQueryException catch (error) {
+      if (emit.isDone) return;
+
       final latestState = state;
       if (latestState is! DatasetLoadedState) return;
 
@@ -493,6 +510,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         analyticsState: const DatasetAnalyticsIdleState(),
       ));
     } catch (_) {
+      if (emit.isDone) return;
+
       final latestState = state;
       if (latestState is! DatasetLoadedState) return;
 
@@ -568,6 +587,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         activeTable: currentState.activeTable,
         filters: filters,
       );
+      if (emit.isDone) return;
+
       final safePageIndex = _safePageIndex(
         requestedPageIndex: pageIndex,
         totalRowCount: totalRowCount,
@@ -580,6 +601,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         rowLimit: rowLimit,
         pageIndex: safePageIndex,
       );
+      if (emit.isDone) return;
 
       final loadedAnalyticsState = reloadAnalytics &&
               currentState.analyticsState is DatasetAnalyticsLoadedState
@@ -611,10 +633,13 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         nextState,
         charts: loadedAnalyticsState.charts,
       );
+      if (emit.isDone) return;
+
       final persistedState = _attachWorkspaceStateJson(reloadedState);
       emit(persistedState);
       await _persistWorkspaceState(persistedState);
     } catch (_) {
+      if (emit.isDone) return;
       emit(DatasetErrorState(errorCode));
     }
   }
@@ -1010,6 +1035,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     ));
 
     final loadedState = await _loadAnalyticsForState(currentState);
+    if (emit.isDone) return;
 
     final latestState = state;
     if (latestState is! DatasetLoadedState) return;
@@ -1022,6 +1048,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         await _persistWorkspaceState(nextState);
       }
     } catch (_) {
+      if (emit.isDone) return;
       emit(loadedState.copyWith(
         analyticsState: const DatasetAnalyticsErrorState('analytics_failed'),
       ));
@@ -1066,6 +1093,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
 
     try {
       final result = await _loadChartDataForState(currentState, suggestion);
+      if (emit.isDone) return;
 
       final latest = state;
       if (latest is! DatasetLoadedState) return;
@@ -1090,6 +1118,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       emit(persistedState);
       await _persistWorkspaceState(persistedState);
     } catch (_) {
+      if (emit.isDone) return;
+
       final latest = state;
       if (latest is! DatasetLoadedState) return;
       final latestAnalytics = latest.analyticsState;
@@ -1155,6 +1185,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     try {
       final result =
           await _loadChartDataForState(currentState, event.suggestion);
+      if (emit.isDone) return;
 
       final latest = state;
       if (latest is! DatasetLoadedState) return;
@@ -1188,6 +1219,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       emit(persistedState);
       await _persistWorkspaceState(persistedState);
     } catch (_) {
+      if (emit.isDone) return;
+
       final latest = state;
       if (latest is! DatasetLoadedState) return;
       final latestAnalytics = latest.analyticsState;

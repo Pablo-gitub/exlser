@@ -2,6 +2,9 @@
 
 This document defines the next navigation/layout refactor for Exlser.
 
+Status: implemented. Keep this document as the reference for regression checks
+and future shell improvements.
+
 ## Current Problem
 
 The current responsive navigation works functionally, but on web and desktop it

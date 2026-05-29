@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/domain/entities/dataset.dart';
 import 'package:exlser/presentation/router/routes.dart';
-import 'package:exlser/presentation/widgets/layout/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -88,10 +87,7 @@ class _DatasetsListViewState extends ConsumerState<DatasetsListView> {
   Widget build(BuildContext context) {
     final viewModel = ref.watch(datasetsListViewModelProvider);
 
-    return AppScaffold(
-      title: AppStrings.works.tr(),
-      body: _buildBody(context, viewModel),
-    );
+    return _buildBody(context, viewModel);
   }
 
   Widget _buildBody(BuildContext context, DatasetsListViewModel viewModel) {

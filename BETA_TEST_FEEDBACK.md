@@ -29,13 +29,15 @@ This document collects feedback and follow-up improvements discovered during the
 
 ## Responsive Layout Improvements
 
-- [ ] Refactor the medium/wide navigation into a persistent shell.
+- [x] Refactor the medium/wide navigation into a persistent shell.
   - Target: tablet, desktop, and web/tablet-like widths.
   - Users should still be able to close it manually through the menu button.
   - Keep compact phone layouts closed by default.
   - Current implementation opens the menu on wide layouts, but web navigation
     still recreates the app chrome and creates an unpleasant loading effect.
   - The side navigation is also too wide; target about `220-240px`.
+  - Implemented with `ShellRoute`, persistent `AppShell`, active route
+    highlighting, contextual app bar actions, and a narrower side navigation.
   - See `NAVIGATION_SHELL_REFACTOR.md`.
 
 ## Notes
@@ -47,6 +49,6 @@ Remaining beta polish:
 - [ ] Verify onboarding navigation controls on a real Android device with gesture navigation and three-button navigation.
 - [ ] Verify Android Back from Settings on a real Android device.
 - [ ] Verify onboarding video auto-play, replay, and fullscreen behavior on a real Android device.
-- [ ] Implement and verify persistent `ShellRoute` navigation on tablet,
+- [ ] Verify persistent `ShellRoute` navigation on tablet,
       desktop, and resized web layouts.
 - [ ] Optional: evaluate whether an immersive fullscreen mode is worth adding for specific media screens. Avoid enabling it app-wide unless beta feedback clearly asks for it.

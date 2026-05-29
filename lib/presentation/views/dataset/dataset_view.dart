@@ -21,7 +21,7 @@ import 'package:exlser/presentation/widgets/dataset_sections/analytics_section.d
 import 'package:exlser/presentation/widgets/dataset_views/dataset_card_view.dart';
 import 'package:exlser/presentation/widgets/dataset_views/dataset_filter_panel.dart';
 import 'package:exlser/presentation/widgets/dataset_views/dataset_table_view.dart';
-import 'package:exlser/presentation/widgets/layout/app_scaffold.dart';
+import 'package:exlser/presentation/widgets/layout/app_shell_actions.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +30,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
-class DatasetView extends ConsumerWidget {
+class DatasetView extends ConsumerStatefulWidget {
   final int datasetId;
 
   const DatasetView({
@@ -39,51 +39,92 @@ class DatasetView extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return BlocProvider(
-      create: (_) => DatasetBloc(
-        openDataset: ref.read(openDatasetUseCaseProvider),
-        schemaRepository: ref.read(schemaRepositoryProvider),
-        fetchRows: ref.read(fetchRowsUseCaseProvider),
-        applyFilters: ref.read(applyFiltersUseCaseProvider),
-        executeReadOnlyQuery: ref.read(executeReadOnlyQueryUseCaseProvider),
-        updateDatasetUiState: ref.read(updateDatasetUiStateUseCaseProvider),
-        analysisService: ref.read(analysisServiceProvider),
-      )..add(LoadDatasetEvent(datasetId)),
-      child: AppScaffold(
-        title: AppStrings.datasetWorkspaceTitle.tr(),
-        actions: [
-          _DatasetExportAction(
-            exportDataService: ref.read(exportDataServiceProvider),
-            schemaRepository: ref.read(schemaRepositoryProvider),
+  ConsumerState<DatasetView> createState() => _DatasetViewState();
+}
+
+class _DatasetViewState extends ConsumerState<DatasetView> {
+  late final DatasetBloc _bloc;
+  late final ExportDataService _exportDataService;
+  late final SchemaRepository _schemaRepository;
+  late final AppShellActionsNotifier _shellActions;
+
+  static const String _exportActionId = 'dataset_export_action';
+
+  @override
+  void initState() {
+    super.initState();
+
+    _shellActions = ref.read(appShellActionsProvider.notifier);
+    _exportDataService = ref.read(exportDataServiceProvider);
+    _schemaRepository = ref.read(schemaRepositoryProvider);
+    _bloc = DatasetBloc(
+      openDataset: ref.read(openDatasetUseCaseProvider),
+      schemaRepository: ref.read(schemaRepositoryProvider),
+      fetchRows: ref.read(fetchRowsUseCaseProvider),
+      applyFilters: ref.read(applyFiltersUseCaseProvider),
+      executeReadOnlyQuery: ref.read(executeReadOnlyQueryUseCaseProvider),
+      updateDatasetUiState: ref.read(updateDatasetUiStateUseCaseProvider),
+      analysisService: ref.read(analysisServiceProvider),
+    )..add(LoadDatasetEvent(widget.datasetId));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _shellActions.setAction(
+        AppShellAction(
+          id: _exportActionId,
+          builder: (_) => _DatasetExportAction(
+            bloc: _bloc,
+            exportDataService: _exportDataService,
+            schemaRepository: _schemaRepository,
           ),
-        ],
-        body: BlocBuilder<DatasetBloc, DatasetState>(
-          builder: (context, state) {
-            return switch (state) {
-              DatasetInitialState() ||
-              DatasetLoadingState() =>
-                const Center(child: CircularProgressIndicator()),
-              DatasetEmptyState(:final dataset) =>
-                _EmptyWorkspace(dataset: dataset),
-              DatasetLoadedState() => _LoadedWorkspace(state: state),
-              DatasetErrorState(:final code) => _WorkspaceError(
-                  code: code,
-                  datasetId: datasetId,
-                ),
-            };
-          },
         ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_shellActions.mounted) {
+        _shellActions.removeAction(_exportActionId);
+      }
+    });
+    _bloc.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider.value(
+      value: _bloc,
+      child: BlocBuilder<DatasetBloc, DatasetState>(
+        builder: (context, state) {
+          return switch (state) {
+            DatasetInitialState() ||
+            DatasetLoadingState() =>
+              const Center(child: CircularProgressIndicator()),
+            DatasetEmptyState(:final dataset) => _EmptyWorkspace(
+                dataset: dataset,
+              ),
+            DatasetLoadedState() => _LoadedWorkspace(state: state),
+            DatasetErrorState(:final code) => _WorkspaceError(
+                code: code,
+                datasetId: widget.datasetId,
+              ),
+          };
+        },
       ),
     );
   }
 }
 
 class _DatasetExportAction extends StatefulWidget {
+  final DatasetBloc bloc;
   final ExportDataService exportDataService;
   final SchemaRepository schemaRepository;
 
   const _DatasetExportAction({
+    required this.bloc,
     required this.exportDataService,
     required this.schemaRepository,
   });
@@ -98,6 +139,7 @@ class _DatasetExportActionState extends State<_DatasetExportAction> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DatasetBloc, DatasetState>(
+      bloc: widget.bloc,
       builder: (context, state) {
         final loadedState = state is DatasetLoadedState ? state : null;
 
@@ -581,26 +623,7 @@ class _DatasetQueryModePanel extends StatelessWidget {
       children: [
         Align(
           alignment: Alignment.centerLeft,
-          child: SegmentedButton<DatasetQueryMode>(
-            segments: [
-              ButtonSegment(
-                value: DatasetQueryMode.filters,
-                icon: const Icon(Icons.filter_alt_outlined),
-                label: Text(AppStrings.datasetWorkspaceQueryTabFilters.tr()),
-              ),
-              ButtonSegment(
-                value: DatasetQueryMode.sql,
-                icon: const Icon(Icons.terminal),
-                label: Text(AppStrings.datasetWorkspaceQueryTabSql.tr()),
-              ),
-            ],
-            selected: {state.queryMode},
-            onSelectionChanged: (selection) {
-              context.read<DatasetBloc>().add(
-                    ChangeQueryModeEvent(selection.single),
-                  );
-            },
-          ),
+          child: _QueryModeSelector(queryMode: state.queryMode),
         ),
         const SizedBox(height: 12),
         if (state.queryMode == DatasetQueryMode.filters)
@@ -621,6 +644,89 @@ class _DatasetQueryModePanel extends StatelessWidget {
         else
           _ReadOnlyQueryPanel(state: state),
       ],
+    );
+  }
+}
+
+class _QueryModeSelector extends StatelessWidget {
+  final DatasetQueryMode queryMode;
+
+  const _QueryModeSelector({
+    required this.queryMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 420) {
+          return Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _QueryModeChip(
+                queryMode: DatasetQueryMode.filters,
+                selectedQueryMode: queryMode,
+                icon: Icons.filter_alt_outlined,
+                label: AppStrings.datasetWorkspaceQueryTabFilters.tr(),
+              ),
+              _QueryModeChip(
+                queryMode: DatasetQueryMode.sql,
+                selectedQueryMode: queryMode,
+                icon: Icons.terminal,
+                label: AppStrings.datasetWorkspaceQueryTabSql.tr(),
+              ),
+            ],
+          );
+        }
+
+        return SegmentedButton<DatasetQueryMode>(
+          segments: [
+            ButtonSegment(
+              value: DatasetQueryMode.filters,
+              icon: const Icon(Icons.filter_alt_outlined),
+              label: Text(AppStrings.datasetWorkspaceQueryTabFilters.tr()),
+            ),
+            ButtonSegment(
+              value: DatasetQueryMode.sql,
+              icon: const Icon(Icons.terminal),
+              label: Text(AppStrings.datasetWorkspaceQueryTabSql.tr()),
+            ),
+          ],
+          selected: {queryMode},
+          onSelectionChanged: (selection) {
+            context.read<DatasetBloc>().add(
+                  ChangeQueryModeEvent(selection.single),
+                );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _QueryModeChip extends StatelessWidget {
+  final DatasetQueryMode queryMode;
+  final DatasetQueryMode selectedQueryMode;
+  final IconData icon;
+  final String label;
+
+  const _QueryModeChip({
+    required this.queryMode,
+    required this.selectedQueryMode,
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ChoiceChip(
+      avatar: Icon(icon, size: 18),
+      label: Text(label),
+      selected: selectedQueryMode == queryMode,
+      onSelected: (_) {
+        context.read<DatasetBloc>().add(ChangeQueryModeEvent(queryMode));
+      },
     );
   }
 }
@@ -1113,7 +1219,45 @@ class _DatasetHeader extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        SegmentedButton<DatasetViewMode>(
+        _ViewModeSelector(viewMode: viewMode),
+      ],
+    );
+  }
+}
+
+class _ViewModeSelector extends StatelessWidget {
+  final DatasetViewMode viewMode;
+
+  const _ViewModeSelector({
+    required this.viewMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 420) {
+          return Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _ViewModeChip(
+                viewMode: DatasetViewMode.table,
+                selectedViewMode: viewMode,
+                icon: Icons.table_rows,
+                label: AppStrings.datasetWorkspaceTableView.tr(),
+              ),
+              _ViewModeChip(
+                viewMode: DatasetViewMode.cards,
+                selectedViewMode: viewMode,
+                icon: Icons.view_agenda,
+                label: AppStrings.datasetWorkspaceCardView.tr(),
+              ),
+            ],
+          );
+        }
+
+        return SegmentedButton<DatasetViewMode>(
           segments: [
             ButtonSegment(
               value: DatasetViewMode.table,
@@ -1132,8 +1276,34 @@ class _DatasetHeader extends StatelessWidget {
                   ChangeViewModeEvent(selection.single),
                 );
           },
-        ),
-      ],
+        );
+      },
+    );
+  }
+}
+
+class _ViewModeChip extends StatelessWidget {
+  final DatasetViewMode viewMode;
+  final DatasetViewMode selectedViewMode;
+  final IconData icon;
+  final String label;
+
+  const _ViewModeChip({
+    required this.viewMode,
+    required this.selectedViewMode,
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ChoiceChip(
+      avatar: Icon(icon, size: 18),
+      label: Text(label),
+      selected: selectedViewMode == viewMode,
+      onSelected: (_) {
+        context.read<DatasetBloc>().add(ChangeViewModeEvent(viewMode));
+      },
     );
   }
 }

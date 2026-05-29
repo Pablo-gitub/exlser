@@ -81,15 +81,13 @@ class _DatasetFilterPanelState extends State<DatasetFilterPanel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    AppStrings.datasetWorkspaceFiltersTitle.tr(),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                Row(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final title = Text(
+                  AppStrings.datasetWorkspaceFiltersTitle.tr(),
+                  style: Theme.of(context).textTheme.titleMedium,
+                );
+                final advancedToggle = Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(AppStrings.datasetWorkspaceFiltersAdvanced.tr()),
@@ -98,8 +96,26 @@ class _DatasetFilterPanelState extends State<DatasetFilterPanel> {
                       onChanged: _toggleAdvancedMode,
                     ),
                   ],
-                ),
-              ],
+                );
+
+                if (constraints.maxWidth < 420) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      title,
+                      const SizedBox(height: 8),
+                      advancedToggle,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(child: title),
+                    advancedToggle,
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 12),
             LayoutBuilder(

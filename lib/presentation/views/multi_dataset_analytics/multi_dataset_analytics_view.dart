@@ -51,8 +51,6 @@ class _MultiDatasetAnalyticsViewState extends State<MultiDatasetAnalyticsView> {
     ///
     /// Then execute analytics service.
 
-    return const Scaffold(
-      body: Placeholder(),
-    );
+    return const Placeholder();
   }
 }

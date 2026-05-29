@@ -1,6 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:exlser/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../widgets/layout/app_shell.dart';
 import '../views/dataset/dataset_view.dart';
 import '../views/dataset_list/datasets_list_view.dart';
 import '../views/home/home_view.dart';
@@ -53,42 +56,70 @@ class AppRouter {
             return const OnboardingView();
           },
         ),
-        GoRoute(
-          name: AppRoutes.homeName,
-          path: AppRoutes.homePath,
-          builder: (BuildContext context, GoRouterState state) {
-            return const HomeView();
+        ShellRoute(
+          builder: (context, state, child) {
+            return AppShell(
+              title: _shellTitle(context, state),
+              child: child,
+            );
           },
-        ),
-        GoRoute(
-          name: AppRoutes.datasetListName,
-          path: AppRoutes.datasetListPath,
-          builder: (BuildContext context, GoRouterState state) {
-            return const DatasetsListView();
-          },
-        ),
-        GoRoute(
-          name: AppRoutes.datasetName,
-          path: AppRoutes.datasetPath,
-          builder: (BuildContext context, GoRouterState state) {
-            final int datasetId = _getDatasetId(state);
-            return DatasetView(datasetId: datasetId);
-          },
-        ),
-        GoRoute(
-          name: AppRoutes.multiDatasetAnalyticsName,
-          path: AppRoutes.multiDatasetAnalyticsPath,
-          builder: (BuildContext context, GoRouterState state) {
-            final int datasetId = _getDatasetId(state);
-            return MultiDatasetAnalyticsView(datasetId: datasetId);
-          },
-        ),
-        GoRoute(
-          name: AppRoutes.settingsName,
-          path: AppRoutes.settingsPath,
-          builder: (BuildContext context, GoRouterState state) {
-            return const SettingsView();
-          },
+          routes: [
+            GoRoute(
+              name: AppRoutes.homeName,
+              path: AppRoutes.homePath,
+              pageBuilder: (BuildContext context, GoRouterState state) {
+                return NoTransitionPage(
+                  key: state.pageKey,
+                  child: const HomeView(),
+                );
+              },
+            ),
+            GoRoute(
+              name: AppRoutes.datasetListName,
+              path: AppRoutes.datasetListPath,
+              pageBuilder: (BuildContext context, GoRouterState state) {
+                return NoTransitionPage(
+                  key: state.pageKey,
+                  child: const DatasetsListView(),
+                );
+              },
+            ),
+            GoRoute(
+              name: AppRoutes.datasetName,
+              path: AppRoutes.datasetPath,
+              pageBuilder: (BuildContext context, GoRouterState state) {
+                final int datasetId = _getDatasetId(state);
+                return NoTransitionPage(
+                  key: state.pageKey,
+                  child: DatasetView(
+                    key: ValueKey('dataset_$datasetId'),
+                    datasetId: datasetId,
+                  ),
+                );
+              },
+            ),
+            GoRoute(
+              name: AppRoutes.multiDatasetAnalyticsName,
+              path: AppRoutes.multiDatasetAnalyticsPath,
+              pageBuilder: (BuildContext context, GoRouterState state) {
+                final int datasetId = _getDatasetId(state);
+                return NoTransitionPage(
+                  key: state.pageKey,
+                  child: MultiDatasetAnalyticsView(datasetId: datasetId),
+                );
+              },
+            ),
+            GoRoute(
+              name: AppRoutes.settingsName,
+              path: AppRoutes.settingsPath,
+              pageBuilder: (BuildContext context, GoRouterState state) {
+                return NoTransitionPage(
+                  key: state.pageKey,
+                  child: const SettingsView(),
+                );
+              },
+            ),
+          ],
         ),
       ],
     );
@@ -98,4 +129,16 @@ class AppRouter {
 int _getDatasetId(GoRouterState state) {
   final String datasetIdParam = state.pathParameters[AppRoutes.datasetIdParam]!;
   return int.parse(datasetIdParam);
+}
+
+String _shellTitle(BuildContext context, GoRouterState state) {
+  return switch (state.matchedLocation) {
+    AppRoutes.homePath => AppStrings.appName.tr(),
+    AppRoutes.datasetListPath => AppStrings.works.tr(),
+    AppRoutes.datasetPath => AppStrings.datasetWorkspaceTitle.tr(),
+    AppRoutes.multiDatasetAnalyticsPath =>
+      AppStrings.datasetWorkspaceAnalyticsTitle.tr(),
+    AppRoutes.settingsPath => AppStrings.settings.tr(),
+    _ => AppStrings.appName.tr(),
+  };
 }
