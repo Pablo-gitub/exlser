@@ -179,22 +179,70 @@ class OnboardingVideoPreview extends StatefulWidget {
 class _OnboardingVideoPreviewState extends State<OnboardingVideoPreview> {
   late final VideoPlayerController _controller;
   late final Future<void> _initializeVideo;
+  bool _hasEnded = false;
 
   @override
   void initState() {
     super.initState();
 
     _controller = VideoPlayerController.asset(widget.assetPath);
+    _controller.addListener(_handleVideoProgress);
     _initializeVideo = _controller.initialize().then((_) {
       if (!mounted) return;
+      _controller.play();
       setState(() {});
     });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller
+      ..removeListener(_handleVideoProgress)
+      ..dispose();
     super.dispose();
+  }
+
+  void _handleVideoProgress() {
+    final value = _controller.value;
+    if (!value.isInitialized || value.duration == Duration.zero) {
+      return;
+    }
+
+    final hasEnded = value.position >= value.duration;
+    if (hasEnded != _hasEnded && mounted) {
+      setState(() {
+        _hasEnded = hasEnded;
+      });
+    }
+  }
+
+  Future<void> _openFullscreen() async {
+    await _controller.pause();
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      useSafeArea: false,
+      builder: (_) => FullscreenOnboardingVideoDialog(
+        assetPath: widget.assetPath,
+      ),
+    );
+
+    if (!mounted || _hasEnded) return;
+    await _controller.play();
+  }
+
+  Future<void> _replayInline() async {
+    if (!_controller.value.isInitialized) return;
+
+    await _controller.seekTo(Duration.zero);
+    await _controller.play();
+
+    if (mounted) {
+      setState(() {
+        _hasEnded = false;
+      });
+    }
   }
 
   @override
@@ -216,49 +264,33 @@ class _OnboardingVideoPreviewState extends State<OnboardingVideoPreview> {
                 child: Material(
                   color: Colors.black,
                   child: InkWell(
-                    onTap: () => showDialog<void>(
-                      context: context,
-                      useSafeArea: false,
-                      builder: (_) => FullscreenOnboardingVideoDialog(
-                        assetPath: widget.assetPath,
-                      ),
-                    ),
+                    onTap: _openFullscreen,
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
                         VideoPlayer(_controller),
-                        DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.18),
-                          ),
-                        ),
-                        Center(
-                          child: Container(
-                            width: 76,
-                            height: 76,
+                        if (_hasEnded) ...[
+                          DecoratedBox(
                             decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.58),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.play_arrow_rounded,
-                              color: Colors.white,
-                              size: 48,
+                              color: Colors.black.withValues(alpha: 0.34),
                             ),
                           ),
-                        ),
+                          Center(
+                            child: FilledButton.icon(
+                              onPressed: _replayInline,
+                              icon: const Icon(Icons.replay_rounded),
+                              label: Text(
+                                AppStrings.onboardingReplayPreview.tr(),
+                              ),
+                            ),
+                          ),
+                        ],
                         Positioned(
                           left: 16,
                           bottom: 16,
                           child: FilledButton.icon(
-                            onPressed: () => showDialog<void>(
-                              context: context,
-                              useSafeArea: false,
-                              builder: (_) => FullscreenOnboardingVideoDialog(
-                                assetPath: widget.assetPath,
-                              ),
-                            ),
-                            icon: const Icon(Icons.play_arrow_rounded),
+                            onPressed: _openFullscreen,
+                            icon: const Icon(Icons.open_in_full),
                             label: Text(AppStrings.onboardingPlayPreview.tr()),
                           ),
                         ),

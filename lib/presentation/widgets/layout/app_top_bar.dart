@@ -13,11 +13,15 @@ import 'package:flutter/material.dart';
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
+  final VoidCallback? onMenuPressed;
+  final bool isMenuOpen;
 
   const AppTopBar({
     super.key,
     required this.title,
     this.actions,
+    this.onMenuPressed,
+    this.isMenuOpen = false,
   });
 
   @override
@@ -26,10 +30,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
       leading: Builder(
         builder: (BuildContext context) {
           return IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
+            icon: Icon(isMenuOpen ? Icons.menu_open : Icons.menu),
+            onPressed: onMenuPressed ?? () => Scaffold.of(context).openDrawer(),
           );
         },
       ),

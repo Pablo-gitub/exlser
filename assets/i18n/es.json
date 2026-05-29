@@ -20,7 +20,8 @@
         "cross_platform": {
             "title": "Toda la potencia de Exlser, en cualquier dispositivo"
         },
-        "play_preview": "Ver vista previa"
+        "play_preview": "Ver vista previa",
+        "replay_preview": "Reproducir de nuevo"
     },
     "common": {
         "skip": "Omitir",

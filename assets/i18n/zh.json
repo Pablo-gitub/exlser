@@ -20,7 +20,8 @@
         "cross_platform": {
             "title": "Exlser 的全部能力，适用于每台设备"
         },
-        "play_preview": "观看预览"
+        "play_preview": "观看预览",
+        "replay_preview": "重新播放视频"
     },
     "common": {
         "skip": "跳过",

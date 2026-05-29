@@ -20,7 +20,8 @@
         "cross_platform": {
             "title": "Exlser のすべての力を、あらゆるデバイスで"
         },
-        "play_preview": "プレビューを見る"
+        "play_preview": "プレビューを見る",
+        "replay_preview": "動画をもう一度再生"
     },
     "common": {
         "skip": "スキップ",

@@ -4,32 +4,45 @@ This document collects feedback and follow-up improvements discovered during the
 
 ## Mobile UX Fixes
 
-- [ ] Onboarding navigation controls overlap the Android system navigation bar on some devices.
+- [x] Onboarding navigation controls overlap the Android system navigation bar on some devices.
   - Move the Back and Start buttons higher or wrap the onboarding footer in a safe-area aware layout.
-  - Verify with gesture navigation and three-button navigation.
+  - Implemented with a safe-area aware onboarding body.
+  - Still verify with gesture navigation and three-button navigation on a real Android device.
 
-- [ ] Pressing the Android system Back button from the language selection screen closes the app.
+- [x] Pressing the Android system Back button from the language selection screen closes the app.
   - Expected behavior: return to the previous settings screen, return to Home, or close the settings panel with a leftward/back navigation feel.
   - The app should not exit from this nested settings flow.
+  - Implemented by routing Android Back from Settings to Home.
 
-- [ ] Replace the GitHub, Instagram, and LinkedIn footer icons with recognizable brand icons.
+- [x] Replace the GitHub, Instagram, and LinkedIn footer icons with recognizable brand icons.
   - Current icons are not clear enough for beta users.
   - Keep the footer subtle, but make link targets visually understandable.
+  - Implemented with brand icons from `font_awesome_flutter`.
 
 ## Onboarding Improvements
 
-- [ ] Auto-play the introductory video on the onboarding video page.
+- [x] Auto-play the introductory video on the onboarding video page.
   - When the video ends, show a replay button.
   - Keep the current behavior where tapping the video opens it fullscreen.
   - Verify that audio/video behavior is acceptable on Android and does not feel intrusive.
+  - Implemented with inline auto-play and replay after the video ends.
 
 ## Responsive Layout Improvements
 
-- [ ] Open the navigation menu by default on medium and wide layouts.
+- [x] Open the navigation menu by default on medium and wide layouts.
   - Target: tablet, desktop, and web/tablet-like widths.
   - Users can still close it manually through the menu button.
   - Keep compact phone layouts closed by default.
+  - Implemented as a persistent side navigation on medium and wide layouts.
 
 ## Notes
 
-These fixes should be treated as post-beta polish before widening the release. The first two mobile UX items are higher priority because they affect navigation and perceived app stability.
+These fixes should be treated as post-beta polish before widening the release.
+
+Remaining beta polish:
+
+- [ ] Verify onboarding navigation controls on a real Android device with gesture navigation and three-button navigation.
+- [ ] Verify Android Back from Settings on a real Android device.
+- [ ] Verify onboarding video auto-play, replay, and fullscreen behavior on a real Android device.
+- [ ] Verify persistent side navigation on tablet, desktop, and resized web layouts.
+- [ ] Optional: evaluate whether an immersive fullscreen mode is worth adding for specific media screens. Avoid enabling it app-wide unless beta feedback clearly asks for it.

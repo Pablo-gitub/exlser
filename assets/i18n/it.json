@@ -20,7 +20,8 @@
         "cross_platform": {
             "title": "Tutta la potenza di Exlser, su ogni dispositivo"
         },
-        "play_preview": "Guarda anteprima"
+        "play_preview": "Guarda anteprima",
+        "replay_preview": "Rivedi video"
     },
     "common": {
         "skip": "Salta",

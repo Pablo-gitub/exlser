@@ -9,7 +9,7 @@ import 'app_top_bar.dart';
 /// - shared top bar
 /// - shared drawer
 /// - page body
-class AppScaffold extends StatelessWidget {
+class AppScaffold extends StatefulWidget {
   final String title;
   final Widget body;
   final List<Widget>? actions;
@@ -22,14 +22,50 @@ class AppScaffold extends StatelessWidget {
   });
 
   @override
+  State<AppScaffold> createState() => _AppScaffoldState();
+}
+
+class _AppScaffoldState extends State<AppScaffold> {
+  static const double _expandedNavigationBreakpoint = 840;
+  static const double _drawerWidth = 304;
+
+  bool _isExpandedNavigationOpen = true;
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppTopBar(
-        title: title,
-        actions: actions,
-      ),
-      drawer: const AppDrawer(),
-      body: body,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useExpandedNavigation =
+            constraints.maxWidth >= _expandedNavigationBreakpoint;
+
+        return Scaffold(
+          appBar: AppTopBar(
+            title: widget.title,
+            actions: widget.actions,
+            isMenuOpen: useExpandedNavigation && _isExpandedNavigationOpen,
+            onMenuPressed: useExpandedNavigation
+                ? () {
+                    setState(() {
+                      _isExpandedNavigationOpen = !_isExpandedNavigationOpen;
+                    });
+                  }
+                : null,
+          ),
+          drawer: useExpandedNavigation ? null : const AppDrawer(),
+          body: Row(
+            children: [
+              if (useExpandedNavigation && _isExpandedNavigationOpen) ...[
+                const SizedBox(
+                  width: _drawerWidth,
+                  child: AppDrawer(closeOnNavigate: false),
+                ),
+                const VerticalDivider(width: 1),
+              ],
+              Expanded(child: widget.body),
+            ],
+          ),
+        );
+      },
     );
   }
 }

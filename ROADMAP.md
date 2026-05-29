@@ -975,15 +975,15 @@ Goal: address closed beta feedback before widening the Google Play rollout.
 - [x] Fix Android system Back behavior from the language selection screen.
 - [x] Replace social footer icons with recognizable GitHub, Instagram, and
       LinkedIn icons.
-- [ ] Auto-play onboarding video and show a replay action when it ends.
-- [ ] Open the side navigation by default on medium and wide layouts.
+- [x] Auto-play onboarding video and show a replay action when it ends.
+- [x] Open the side navigation by default on medium and wide layouts.
 
 Definition of done:
 
 - [ ] Closed beta testers can complete onboarding and settings navigation
       without layout overlap or accidental app exits.
 - [ ] Navigation behavior is verified on a real Android device.
-- [ ] Tablet/desktop layouts expose navigation immediately while phones remain
+- [x] Tablet/desktop layouts expose navigation immediately while phones remain
       compact.
 
 ## Path to Multi-Sheet Analysis

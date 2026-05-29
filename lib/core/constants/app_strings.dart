@@ -11,6 +11,7 @@ class AppStrings {
   static const String onboardingCrossPlatformTitle =
       'onboarding.cross_platform.title';
   static const String onboardingPlayPreview = 'onboarding.play_preview';
+  static const String onboardingReplayPreview = 'onboarding.replay_preview';
 
   static const String skip = 'common.skip';
   static const String previous = 'common.previous';
