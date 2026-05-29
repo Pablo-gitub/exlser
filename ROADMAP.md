@@ -976,15 +976,23 @@ Goal: address closed beta feedback before widening the Google Play rollout.
 - [x] Replace social footer icons with recognizable GitHub, Instagram, and
       LinkedIn icons.
 - [x] Auto-play onboarding video and show a replay action when it ends.
-- [x] Open the side navigation by default on medium and wide layouts.
+- [ ] Refactor web/tablet/desktop navigation to a persistent `ShellRoute`
+      layout.
 
 Definition of done:
 
 - [ ] Closed beta testers can complete onboarding and settings navigation
       without layout overlap or accidental app exits.
 - [ ] Navigation behavior is verified on a real Android device.
-- [x] Tablet/desktop layouts expose navigation immediately while phones remain
-      compact.
+- [ ] Tablet/desktop layouts expose navigation immediately while phones remain
+      compact and web navigation does not visually reload the app chrome.
+
+Implementation note:
+
+- Follow `NAVIGATION_SHELL_REFACTOR.md`.
+- `DatasetView` must keep its export/share action in the shell app bar.
+- Future `MultiDatasetAnalyticsView` must be able to expose its own share/export
+      action through the same contextual app bar action mechanism.
 
 ## Path to Multi-Sheet Analysis
 
