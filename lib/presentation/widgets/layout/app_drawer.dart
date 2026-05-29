@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -78,7 +79,7 @@ class AppDrawer extends StatelessWidget {
                     children: [
                       IconButton(
                         tooltip: AppStrings.openGithub.tr(),
-                        icon: const Icon(Icons.code),
+                        icon: const FaIcon(FontAwesomeIcons.github),
                         onPressed: () => _openExternalLink(
                           context,
                           _githubUri,
@@ -86,7 +87,7 @@ class AppDrawer extends StatelessWidget {
                       ),
                       IconButton(
                         tooltip: AppStrings.openLinkedin.tr(),
-                        icon: const Icon(Icons.business_center_outlined),
+                        icon: const FaIcon(FontAwesomeIcons.linkedin),
                         onPressed: () => _openExternalLink(
                           context,
                           _linkedinUri,
@@ -94,7 +95,7 @@ class AppDrawer extends StatelessWidget {
                       ),
                       IconButton(
                         tooltip: AppStrings.openInstagram.tr(),
-                        icon: const Icon(Icons.photo_camera_outlined),
+                        icon: const FaIcon(FontAwesomeIcons.instagram),
                         onPressed: () => _openExternalLink(
                           context,
                           _instagramUri,

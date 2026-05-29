@@ -973,7 +973,7 @@ Goal: address closed beta feedback before widening the Google Play rollout.
 
 - [x] Fix onboarding footer overlap with Android system navigation controls.
 - [x] Fix Android system Back behavior from the language selection screen.
-- [ ] Replace social footer icons with recognizable GitHub, Instagram, and
+- [x] Replace social footer icons with recognizable GitHub, Instagram, and
       LinkedIn icons.
 - [ ] Auto-play onboarding video and show a replay action when it ends.
 - [ ] Open the side navigation by default on medium and wide layouts.
