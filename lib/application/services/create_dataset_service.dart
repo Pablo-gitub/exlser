@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:exlser/application/dto/confirmed_import.dart';
 import 'package:exlser/application/dto/created_dataset_result.dart';
 import 'package:exlser/application/services/transaction_runner.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/usecases/dataset/create_dataset_usecase.dart';
 import 'package:exlser/domain/usecases/dataset/register_dataset_file_usecase.dart';
+import 'package:exlser/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
 import 'package:exlser/domain/usecases/schema/create_dataset_table_usecase.dart';
 import 'package:exlser/domain/usecases/schema/register_columns_usecase.dart';
 import 'package:exlser/domain/usecases/schema/build_dynamic_table_usecase.dart';
@@ -28,6 +31,7 @@ class CreateDatasetService {
   final RegisterColumnsUseCase registerColumnsUseCase;
   final BuildDynamicTableUseCase buildDynamicTableUseCase;
   final InsertRowsUseCase insertRowsUseCase;
+  final UpdateDatasetUiStateUseCase updateDatasetUiStateUseCase;
 
   const CreateDatasetService({
     required this.transactionRunner,
@@ -37,6 +41,7 @@ class CreateDatasetService {
     required this.registerColumnsUseCase,
     required this.buildDynamicTableUseCase,
     required this.insertRowsUseCase,
+    required this.updateDatasetUiStateUseCase,
   });
 
   Future<CreatedDatasetResult> createDataset({
@@ -65,7 +70,9 @@ class CreateDatasetService {
       );
     }
 
-    /// 2. Process each sheet
+    /// 2. Process each sheet — track tableId→currencies for uiStateJson
+    final tableIdToCurrencies = <int, Map<String, String>>{};
+
     for (final confirmedSheet in confirmedImport.sheets) {
       final sheet = confirmedSheet.sheet;
 
@@ -105,6 +112,24 @@ class CreateDatasetService {
           rows: sheet.rows,
           columns: columns,
         ),
+      );
+
+      if (confirmedSheet.columnCurrencySymbols.isNotEmpty) {
+        tableIdToCurrencies[table.id] = confirmedSheet.columnCurrencySymbols;
+      }
+    }
+
+    /// 3. Persist initial uiStateJson with detected currency symbols.
+    if (tableIdToCurrencies.isNotEmpty) {
+      final tableStatesJson = {
+        for (final entry in tableIdToCurrencies.entries)
+          entry.key.toString(): {
+            'columnCurrencySymbols': entry.value,
+          },
+      };
+      await updateDatasetUiStateUseCase.call(
+        datasetId: dataset.id,
+        uiStateJson: jsonEncode({'tableStates': tableStatesJson}),
       );
     }
 

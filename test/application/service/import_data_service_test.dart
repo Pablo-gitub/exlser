@@ -303,6 +303,128 @@ void main() {
     verify(() => inferSchemaUseCase.call(any(), 0)).called(1);
   });
 
+  group('currency symbol detection', () {
+    test('detects dominant currency symbol in a numeric column', () async {
+      final parsedSheets = [
+        ParsedSheet(
+          name: 'Prices',
+          rows: [
+            {'price': r'$3.50', 'label': 'book'},
+            {'price': r'$12.00', 'label': 'pen'},
+            {'price': r'$7.99', 'label': 'ruler'},
+          ],
+        ),
+      ];
+
+      final columns = [
+        _realColumn('price'),
+        _textColumn('label'),
+      ];
+
+      when(() => parserFactory.createParser('csv')).thenReturn(parser);
+      when(() => parser.parsePath('/tmp/prices.csv'))
+          .thenAnswer((_) async => parsedSheets);
+      when(() => inferSchemaUseCase.call(any(), any())).thenReturn(columns);
+
+      final result = await service.prepareImport(
+        file: ImportFile.fromPath(
+          fileName: 'prices.csv',
+          path: '/tmp/prices.csv',
+        ),
+      );
+
+      expect(result.sheets.first.columnCurrencySymbols, {r'price': r'$'});
+    });
+
+    test('does not detect currency on text columns', () async {
+      final parsedSheets = [
+        ParsedSheet(
+          name: 'Sheet1',
+          rows: [
+            {'tag': r'$sale', 'qty': '5'},
+          ],
+        ),
+      ];
+
+      final columns = [
+        _textColumn('tag'),
+        _realColumn('qty'),
+      ];
+
+      when(() => parserFactory.createParser('csv')).thenReturn(parser);
+      when(() => parser.parsePath('/tmp/data.csv'))
+          .thenAnswer((_) async => parsedSheets);
+      when(() => inferSchemaUseCase.call(any(), any())).thenReturn(columns);
+
+      final result = await service.prepareImport(
+        file: ImportFile.fromPath(
+          fileName: 'data.csv',
+          path: '/tmp/data.csv',
+        ),
+      );
+
+      // 'tag' is text → not detected; 'qty' has no symbol → not detected
+      expect(result.sheets.first.columnCurrencySymbols, isEmpty);
+    });
+
+    test('returns empty map when no currency symbols found', () async {
+      final parsedSheets = [
+        ParsedSheet(
+          name: 'Sheet1',
+          rows: [
+            {'amount': '100', 'count': '5'},
+          ],
+        ),
+      ];
+
+      final columns = [_realColumn('amount'), _realColumn('count')];
+
+      when(() => parserFactory.createParser('csv')).thenReturn(parser);
+      when(() => parser.parsePath('/tmp/clean.csv'))
+          .thenAnswer((_) async => parsedSheets);
+      when(() => inferSchemaUseCase.call(any(), any())).thenReturn(columns);
+
+      final result = await service.prepareImport(
+        file: ImportFile.fromPath(
+          fileName: 'clean.csv',
+          path: '/tmp/clean.csv',
+        ),
+      );
+
+      expect(result.sheets.first.columnCurrencySymbols, isEmpty);
+    });
+
+    test('rejects symbol when fewer than 50% of cells carry it', () async {
+      final parsedSheets = [
+        ParsedSheet(
+          name: 'Sheet1',
+          rows: [
+            {'price': r'$10'},
+            {'price': '20'},
+            {'price': '30'},
+            {'price': '40'},
+          ],
+        ),
+      ];
+
+      final columns = [_realColumn('price')];
+
+      when(() => parserFactory.createParser('csv')).thenReturn(parser);
+      when(() => parser.parsePath('/tmp/mixed.csv'))
+          .thenAnswer((_) async => parsedSheets);
+      when(() => inferSchemaUseCase.call(any(), any())).thenReturn(columns);
+
+      final result = await service.prepareImport(
+        file: ImportFile.fromPath(
+          fileName: 'mixed.csv',
+          path: '/tmp/mixed.csv',
+        ),
+      );
+
+      expect(result.sheets.first.columnCurrencySymbols, isEmpty);
+    });
+  });
+
   test('should throw if file has no extension', () async {
     /// ---------------- ARRANGE ----------------
 
@@ -321,3 +443,25 @@ void main() {
     );
   });
 }
+
+DatasetColumn _realColumn(String name) => DatasetColumn(
+      id: 0,
+      datasetTableId: 0,
+      originalName: name,
+      dbName: name,
+      declaredType: ColumnType.real,
+      inferredType: ColumnType.real,
+      nullable: true,
+      statsJson: null,
+    );
+
+DatasetColumn _textColumn(String name) => DatasetColumn(
+      id: 0,
+      datasetTableId: 0,
+      originalName: name,
+      dbName: name,
+      declaredType: ColumnType.text,
+      inferredType: ColumnType.text,
+      nullable: true,
+      statsJson: null,
+    );

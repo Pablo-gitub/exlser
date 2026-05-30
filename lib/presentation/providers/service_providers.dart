@@ -28,6 +28,7 @@ final createDatasetServiceProvider = Provider<CreateDatasetService>((ref) {
     registerColumnsUseCase: ref.watch(registerColumnsUseCaseProvider),
     buildDynamicTableUseCase: ref.watch(buildDynamicTableUseCaseProvider),
     insertRowsUseCase: ref.watch(insertRowsUseCaseProvider),
+    updateDatasetUiStateUseCase: ref.watch(updateDatasetUiStateUseCaseProvider),
   );
 });
 

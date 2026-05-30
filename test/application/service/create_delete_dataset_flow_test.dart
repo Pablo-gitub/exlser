@@ -18,6 +18,7 @@ import 'package:exlser/domain/entities/source_file_reference.dart';
 import 'package:exlser/domain/usecases/dataset/create_dataset_usecase.dart';
 import 'package:exlser/domain/usecases/dataset/delete_dataset_usecase.dart';
 import 'package:exlser/domain/usecases/dataset/register_dataset_file_usecase.dart';
+import 'package:exlser/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
 import 'package:exlser/domain/usecases/schema/build_dynamic_table_usecase.dart';
 import 'package:exlser/domain/usecases/schema/create_dataset_table_usecase.dart';
 import 'package:exlser/domain/usecases/schema/insert_rows_usecase.dart';
@@ -70,6 +71,9 @@ void main() {
           repository: schemaRepository,
         ),
         insertRowsUseCase: InsertRowsUseCase(queryRepository),
+        updateDatasetUiStateUseCase: UpdateDatasetUiStateUseCase(
+          repository: datasetsRepository,
+        ),
       );
 
       deleteDatasetUseCase = DeleteDatasetUseCase(

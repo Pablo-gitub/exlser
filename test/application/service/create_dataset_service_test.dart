@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:exlser/application/dto/confirmed_import.dart';
 import 'package:exlser/application/services/create_dataset_service.dart';
 import 'package:exlser/application/services/transaction_runner.dart';
@@ -8,6 +10,7 @@ import 'package:exlser/domain/entities/parsed_sheet.dart';
 import 'package:exlser/domain/entities/source_file_reference.dart';
 import 'package:exlser/domain/usecases/dataset/create_dataset_usecase.dart';
 import 'package:exlser/domain/usecases/dataset/register_dataset_file_usecase.dart';
+import 'package:exlser/domain/usecases/dataset/update_dataset_ui_state_usecase.dart';
 import 'package:exlser/domain/usecases/schema/build_dynamic_table_usecase.dart';
 import 'package:exlser/domain/usecases/schema/create_dataset_table_usecase.dart';
 import 'package:exlser/domain/usecases/schema/insert_rows_usecase.dart';
@@ -32,6 +35,9 @@ class MockBuildDynamicTableUseCase extends Mock
     implements BuildDynamicTableUseCase {}
 
 class MockInsertRowsUseCase extends Mock implements InsertRowsUseCase {}
+
+class MockUpdateDatasetUiStateUseCase extends Mock
+    implements UpdateDatasetUiStateUseCase {}
 
 class MockTransactionRunner extends Mock implements TransactionRunner {}
 
@@ -60,6 +66,7 @@ void main() {
   late MockRegisterColumnsUseCase registerColumnsUseCase;
   late MockBuildDynamicTableUseCase buildDynamicTableUseCase;
   late MockInsertRowsUseCase insertRowsUseCase;
+  late MockUpdateDatasetUiStateUseCase updateDatasetUiStateUseCase;
 
   setUpAll(() {
     registerFallbackValue(FakeDatasetTable());
@@ -83,6 +90,11 @@ void main() {
     registerColumnsUseCase = MockRegisterColumnsUseCase();
     buildDynamicTableUseCase = MockBuildDynamicTableUseCase();
     insertRowsUseCase = MockInsertRowsUseCase();
+    updateDatasetUiStateUseCase = MockUpdateDatasetUiStateUseCase();
+    when(() => updateDatasetUiStateUseCase.call(
+          datasetId: any(named: 'datasetId'),
+          uiStateJson: any(named: 'uiStateJson'),
+        )).thenAnswer((_) async {});
 
     service = CreateDatasetService(
       transactionRunner: transactionRunner,
@@ -92,6 +104,7 @@ void main() {
       registerColumnsUseCase: registerColumnsUseCase,
       buildDynamicTableUseCase: buildDynamicTableUseCase,
       insertRowsUseCase: insertRowsUseCase,
+      updateDatasetUiStateUseCase: updateDatasetUiStateUseCase,
     );
   });
 
@@ -501,6 +514,65 @@ void main() {
           ));
     });
   });
+
+  group('currency symbols in initial uiStateJson', () {
+    test(
+        'writes uiStateJson with detected currencies after table creation',
+        () async {
+      final dataset = _dataset();
+      final table = _table(); // id = 10
+
+      mockDatasetCreation(dataset);
+      mockTableCreation(table);
+      mockColumnRegistration();
+      mockDynamicTableCreation();
+      mockRowInsertion();
+
+      final confirmedImport = ConfirmedImport(
+        datasetName: 'Test',
+        sourceFileName: 'file.xlsx',
+        sheets: [
+          _confirmedSheet(
+            columnCurrencySymbols: {r'price': r'$'},
+          ),
+        ],
+      );
+
+      await service.createDataset(confirmedImport: confirmedImport);
+
+      final captured = verify(
+        () => updateDatasetUiStateUseCase.call(
+          datasetId: dataset.id,
+          uiStateJson: captureAny(named: 'uiStateJson'),
+        ),
+      ).captured.single as String;
+
+      final decoded = jsonDecode(captured) as Map<String, dynamic>;
+      final tableStates = decoded['tableStates'] as Map<String, dynamic>;
+      final tableState = tableStates[table.id.toString()] as Map<String, dynamic>;
+      final currencies = tableState['columnCurrencySymbols'] as Map<String, dynamic>;
+
+      expect(currencies, {r'price': r'$'});
+    });
+
+    test('does not call updateDatasetUiStateUseCase when no currencies detected',
+        () async {
+      mockDatasetCreation(_dataset());
+      mockTableCreation(_table());
+      mockColumnRegistration();
+      mockDynamicTableCreation();
+      mockRowInsertion();
+
+      await service.createDataset(confirmedImport: _confirmedImport());
+
+      verifyNever(
+        () => updateDatasetUiStateUseCase.call(
+          datasetId: any(named: 'datasetId'),
+          uiStateJson: any(named: 'uiStateJson'),
+        ),
+      );
+    });
+  });
 }
 
 Dataset _dataset({
@@ -546,6 +618,7 @@ ConfirmedImportSheet _confirmedSheet({
   String sheetName = 'Sheet1',
   List<Map<String, dynamic>>? rows,
   List<DatasetColumn>? columns,
+  Map<String, String> columnCurrencySymbols = const {},
 }) {
   return ConfirmedImportSheet(
     sheet: ParsedSheet(
@@ -565,6 +638,7 @@ ConfirmedImportSheet _confirmedSheet({
             type: ColumnType.real,
           ),
         ],
+    columnCurrencySymbols: columnCurrencySymbols,
   );
 }
 

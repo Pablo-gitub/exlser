@@ -34,6 +34,7 @@ class ConfirmedImport {
             (sheet) => ConfirmedImportSheet(
               sheet: sheet.sheet,
               columns: sheet.inferredColumns,
+              columnCurrencySymbols: sheet.columnCurrencySymbols,
             ),
           )
           .toList(),
@@ -58,18 +59,26 @@ class ConfirmedImportSheet {
   final ParsedSheet sheet;
   final List<DatasetColumn> columns;
 
+  /// Currency symbols detected during import preparation.
+  /// Key: column dbName, Value: detected symbol (e.g. "$", "€").
+  final Map<String, String> columnCurrencySymbols;
+
   const ConfirmedImportSheet({
     required this.sheet,
     required this.columns,
+    this.columnCurrencySymbols = const {},
   });
 
   ConfirmedImportSheet copyWith({
     ParsedSheet? sheet,
     List<DatasetColumn>? columns,
+    Map<String, String>? columnCurrencySymbols,
   }) {
     return ConfirmedImportSheet(
       sheet: sheet ?? this.sheet,
       columns: columns ?? this.columns,
+      columnCurrencySymbols:
+          columnCurrencySymbols ?? this.columnCurrencySymbols,
     );
   }
 }
