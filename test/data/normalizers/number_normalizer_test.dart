@@ -69,5 +69,68 @@ void main() {
         expect(normalizer.tryNormalize("   "), null);
       },
     );
+
+    group('currency symbol stripping', () {
+      test('strips trailing currency symbol', () {
+        expect(normalizer.tryNormalize("3.3\$"), 3.3);
+        expect(normalizer.tryNormalize("10€"), 10.0);
+        expect(normalizer.tryNormalize("99.99£"), 99.99);
+      });
+
+      test('strips leading currency symbol', () {
+        expect(normalizer.tryNormalize("\$3.50"), 3.50);
+        expect(normalizer.tryNormalize("€1000"), 1000.0);
+        expect(normalizer.tryNormalize("£12.5"), 12.5);
+        expect(normalizer.tryNormalize("¥500"), 500.0);
+      });
+
+      test('strips currency with thousands and decimal separators', () {
+        expect(normalizer.tryNormalize("\$1,000.50"), 1000.50);
+        expect(normalizer.tryNormalize("€1.000,50"), 1000.50);
+        expect(normalizer.tryNormalize("1'000.00\$"), 1000.0);
+      });
+
+      test('strips currency with surrounding spaces', () {
+        expect(normalizer.tryNormalize("3.50 €"), 3.50);
+        expect(normalizer.tryNormalize("\$ 10"), 10.0);
+      });
+
+      test('handles negative values with currency', () {
+        expect(normalizer.tryNormalize("-3.50\$"), -3.50);
+        expect(normalizer.tryNormalize("€-99"), -99.0);
+      });
+
+      test('returns null when only currency symbol is present', () {
+        expect(normalizer.tryNormalize("\$"), null);
+        expect(normalizer.tryNormalize("€  "), null);
+      });
+    });
+  });
+
+  group('detectCurrencySymbol', () {
+    test('returns trailing symbol', () {
+      expect(NumberNormalizer.detectCurrencySymbol('3.50\$'), '\$');
+      expect(NumberNormalizer.detectCurrencySymbol('100€'), '€');
+      expect(NumberNormalizer.detectCurrencySymbol('12.5£'), '£');
+    });
+
+    test('returns leading symbol', () {
+      expect(NumberNormalizer.detectCurrencySymbol('\$3.50'), '\$');
+      expect(NumberNormalizer.detectCurrencySymbol('€100'), '€');
+      expect(NumberNormalizer.detectCurrencySymbol('¥500'), '¥');
+    });
+
+    test('returns null when no symbol present', () {
+      expect(NumberNormalizer.detectCurrencySymbol('3.50'), isNull);
+      expect(NumberNormalizer.detectCurrencySymbol('1000'), isNull);
+      expect(NumberNormalizer.detectCurrencySymbol(''), isNull);
+      expect(NumberNormalizer.detectCurrencySymbol('abc'), isNull);
+    });
+
+    test('returns first symbol found when multiple present', () {
+      // Edge case: returns the first match regardless of position
+      final result = NumberNormalizer.detectCurrencySymbol('\$3€');
+      expect(result, isNotNull);
+    });
   });
 }

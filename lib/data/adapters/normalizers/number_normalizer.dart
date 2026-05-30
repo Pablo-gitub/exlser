@@ -26,13 +26,30 @@
 ///   "1,000.50"
 ///   "1.000,50"
 ///
+/// Currency symbols (prefix or suffix, with optional space)
+///   "$3.50"   "3.50$"
+///   "€1.000,50"   "1.000,50 €"
+///   "£12"     "¥500"
+///
 /// If the value cannot be interpreted as a number,
 /// the method returns `null`.
 ///
 /// This component intentionally **does not decide**
 /// whether the value represents an INTEGER or REAL.
 /// That responsibility belongs to `InferSchemaUseCase`.
+///
+/// Note: currency symbols are stripped silently. The information about
+/// which currency was present is not preserved here. Future work could
+/// store the detected symbol in column metadata for display purposes.
 class NumberNormalizer {
+  static final _currencySymbols = RegExp(r'[$€£¥₹₽¢₩₪₫]');
+
+  /// Returns the first currency symbol found in [value], or null if none.
+  static String? detectCurrencySymbol(String value) {
+    final match = _currencySymbols.firstMatch(value.trim());
+    return match?[0];
+  }
+
   /// Attempts to normalize a numeric string into a `double`.
   ///
   /// Returns:
@@ -47,7 +64,13 @@ class NumberNormalizer {
       return null;
     }
 
-    String normalized = trimmed;
+    /// Strip currency symbols (prefix or suffix) so that values like
+    /// "$3.50", "3.50€", "£1,000" are treated as plain numbers.
+    String normalized = trimmed.replaceAll(_currencySymbols, '').trim();
+
+    if (normalized.isEmpty) {
+      return null;
+    }
 
     /// Remove apostrophe thousand separators
     /// Example:

@@ -11,19 +11,23 @@
 /// ISO datetime
 ///   2024-01-14 10:30:00
 ///
-/// European format
+/// Slash-separated (DD/MM/YYYY or YYYY/MM/DD)
 ///   14/01/2024
+///   2024/01/14
 ///
-/// Alternative European examples
-///   01/12/2024
+/// Dot-separated European (DD.MM.YYYY or YYYY.MM.DD)
+///   14.01.2024
+///   2024.01.14
+///
+/// Hyphen-separated non-ISO (DD-MM-YYYY)
+///   14-01-2024
 ///
 /// If the value cannot be interpreted as a valid date,
 /// the method returns `null`.
 ///
-/// The normalizer does not attempt to guess complex locale-specific
-/// formats beyond the most common ones used in spreadsheets.
-///
-/// More complex parsing rules can be added in the future if needed.
+/// Ambiguous cases (e.g. 01/06/2024 could be Jan 6 or Jun 1) are resolved
+/// by always treating the first numeric part as the day when the separator
+/// is not year-first.
 class DateNormalizer {
   /// Attempts to normalize a textual date representation into `DateTime`.
   ///
@@ -31,50 +35,78 @@ class DateNormalizer {
   /// - `DateTime` if parsing succeeds
   /// - `null` if the value cannot be interpreted as a valid date
   DateTime? tryNormalize(String value) {
-    /// Remove surrounding whitespace
     final trimmed = value.trim();
 
-    /// Reject empty values
-    if (trimmed.isEmpty) {
+    if (trimmed.isEmpty) return null;
+
+    /// ISO 8601: 2024-01-14, 2024-01-14T10:30:00, 2024-01-14 10:30:00
+    try {
+      return DateTime.parse(trimmed);
+    } catch (_) {}
+
+    /// Slash-separated: DD/MM/YYYY or YYYY/MM/DD
+    if (trimmed.contains('/')) {
+      final result = _parseParts(trimmed.split('/'));
+      if (result != null) return result;
+    }
+
+    /// Dot-separated: DD.MM.YYYY or YYYY.MM.DD
+    /// Guard: must have exactly 3 parts (avoids confusing floats like "3.14")
+    if (trimmed.contains('.')) {
+      final result = _parseParts(trimmed.split('.'));
+      if (result != null) return result;
+    }
+
+    /// Hyphen-separated non-ISO: DD-MM-YYYY
+    /// (ISO YYYY-MM-DD already handled above by DateTime.parse)
+    if (trimmed.contains('-')) {
+      final result = _parseParts(trimmed.split('-'));
+      if (result != null) return result;
+    }
+
+    return null;
+  }
+
+  /// Tries to build a DateTime from exactly 3 string parts.
+  ///
+  /// Year-first detection: if the first part is > 31 it is treated as the year
+  /// (YYYY/MM/DD), otherwise the last part is the year (DD/MM/YYYY).
+  ///
+  /// Basic range validation prevents Dart's DateTime from silently normalising
+  /// invalid values (e.g. month=99) into unexpected dates.
+  DateTime? _parseParts(List<String> parts) {
+    if (parts.length != 3) return null;
+
+    final a = int.tryParse(parts[0]);
+    final b = int.tryParse(parts[1]);
+    final c = int.tryParse(parts[2]);
+
+    if (a == null || b == null || c == null) return null;
+
+    int year, month, day;
+    if (a > 31) {
+      // YYYY / MM / DD
+      year = a;
+      month = b;
+      day = c;
+    } else {
+      // DD / MM / YYYY
+      day = a;
+      month = b;
+      year = c;
+    }
+
+    if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1) {
       return null;
     }
 
-    /// First attempt: try ISO parsing directly.
-    ///
-    /// This covers:
-    ///   2024-01-14
-    ///   2024-01-14T10:30:00
-    ///   2024-01-14 10:30:00
     try {
-      return DateTime.parse(trimmed);
+      final dt = DateTime(year, month, day);
+      // Dart normalises out-of-range days by rolling over; reject if day changed
+      if (dt.day != day || dt.month != month || dt.year != year) return null;
+      return dt;
     } catch (_) {
-      // Ignore and attempt other formats
+      return null;
     }
-
-    /// Second attempt: European format (dd/MM/yyyy)
-    ///
-    /// Example:
-    /// 14/01/2024
-    if (trimmed.contains('/')) {
-      final parts = trimmed.split('/');
-
-      if (parts.length == 3) {
-        final day = int.tryParse(parts[0]);
-        final month = int.tryParse(parts[1]);
-        final year = int.tryParse(parts[2]);
-
-        if (day != null && month != null && year != null) {
-          try {
-            return DateTime(year, month, day);
-          } catch (_) {
-            return null;
-          }
-        }
-      }
-    }
-
-    /// If all parsing attempts fail,
-    /// return null indicating the value is not a valid date.
-    return null;
   }
 }
