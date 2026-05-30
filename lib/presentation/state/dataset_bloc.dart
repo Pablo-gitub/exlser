@@ -1127,7 +1127,10 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
 
       final errorCharts = [
         for (final c in latestAnalytics.charts)
-          if (c.id == id) c.copyWith(isLoading: false) else c,
+          if (c.id == id)
+            c.copyWith(isLoading: false, error: ChartLoadError.internalFailure)
+          else
+            c,
       ];
       final nextState = _attachWorkspaceStateJson(latest.copyWith(
         analyticsState: latestAnalytics.copyWith(charts: errorCharts),
@@ -1236,7 +1239,10 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
 
       final errorCharts = [
         for (final c in latestAnalytics.charts)
-          if (c.id == event.chartId) c.copyWith(isLoading: false) else c,
+          if (c.id == event.chartId)
+            c.copyWith(isLoading: false, error: ChartLoadError.internalFailure)
+          else
+            c,
       ];
       final nextState = _attachWorkspaceStateJson(latest.copyWith(
         analyticsState: latestAnalytics.copyWith(charts: errorCharts),

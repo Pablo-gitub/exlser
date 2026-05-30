@@ -191,6 +191,7 @@
             "analytics": {
                 "title": "Analytics",
                 "no_chart": "No chart available for the current data types.",
+                "no_data": "No data available for the current configuration.",
                 "error": "Could not load analytics.",
                 "error_messages": {
                     "invalid_aggregation": "Select a numeric value column to use this aggregation.",

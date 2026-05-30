@@ -191,6 +191,7 @@
             "analytics": {
                 "title": "分析",
                 "no_chart": "当前数据类型没有可用图表。",
+                "no_data": "当前配置没有可用数据。",
                 "error": "无法加载分析。",
                 "error_messages": {
                     "invalid_aggregation": "请选择数值列以使用此聚合。",

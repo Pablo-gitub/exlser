@@ -855,24 +855,26 @@ class _ChartBody extends StatelessWidget {
 
     if (chartData is CategoryChartData) {
       final data = chartData as CategoryChartData;
-      if (data.isEmpty) return const _EmptyChartMessage();
+      final h = chartHeight > 0 ? chartHeight : 240.0;
+      if (data.isEmpty) return _EmptyChartPlaceholder(height: h);
       return data.chartType == ChartType.pie
           ? PieChartWidget(
               data: data,
-              height: chartHeight > 0 ? chartHeight : 220,
+              height: chartHeight > 0 ? chartHeight : 220.0,
             )
           : DistributionChartWidget(
               data: data,
-              height: chartHeight > 0 ? chartHeight : 240,
+              height: h,
             );
     }
 
     if (chartData is TimeSeriesChartData) {
       final data = chartData as TimeSeriesChartData;
-      if (data.isEmpty) return const _EmptyChartMessage();
+      final h = chartHeight > 0 ? chartHeight : 240.0;
+      if (data.isEmpty) return _EmptyChartPlaceholder(height: h);
       return LineChartWidget(
         data: data,
-        height: chartHeight > 0 ? chartHeight : 240,
+        height: h,
       );
     }
 
@@ -928,17 +930,33 @@ class _ChartErrorMessage extends StatelessWidget {
   }
 }
 
-class _EmptyChartMessage extends StatelessWidget {
-  const _EmptyChartMessage();
+class _EmptyChartPlaceholder extends StatelessWidget {
+  final double height;
+
+  const _EmptyChartPlaceholder({this.height = 200});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+    final colorScheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: height,
       child: Center(
-        child: Text(
-          AppStrings.datasetWorkspaceAnalyticsNoChart.tr(),
-          style: Theme.of(context).textTheme.bodyMedium,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.show_chart,
+              size: 40,
+              color: colorScheme.onSurface.withValues(alpha: 0.2),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppStrings.datasetWorkspaceAnalyticsNoData.tr(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.45),
+                  ),
+            ),
+          ],
         ),
       ),
     );

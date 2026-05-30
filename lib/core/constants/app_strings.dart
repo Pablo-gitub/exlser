@@ -323,6 +323,8 @@ class AppStrings {
       'dataset.workspace.analytics.title';
   static const String datasetWorkspaceAnalyticsNoChart =
       'dataset.workspace.analytics.no_chart';
+  static const String datasetWorkspaceAnalyticsNoData =
+      'dataset.workspace.analytics.no_data';
   static const String datasetWorkspaceAnalyticsError =
       'dataset.workspace.analytics.error';
   static const String datasetWorkspaceAnalyticsErrorInvalidAggregation =

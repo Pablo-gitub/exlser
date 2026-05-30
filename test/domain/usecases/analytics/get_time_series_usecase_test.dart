@@ -152,6 +152,49 @@ void main() {
 
       expect(result.chartType, ChartType.line);
     });
+
+    test('parses DD/MM/YYYY date format (common spreadsheet export)', () async {
+      final xCol = _col('date', ColumnType.date);
+      final yCol = _col('sales', ColumnType.real);
+      when(() => repository.executeRawQuery(any(), any())).thenAnswer(
+        (_) async => [
+          {'x_val': '15/10/2017', 'y_val': 100.0},
+          {'x_val': '16/08/2016', 'y_val': 200.0},
+          {'x_val': '21/05/2015', 'y_val': 300.0},
+        ],
+      );
+
+      final result = await useCase(
+        tableName: 'people',
+        xColumn: xCol,
+        yColumn: yCol,
+      );
+
+      expect(result.points.length, 3);
+      expect(result.points[0].x, DateTime(2015, 5, 21));
+      expect(result.points[1].x, DateTime(2016, 8, 16));
+      expect(result.points[2].x, DateTime(2017, 10, 15));
+    });
+
+    test('skips rows with unrecognised date formats', () async {
+      final xCol = _col('date', ColumnType.date);
+      final yCol = _col('sales', ColumnType.real);
+      when(() => repository.executeRawQuery(any(), any())).thenAnswer(
+        (_) async => [
+          {'x_val': 'not-a-date', 'y_val': 50.0},
+          {'x_val': '15/10/2017', 'y_val': 75.0},
+          {'x_val': '2024-06-01', 'y_val': 90.0},
+        ],
+      );
+
+      final result = await useCase(
+        tableName: 'people',
+        xColumn: xCol,
+        yColumn: yCol,
+      );
+
+      expect(result.points.length, 2);
+    });
   });
 }
 

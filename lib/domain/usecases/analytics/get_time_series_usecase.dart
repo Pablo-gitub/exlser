@@ -50,6 +50,8 @@ class GetTimeSeriesUseCase {
       }
     }
 
+    points.sort((a, b) => a.x.compareTo(b.x));
+
     return TimeSeriesChartData(
       xLabel: xColumn.originalName,
       yLabel: '${aggregationType.sqlFunction}(${yColumn.originalName})',
@@ -60,7 +62,23 @@ class GetTimeSeriesUseCase {
   DateTime? _parseDate(String raw) {
     final trimmed = raw.trim();
     if (trimmed.isEmpty) return null;
-    return DateTime.tryParse(trimmed);
+    final iso = DateTime.tryParse(trimmed);
+    if (iso != null) return iso;
+    // DD/MM/YYYY — common spreadsheet format
+    if (trimmed.contains('/')) {
+      final parts = trimmed.split('/');
+      if (parts.length == 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        final y = int.tryParse(parts[2]);
+        if (d != null && m != null && y != null) {
+          try {
+            return DateTime(y, m, d);
+          } catch (_) {}
+        }
+      }
+    }
+    return null;
   }
 
   double? _toDouble(dynamic v) {

@@ -191,6 +191,7 @@
             "analytics": {
                 "title": "Analisi",
                 "no_chart": "Nessun grafico disponibile per i tipi di dati presenti.",
+                "no_data": "Nessun dato disponibile per la configurazione attuale.",
                 "error": "Impossibile caricare l'analisi.",
                 "error_messages": {
                     "invalid_aggregation": "Seleziona una colonna numerica per usare questa aggregazione.",

@@ -241,7 +241,25 @@ DateTime? _dateValue(Object? value) {
   final text = value?.toString().trim();
   if (text == null || text.isEmpty) return null;
 
-  return DateTime.tryParse(text);
+  final iso = DateTime.tryParse(text);
+  if (iso != null) return iso;
+
+  // DD/MM/YYYY — common spreadsheet format
+  if (text.contains('/')) {
+    final parts = text.split('/');
+    if (parts.length == 3) {
+      final d = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      final y = int.tryParse(parts[2]);
+      if (d != null && m != null && y != null) {
+        try {
+          return DateTime(y, m, d);
+        } catch (_) {}
+      }
+    }
+  }
+
+  return null;
 }
 
 String _yLabel(AggregationType aggregationType, DatasetColumn? column) {
