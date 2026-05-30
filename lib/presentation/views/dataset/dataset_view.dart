@@ -22,6 +22,7 @@ import 'package:exlser/presentation/widgets/dataset_views/dataset_card_view.dart
 import 'package:exlser/presentation/widgets/dataset_views/dataset_filter_panel.dart';
 import 'package:exlser/presentation/widgets/dataset_views/dataset_table_view.dart';
 import 'package:exlser/presentation/widgets/layout/app_shell_actions.dart';
+import 'package:exlser/presentation/widgets/layout/scroll_bottom_spacer.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -603,6 +604,7 @@ class _LoadedWorkspace extends StatelessWidget {
               ),
             ),
           ),
+          const ScrollBottomSpacer(),
         ],
       ),
     );

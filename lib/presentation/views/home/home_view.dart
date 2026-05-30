@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/presentation/views/home/widgets/file_drop_area.dart';
 import 'package:exlser/presentation/views/home/widgets/import_dialog/import_dialog.dart';
+import 'package:exlser/presentation/widgets/layout/scroll_bottom_spacer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -72,6 +73,7 @@ class HomeView extends ConsumerWidget {
                           ),
                         ),
                       ),
+                      const ScrollBottomSpacer(),
                     ],
                   ),
                 ),

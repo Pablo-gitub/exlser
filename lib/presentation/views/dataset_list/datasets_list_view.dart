@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/domain/entities/dataset.dart';
 import 'package:exlser/presentation/router/routes.dart';
+import 'package:exlser/presentation/widgets/layout/scroll_bottom_spacer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -181,6 +182,7 @@ class _DatasetsListViewState extends ConsumerState<DatasetsListView> {
               ),
             ),
           ),
+          const ScrollBottomSpacer(),
         ],
       ),
     );

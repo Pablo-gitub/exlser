@@ -1,3 +1,6 @@
+# Claude Code assistant memory
+.claude/
+
 # Miscellaneous
 *.class
 *.log
