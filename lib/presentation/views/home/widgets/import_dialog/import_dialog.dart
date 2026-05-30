@@ -165,6 +165,18 @@ class ImportDialog extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onErrorContainer,
             ),
           ),
+          if (viewModel.importErrorDetail != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              viewModel.importErrorDetail!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onErrorContainer
+                        .withValues(alpha: 0.75),
+                  ),
+            ),
+          ],
           if (viewModel.canRetryPreparation) ...[
             const SizedBox(height: 12),
             Row(

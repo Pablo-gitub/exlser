@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:exlser/application/dto/import_file.dart';
 import 'package:exlser/application/dto/confirmed_import.dart';
 import 'package:exlser/application/dto/created_dataset_result.dart';
@@ -73,6 +75,10 @@ class ImportDialogViewModel extends ChangeNotifier {
 
   String? _importErrorCode;
 
+  /// Raw exception message captured from unexpected errors.
+  /// Exposed so the UI can show actionable detail to the user.
+  String? _importErrorDetail;
+
   final Map<int, Map<int, ColumnType>> _selectedColumnTypes = {};
 
   ImportDialogStep get currentStep => _currentStep;
@@ -121,6 +127,8 @@ class ImportDialogViewModel extends ChangeNotifier {
                 ),
               ),
           ],
+          columnCurrencySymbols: preparedImportResult
+              .sheets[sheetIndex].columnCurrencySymbols,
         ),
     ];
   }
@@ -140,6 +148,9 @@ class ImportDialogViewModel extends ChangeNotifier {
   }
 
   String? get importErrorCode => _importErrorCode;
+
+  /// Additional detail about the last error, for display alongside the code.
+  String? get importErrorDetail => _importErrorDetail;
 
   bool get canRetryPreparation =>
       _currentStep == ImportDialogStep.general &&
@@ -240,6 +251,7 @@ class ImportDialogViewModel extends ChangeNotifier {
 
     _isCreatingDataset = true;
     _importErrorCode = null;
+    _importErrorDetail = null;
     notifyListeners();
 
     try {
@@ -261,9 +273,15 @@ class ImportDialogViewModel extends ChangeNotifier {
       return result;
     } on ImportException catch (e) {
       _importErrorCode = e.code;
+      _importErrorDetail = e.message;
       return null;
-    } catch (_) {
+    } on FileSystemException catch (e) {
+      _importErrorCode = 'file_access_error';
+      _importErrorDetail = e.message;
+      return null;
+    } catch (e) {
       _importErrorCode = 'creation_failed';
+      _importErrorDetail = e.toString();
       return null;
     } finally {
       _isCreatingDataset = false;

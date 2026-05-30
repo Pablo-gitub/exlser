@@ -27,6 +27,8 @@ class ImportErrorMessages {
         return AppStrings.importSchemaFailed;
       case 'creation_failed':
         return AppStrings.importCreationFailed;
+      case 'file_access_error':
+        return AppStrings.importFileAccessError;
       case 'unexpected_error':
       default:
         return AppStrings.importUnexpectedError;
