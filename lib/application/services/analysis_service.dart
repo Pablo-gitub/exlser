@@ -232,7 +232,9 @@ double? _numericValue(Object? value) {
   final text = value?.toString().trim();
   if (text == null || text.isEmpty) return null;
 
-  return double.tryParse(text.replaceAll(',', '.'));
+  // Strip currency symbols (e.g. "12.5€" → "12.5") before parsing.
+  final stripped = text.replaceAll(RegExp(r'[$€£¥₹₽¢₩₪₫]'), '').trim();
+  return double.tryParse(stripped.replaceAll(',', '.'));
 }
 
 DateTime? _dateValue(Object? value) {
