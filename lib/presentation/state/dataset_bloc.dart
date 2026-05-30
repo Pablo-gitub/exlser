@@ -705,6 +705,11 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         ) ??
         const DatasetReadQuery();
 
+    final columnCurrencySymbols = workspaceState?.restoreColumnCurrencySymbols(
+          tableId: activeTable.id,
+        ) ??
+        const {};
+
     return DatasetLoadedState(
       dataset: dataset,
       tables: tables,
@@ -721,6 +726,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       sort: activeSort,
       queryMode: restoredQueryMode,
       readOnlyQuery: restoredReadOnlyQuery,
+      columnCurrencySymbols: columnCurrencySymbols,
     );
   }
 

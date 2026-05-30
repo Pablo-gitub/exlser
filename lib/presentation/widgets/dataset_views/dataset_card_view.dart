@@ -8,11 +8,13 @@ import 'package:qr/qr.dart';
 class DatasetCardView extends StatelessWidget {
   final List<DatasetColumn> columns;
   final List<Map<String, dynamic>> rows;
+  final Map<String, String> columnCurrencySymbols;
 
   const DatasetCardView({
     super.key,
     required this.columns,
     required this.rows,
+    this.columnCurrencySymbols = const {},
   });
 
   @override
@@ -40,7 +42,11 @@ class DatasetCardView extends StatelessWidget {
             for (final row in rows)
               SizedBox(
                 width: cardWidth,
-                child: _DatasetRowCard(columns: columns, row: row),
+                child: _DatasetRowCard(
+                  columns: columns,
+                  row: row,
+                  columnCurrencySymbols: columnCurrencySymbols,
+                ),
               ),
           ],
         );
@@ -52,10 +58,12 @@ class DatasetCardView extends StatelessWidget {
 class _DatasetRowCard extends StatelessWidget {
   final List<DatasetColumn> columns;
   final Map<String, dynamic> row;
+  final Map<String, String> columnCurrencySymbols;
 
   const _DatasetRowCard({
     required this.columns,
     required this.row,
+    this.columnCurrencySymbols = const {},
   });
 
   @override
@@ -78,6 +86,7 @@ class _DatasetRowCard extends StatelessWidget {
             final content = _DatasetCardFields(
               columns: columns,
               row: row,
+              columnCurrencySymbols: columnCurrencySymbols,
             );
             final qr = DatasetRowQrCode(
               data: rowJson,
@@ -104,10 +113,12 @@ class _DatasetRowCard extends StatelessWidget {
 class _DatasetCardFields extends StatelessWidget {
   final List<DatasetColumn> columns;
   final Map<String, dynamic> row;
+  final Map<String, String> columnCurrencySymbols;
 
   const _DatasetCardFields({
     required this.columns,
     required this.row,
+    this.columnCurrencySymbols = const {},
   });
 
   @override
@@ -121,7 +132,12 @@ class _DatasetCardFields extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 2),
-          Text(_formatCellValue(row[column.dbName])),
+          Text(
+            _formatCellValue(
+              row[column.dbName],
+              currencySymbol: columnCurrencySymbols[column.dbName],
+            ),
+          ),
           if (column != columns.last) const Divider(height: 16),
         ],
       ],
@@ -230,8 +246,20 @@ class _QrPainter extends CustomPainter {
   }
 }
 
-String _formatCellValue(dynamic value) {
+String _formatCellValue(dynamic value, {String? currencySymbol}) {
   if (value == null) return '';
 
-  return value.toString();
+  String text = value.toString();
+
+  if (currencySymbol != null && text.isNotEmpty) {
+    // Strip any existing currency symbol from the stored value so we can
+    // append the canonical one from the workspace state (avoids "3.3$ $").
+    text = text.replaceAll(
+      RegExp(r'[$€£¥₹₽¢₩₪₫]'),
+      '',
+    ).trim();
+    if (text.isNotEmpty) return '$text $currencySymbol';
+  }
+
+  return text;
 }

@@ -13,6 +13,7 @@ class DatasetTableView extends StatefulWidget {
   final List<Map<String, dynamic>> rows;
   final DatasetSort? sort;
   final ValueChanged<DatasetColumn>? onSortColumn;
+  final Map<String, String> columnCurrencySymbols;
 
   const DatasetTableView({
     super.key,
@@ -20,6 +21,7 @@ class DatasetTableView extends StatefulWidget {
     required this.rows,
     this.sort,
     this.onSortColumn,
+    this.columnCurrencySymbols = const {},
   });
 
   @override
@@ -99,8 +101,11 @@ class _DatasetTableViewState extends State<DatasetTableView> {
                             columns: [
                               for (final column in widget.columns)
                                 DataColumn(
-                                  label:
-                                      _HeaderCell(label: column.originalName),
+                                  label: _HeaderCell(
+                                    label: column.originalName,
+                                    currencySymbol: widget
+                                        .columnCurrencySymbols[column.dbName],
+                                  ),
                                   onSort: widget.onSortColumn == null
                                       ? null
                                       : (_, __) => widget.onSortColumn!(column),
@@ -116,6 +121,9 @@ class _DatasetTableViewState extends State<DatasetTableView> {
                                           value: _formatCellValue(
                                             row[column.dbName],
                                             columnType: column.declaredType,
+                                            currencySymbol: widget
+                                                .columnCurrencySymbols[
+                                                    column.dbName],
                                           ),
                                         ),
                                       ),
@@ -162,17 +170,21 @@ class _DatasetTableViewState extends State<DatasetTableView> {
 
 class _HeaderCell extends StatelessWidget {
   final String label;
+  final String? currencySymbol;
 
   const _HeaderCell({
     required this.label,
+    this.currencySymbol,
   });
 
   @override
   Widget build(BuildContext context) {
+    final display =
+        currencySymbol != null ? '$label ($currencySymbol)' : label;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 220),
       child: Text(
-        label,
+        display,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         softWrap: false,
@@ -202,13 +214,25 @@ class _DataCellText extends StatelessWidget {
   }
 }
 
-String _formatCellValue(dynamic value, {ColumnType? columnType}) {
+String _formatCellValue(
+  dynamic value, {
+  ColumnType? columnType,
+  String? currencySymbol,
+}) {
   if (value == null) return '';
   if (value is String && value.trim().isEmpty) return '';
 
   if (columnType == ColumnType.boolean) {
     final n = value is num ? value : num.tryParse(value.toString());
     if (n != null) return n != 0 ? 'True' : 'False';
+  }
+
+  if (currencySymbol != null) {
+    final stripped = value
+        .toString()
+        .replaceAll(RegExp(r'[$€£¥₹₽¢₩₪₫]'), '')
+        .trim();
+    if (stripped.isNotEmpty) return '$stripped $currencySymbol';
   }
 
   return value.toString();

@@ -483,6 +483,71 @@ void main() {
       expect(suggestion?.xColumn?.dbName, 'cat');
     });
   });
+
+  group('StoredTableWorkspaceState.columnCurrencySymbols', () {
+    test('toJson / fromJson round-trips correctly', () {
+      const state = StoredTableWorkspaceState(
+        columnCurrencySymbols: {'price': r'$', 'salary': '€'},
+      );
+
+      final json = state.toJson();
+      final restored = StoredTableWorkspaceState.fromJson(json);
+
+      expect(restored.columnCurrencySymbols, {r'price': r'$', 'salary': '€'});
+    });
+
+    test('toJson omits key when map is empty', () {
+      const state = StoredTableWorkspaceState();
+      final json = state.toJson();
+      expect(json.containsKey('columnCurrencySymbols'), isFalse);
+    });
+
+    test('fromJson returns empty map when key is absent', () {
+      final json = <String, dynamic>{};
+      final state = StoredTableWorkspaceState.fromJson(json);
+      expect(state.columnCurrencySymbols, isEmpty);
+    });
+
+    test('restoreColumnCurrencySymbols returns symbols for the active table',
+        () {
+      final uiState = DatasetWorkspaceUiState(
+        tableStates: {
+          7: const StoredTableWorkspaceState(
+            columnCurrencySymbols: {'amount': '£'},
+          ),
+        },
+      );
+
+      expect(
+        uiState.restoreColumnCurrencySymbols(tableId: 7),
+        {'amount': '£'},
+      );
+    });
+
+    test('restoreColumnCurrencySymbols returns empty map for unknown table',
+        () {
+      const uiState = DatasetWorkspaceUiState();
+      expect(uiState.restoreColumnCurrencySymbols(tableId: 99), isEmpty);
+    });
+
+    test(
+        'fromLoadedState preserves columnCurrencySymbols from previous state',
+        () {
+      final previous = const StoredTableWorkspaceState(
+        columnCurrencySymbols: {'revenue': '¥'},
+      );
+
+      final state = DatasetWorkspaceUiState.fromJsonString(null);
+      expect(state.tableStates, isEmpty);
+
+      final restoredFromPrevious = StoredTableWorkspaceState.fromLoadedState(
+        _minimalLoadedState(),
+        previousState: previous,
+      );
+
+      expect(restoredFromPrevious.columnCurrencySymbols, {'revenue': '¥'});
+    });
+  });
 }
 
 Dataset _dataset({String? uiStateJson}) => Dataset(
@@ -511,4 +576,16 @@ DatasetColumn _col(String name, ColumnType type) => DatasetColumn(
       declaredType: type,
       inferredType: type,
       nullable: true,
+    );
+
+DatasetLoadedState _minimalLoadedState() => DatasetLoadedState(
+      dataset: _dataset(),
+      tables: [_table()],
+      activeTable: _table(),
+      columns: const [],
+      rows: const [],
+      viewMode: DatasetViewMode.table,
+      rowLimit: 100,
+      pageIndex: 0,
+      totalRowCount: 0,
     );

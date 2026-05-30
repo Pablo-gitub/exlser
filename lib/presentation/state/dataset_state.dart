@@ -128,6 +128,10 @@ class DatasetLoadedState extends DatasetState {
   final List<Map<String, dynamic>> readOnlyQueryRows;
   final int readOnlyQueryTotalRowCount;
 
+  /// Currency symbols for numeric columns detected at import time.
+  /// Key: column dbName, Value: symbol (e.g. "$", "€").
+  final Map<String, String> columnCurrencySymbols;
+
   const DatasetLoadedState({
     required this.dataset,
     required this.tables,
@@ -151,6 +155,7 @@ class DatasetLoadedState extends DatasetState {
     this.readOnlyQueryColumns = const [],
     this.readOnlyQueryRows = const [],
     this.readOnlyQueryTotalRowCount = 0,
+    this.columnCurrencySymbols = const {},
   });
 
   List<DatasetColumn> get visibleColumns => [
@@ -197,6 +202,7 @@ class DatasetLoadedState extends DatasetState {
     List<DatasetColumn>? readOnlyQueryColumns,
     List<Map<String, dynamic>>? readOnlyQueryRows,
     int? readOnlyQueryTotalRowCount,
+    Map<String, String>? columnCurrencySymbols,
   }) {
     return DatasetLoadedState(
       dataset: dataset ?? this.dataset,
@@ -227,6 +233,8 @@ class DatasetLoadedState extends DatasetState {
       readOnlyQueryRows: readOnlyQueryRows ?? this.readOnlyQueryRows,
       readOnlyQueryTotalRowCount:
           readOnlyQueryTotalRowCount ?? this.readOnlyQueryTotalRowCount,
+      columnCurrencySymbols:
+          columnCurrencySymbols ?? this.columnCurrencySymbols,
     );
   }
 }

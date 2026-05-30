@@ -207,6 +207,10 @@ class DatasetWorkspaceUiState {
     return _tableStateFor(tableId)?.readOnlyQuery ?? const DatasetReadQuery();
   }
 
+  Map<String, String> restoreColumnCurrencySymbols({int? tableId}) {
+    return _tableStateFor(tableId)?.columnCurrencySymbols ?? const {};
+  }
+
   List<StoredAnalyticsChart> restoreQueryCharts({int? tableId}) {
     return _tableStateFor(tableId)?.queryCharts ?? const [];
   }
@@ -289,6 +293,10 @@ class StoredTableWorkspaceState {
   final DatasetReadQuery readOnlyQuery;
   final List<StoredAnalyticsChart> queryCharts;
 
+  /// Currency symbol per numeric column detected at import time.
+  /// Key: column dbName, Value: symbol string (e.g. "$", "€").
+  final Map<String, String> columnCurrencySymbols;
+
   const StoredTableWorkspaceState({
     this.hiddenColumnDbNames = const [],
     this.filters = const [],
@@ -297,6 +305,7 @@ class StoredTableWorkspaceState {
     this.queryMode = DatasetQueryMode.filters,
     this.readOnlyQuery = const DatasetReadQuery(),
     this.queryCharts = const [],
+    this.columnCurrencySymbols = const {},
   });
 
   factory StoredTableWorkspaceState.fromLoadedState(
@@ -328,6 +337,10 @@ class StoredTableWorkspaceState {
       queryCharts: state.isReadOnlyQueryMode
           ? analyticsCharts ?? previousState?.queryCharts ?? const []
           : previousState?.queryCharts ?? const [],
+      // Preserve currency symbols — they are written once at import time
+      // and never overwritten by normal workspace state changes.
+      columnCurrencySymbols:
+          previousState?.columnCurrencySymbols ?? const {},
     );
   }
 
@@ -336,6 +349,7 @@ class StoredTableWorkspaceState {
     final filtersJson = json['filters'];
     final chartsJson = json['charts'];
     final queryChartsJson = json['queryCharts'];
+    final currencyJson = json['columnCurrencySymbols'];
 
     return StoredTableWorkspaceState(
       hiddenColumnDbNames: hiddenColumnsJson is List
@@ -374,6 +388,12 @@ class StoredTableWorkspaceState {
                   StoredAnalyticsChart.fromJson(chartJson),
             ]
           : const [],
+      columnCurrencySymbols: currencyJson is Map
+          ? {
+              for (final e in (currencyJson).entries)
+                e.key.toString(): e.value.toString(),
+            }
+          : const {},
     );
   }
 
@@ -394,6 +414,8 @@ class StoredTableWorkspaceState {
         ).toJson(),
       if (queryCharts.isNotEmpty)
         'queryCharts': [for (final chart in queryCharts) chart.toJson()],
+      if (columnCurrencySymbols.isNotEmpty)
+        'columnCurrencySymbols': columnCurrencySymbols,
     };
   }
 }

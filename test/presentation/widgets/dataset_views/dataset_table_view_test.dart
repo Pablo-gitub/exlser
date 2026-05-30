@@ -89,6 +89,88 @@ void main() {
           verticalScroll.controller!.position.maxScrollExtent, greaterThan(0));
     });
   });
+
+  group('currency symbol display', () {
+    testWidgets('appends symbol to column header when currency is set',
+        (tester) async {
+      await tester.pumpWidget(
+        _TestApp(
+          child: DatasetTableView(
+            columns: [
+              _column(originalName: 'Price', dbName: 'price'),
+              _column(originalName: 'Name', dbName: 'name'),
+            ],
+            rows: const [
+              {'price': '9.99', 'name': 'Book'},
+            ],
+            columnCurrencySymbols: const {'price': r'$'},
+          ),
+        ),
+      );
+
+      expect(find.text(r'Price ($)'), findsOneWidget);
+      expect(find.text('Name'), findsOneWidget);
+    });
+
+    testWidgets('strips raw symbol from stored value and appends canonical one',
+        (tester) async {
+      await tester.pumpWidget(
+        _TestApp(
+          child: DatasetTableView(
+            columns: [
+              _column(originalName: 'Price', dbName: 'price'),
+            ],
+            rows: const [
+              {'price': r'$44.5'},
+            ],
+            columnCurrencySymbols: const {r'price': r'$'},
+          ),
+        ),
+      );
+
+      // Raw value is "$44.5"; after stripping and appending the symbol from
+      // uiState, the cell should show "44.5 $" — not "44.5$ $".
+      expect(find.text(r'44.5 $'), findsOneWidget);
+      expect(find.text(r'$44.5'), findsNothing);
+    });
+
+    testWidgets('shows clean numeric value when no currency set',
+        (tester) async {
+      await tester.pumpWidget(
+        _TestApp(
+          child: DatasetTableView(
+            columns: [
+              _column(originalName: 'Price', dbName: 'price'),
+            ],
+            rows: const [
+              {'price': '44.5'},
+            ],
+          ),
+        ),
+      );
+
+      expect(find.text('44.5'), findsOneWidget);
+    });
+
+    testWidgets('header has no parenthetical when no currency set',
+        (tester) async {
+      await tester.pumpWidget(
+        _TestApp(
+          child: DatasetTableView(
+            columns: [
+              _column(originalName: 'Amount', dbName: 'amount'),
+            ],
+            rows: const [
+              {'amount': '100'},
+            ],
+          ),
+        ),
+      );
+
+      expect(find.text('Amount'), findsOneWidget);
+      expect(find.textContaining('('), findsNothing);
+    });
+  });
 }
 
 class _TestApp extends StatelessWidget {
