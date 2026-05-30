@@ -978,6 +978,37 @@ Goal: address closed beta feedback before widening the Google Play rollout.
 - [x] Auto-play onboarding video and show a replay action when it ends.
 - [x] Refactor web/tablet/desktop navigation to a persistent `ShellRoute`
       layout.
+- [x] Fix analytics chart empty-state message: distinguish "chart type not
+      available for these columns" from "no data for the current configuration".
+      Replace plain text with a placeholder that shows the chart area height.
+- [x] Fix line chart date parsing: support DD/MM/YYYY (common spreadsheet
+      export format) in `GetTimeSeriesUseCase` and `AnalysisService`.
+      Points are now sorted chronologically after parsing regardless of how
+      the database orders the raw strings.
+- [x] Extend `DateNormalizer` with dot-separated (DD.MM.YYYY), hyphen-separated
+      non-ISO (DD-MM-YYYY), and year-first (YYYY/MM/DD, YYYY.MM.DD) formats.
+      Out-of-range date parts are rejected to prevent silent normalisation.
+- [x] Extend `NumberNormalizer` to strip common currency symbols
+      (`$€£¥₹₽¢₩₪₫`) before parsing, and add `detectCurrencySymbol()`.
+- [x] Detect column currency symbols at import time: `ExcelParser` reads the
+      cell number-format code and appends the symbol to numeric values
+      (e.g. `12€`); `ImportDataService` scans column values and records the
+      dominant symbol; `CreateDatasetService` writes the result to the initial
+      `uiStateJson`; the workspace restores and displays them as `"price (€)"`
+      in table headers and `"12 €"` in card values.
+      Limitation: currency formats applied through Excel's built-in format IDs
+      (5–8, 41–44) are not exposed by `excel_community` and cannot be detected.
+      Future improvement: add a currency question in the column-type confirmation
+      step so users can assign a symbol to any numeric column manually.
+- [x] Fix `SegmentedButton` and `ChoiceChip` selected-state styling: hide the
+      automatic checkmark (`showSelectedIcon: false`) and move the icon inside
+      the chip label to avoid Material 3's circular avatar background.
+- [x] Improve import error messages: catch `FileSystemException` separately,
+      expose the raw exception detail as a subtitle in the error panel, and
+      add a dedicated `file_access_error` code with localised messages.
+- [x] Fix `confirmedSheets` in import dialog: `columnCurrencySymbols` detected
+      during `prepareImport` was silently dropped when building
+      `ConfirmedImportSheet`; it is now propagated correctly.
 
 Definition of done:
 
@@ -1053,6 +1084,87 @@ Definition of done:
 - [ ] The generated query remains read-only and limited to the opened dataset.
 - [ ] Multi-sheet result state is restored when reopening the dataset.
 
+## Path to Dataset Portability
+
+Goal: let users move work between devices while keeping Exlser local-first.
+This should work without requiring cloud sync or an account.
+
+Work page actions:
+
+- [ ] Add a dataset package export action from the Works page.
+- [ ] Support exporting a complete dataset package: metadata, sheets, columns,
+      rows, source-file reference metadata, filters, hidden columns, query state,
+      analytics configuration, and any future relationship metadata.
+- [ ] Support partial dataset package export: selected sheets, selected columns,
+      current filters, visible columns, and persisted workspace state relevant
+      to the selected subset.
+- [ ] Define a stable Exlser dataset package format, likely a zip containing
+      JSON metadata plus one or more data files.
+- [ ] Add dataset package import from the Works page.
+- [ ] During import, let the user choose whether to merge into an existing
+      dataset or create a replacement/new dataset.
+- [ ] Define merge rules for duplicate sheet names, duplicate column names,
+      conflicting types, and existing rows.
+- [ ] Keep all package operations local to the device.
+
+Definition of done:
+
+- [ ] A user can export a dataset on one device and import it on another.
+- [ ] Imports never overwrite existing local work without explicit confirmation.
+- [ ] Package import/export is covered by application-service tests.
+
+## Path to Dataset Editing
+
+Goal: let users keep working on imported datasets instead of treating them as
+read-only snapshots.
+
+Editing flow:
+
+- [ ] Add an explicit edit mode in `DatasetView`.
+- [ ] Make table/card cells editable through a mobile-friendly gesture such as
+      long press, plus a clear desktop interaction such as double click or an
+      edit button.
+- [ ] Validate edited values against the confirmed column type before saving.
+- [ ] Persist edits into the dynamic SQL table and refresh the visible result.
+- [ ] Preserve filters, sorting, hidden columns, analytics, and query mode after
+      edits.
+- [ ] Add row insertion after cell editing is stable.
+- [ ] Add column insertion after row insertion is stable.
+- [ ] Track whether manually added rows/columns came from user editing rather
+      than the original import source.
+
+Definition of done:
+
+- [ ] Users can safely edit existing cell values without breaking schema
+      consistency.
+- [ ] Edits are reflected in filters, exports, analytics, and query results.
+- [ ] Editing has tests at repository, use case, BLoC, and UI levels.
+
+## Path to Dataset Creation Workspace
+
+Goal: let users create datasets directly inside Exlser, with optional assisted
+relationships, instead of always starting from a CSV/XLSX import.
+
+Creation modes:
+
+- [ ] Add a dataset creation entry point from Home or Works.
+- [ ] Provide a guided creation view for users who do not know SQL: create
+      sheets, add columns, choose types, and enter rows.
+- [ ] Let users define simple relationships in user-facing language.
+- [ ] Suggest primary keys and foreign keys from column names, value uniqueness,
+      and matching values, but do not require users to know database terms.
+- [ ] Add an advanced SQL creation mode where expert users can define multiple
+      read/write-safe table creation statements in one flow.
+- [ ] Validate generated or user-written SQL before execution.
+- [ ] Store created datasets using the same metadata and dynamic table model
+      used by imported datasets.
+
+Definition of done:
+
+- [ ] Users can create a usable dataset without importing a file.
+- [ ] Assisted relationships are understandable to non-technical users.
+- [ ] Advanced SQL creation remains isolated from destructive operations.
+
 ## Future Ideas
 
 These are not part of the first publishable release:
@@ -1063,6 +1175,8 @@ These are not part of the first publishable release:
 - [ ] Invalid value correction during import.
 - [ ] Data quality profiling.
 - [ ] Automatic column type suggestions.
+- [ ] Ask whether a `real` column represents a currency during schema
+      confirmation, then let the user choose or override the currency symbol.
 - [ ] Statistical models or regression.
 - [ ] Optional AI/ML features.
 
@@ -1070,15 +1184,18 @@ These are not part of the first publishable release:
 
 Immediate next step:
 
-- [ ] Add release signing and produce a Play-uploadable Android App Bundle.
+- [ ] Iterate on the Google Play closed beta feedback and prepare the next
+      beta update.
 
 Practical order:
 
-1. Generate a dedicated Android upload key.
-2. Add local `key.properties` support without committing secrets.
-3. Wire release signing in `android/app/build.gradle.kts`.
-4. Add GitHub Actions support for signed `.aab` builds if CI will produce Play artifacts.
-5. Run `flutter build appbundle --release`.
-6. Create the Play Console app record with package `com.paolopietrelli.exlser`.
-7. Complete store listing, privacy policy, and app content declarations.
-8. Upload to an internal testing track before production.
+1. Collect closed tester feedback and Play Console pre-launch report findings.
+2. Triage fixes into patch-level beta updates.
+3. Bump `versionName` and always increase Android `versionCode`.
+4. Build a signed `.aab` for Google Play closed testing.
+5. Optionally publish matching GitHub release artifacts from the same commit.
+6. Upload the new build to the closed testing track.
+7. Repeat until onboarding, import, dataset viewing, filters, export, analytics,
+   and query mode are stable on real devices.
+8. Move from closed testing to wider testing only after crash-free and UX
+   feedback is acceptable.
