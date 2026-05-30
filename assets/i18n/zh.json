@@ -323,7 +323,8 @@
             "no_valid_sheets": "文件已读取，但没有工作表包含可用的表格数据。",
             "schema_failed": "应用无法检测到文件中的可用表格结构。",
             "unexpected_error": "导入过程中出现问题。请重试或选择其他文件。",
-            "creation_failed": "无法创建 dataset。请检查导入设置并重试。"
+            "creation_failed": "无法创建 dataset。请检查导入设置并重试。",
+            "file_access_error": "无法访问该文件。请确保文件存在且未被移动。"
         }
     }
 }

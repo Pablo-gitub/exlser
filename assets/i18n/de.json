@@ -323,7 +323,8 @@
             "no_valid_sheets": "Die Datei wurde gelesen, aber kein Blatt enthält verwendbare tabellarische Daten.",
             "schema_failed": "Die App konnte keine verwendbare Tabellenstruktur in der Datei erkennen.",
             "unexpected_error": "Beim Import ist ein Fehler aufgetreten. Versuchen Sie es erneut oder wählen Sie eine andere Datei.",
-            "creation_failed": "Das Dataset konnte nicht erstellt werden. Prüfen Sie die Importeinstellungen und versuchen Sie es erneut."
+            "creation_failed": "Das Dataset konnte nicht erstellt werden. Prüfen Sie die Importeinstellungen und versuchen Sie es erneut.",
+            "file_access_error": "Auf die Datei konnte nicht zugegriffen werden. Stellen Sie sicher, dass sie vorhanden und nicht verschoben wurde."
         }
     }
 }

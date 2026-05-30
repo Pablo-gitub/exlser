@@ -323,7 +323,8 @@
             "no_valid_sheets": "Le fichier a été lu, mais aucune feuille ne contient de données tabulaires exploitables.",
             "schema_failed": "L’app n’a pas pu détecter une structure de table exploitable dans le fichier.",
             "unexpected_error": "Une erreur est survenue pendant l’import. Réessayez ou sélectionnez un autre fichier.",
-            "creation_failed": "Impossible de créer le dataset. Vérifiez les paramètres d’importation et réessayez."
+            "creation_failed": "Impossible de créer le dataset. Vérifiez les paramètres d’importation et réessayez.",
+            "file_access_error": "Impossible d’accéder au fichier. Assurez-vous qu’il existe et n’a pas été déplacé."
         }
     }
 }

@@ -418,4 +418,5 @@ class AppStrings {
   static const String importEmptyFileBytes = 'import.error.empty_file_bytes';
   static const String importUnexpectedError = 'import.error.unexpected_error';
   static const String importCreationFailed = 'import.error.creation_failed';
+  static const String importFileAccessError = 'import.error.file_access_error';
 }

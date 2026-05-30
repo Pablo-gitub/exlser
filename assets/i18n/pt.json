@@ -323,7 +323,8 @@
             "no_valid_sheets": "O arquivo foi lido, mas nenhuma planilha contém dados tabulares utilizáveis.",
             "schema_failed": "A app não conseguiu detectar uma estrutura de tabela utilizável no arquivo.",
             "unexpected_error": "Algo deu errado durante a importação. Tente novamente ou selecione outro arquivo.",
-            "creation_failed": "Não foi possível criar o dataset. Revise as configurações de importação e tente novamente."
+            "creation_failed": "Não foi possível criar o dataset. Revise as configurações de importação e tente novamente.",
+            "file_access_error": "Não foi possível acessar o arquivo. Certifique-se de que ele existe e não foi movido."
         }
     }
 }

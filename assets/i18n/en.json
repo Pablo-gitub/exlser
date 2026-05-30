@@ -323,7 +323,8 @@
             "no_valid_sheets": "The file was read, but no sheet contains usable tabular data.",
             "schema_failed": "The app could not detect a usable table structure in the file.",
             "unexpected_error": "Something went wrong during import. Try again or select another file.",
-            "creation_failed": "The dataset could not be created. Review the import settings and try again."
+            "creation_failed": "The dataset could not be created. Review the import settings and try again.",
+            "file_access_error": "The file could not be accessed. Make sure it exists and has not been moved."
         }
     }
 }

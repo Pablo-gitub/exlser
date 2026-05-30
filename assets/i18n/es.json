@@ -323,7 +323,8 @@
             "no_valid_sheets": "El archivo se leyó, pero ninguna hoja contiene datos tabulares utilizables.",
             "schema_failed": "La app no pudo detectar una estructura de tabla utilizable en el archivo.",
             "unexpected_error": "Algo salió mal durante la importación. Inténtalo de nuevo o selecciona otro archivo.",
-            "creation_failed": "No se pudo crear el dataset. Revisa los ajustes de importación e inténtalo de nuevo."
+            "creation_failed": "No se pudo crear el dataset. Revisa los ajustes de importación e inténtalo de nuevo.",
+            "file_access_error": "No se pudo acceder al archivo. Asegúrate de que existe y no ha sido movido."
         }
     }
 }
