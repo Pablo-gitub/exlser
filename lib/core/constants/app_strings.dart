@@ -38,6 +38,7 @@ class AppStrings {
   static const String openGithub = 'menu.open_github';
   static const String openLinkedin = 'menu.open_linkedin';
   static const String openInstagram = 'menu.open_instagram';
+  static const String fullImmersion = 'menu.full_immersion';
 
   static const String noWorksYet = 'works.empty';
   static const String goHome = 'works.go_home';

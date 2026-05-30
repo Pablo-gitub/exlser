@@ -49,7 +49,8 @@
         "open_website": "Открыть сайт",
         "open_github": "Открыть GitHub",
         "open_linkedin": "Открыть LinkedIn",
-        "open_instagram": "Открыть Instagram"
+        "open_instagram": "Открыть Instagram",
+        "full_immersion": "Полный экран"
     },
     "works": {
         "empty": "Здесь будет показан список ваших работ",

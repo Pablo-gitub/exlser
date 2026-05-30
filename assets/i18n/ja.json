@@ -49,7 +49,8 @@
         "open_website": "Webサイトを開く",
         "open_github": "GitHubを開く",
         "open_linkedin": "LinkedInを開く",
-        "open_instagram": "Instagramを開く"
+        "open_instagram": "Instagramを開く",
+        "full_immersion": "全画面モード"
     },
     "works": {
         "empty": "ここにワーク一覧が表示されます",

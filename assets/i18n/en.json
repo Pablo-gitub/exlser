@@ -49,7 +49,8 @@
         "open_website": "Open website",
         "open_github": "Open GitHub",
         "open_linkedin": "Open LinkedIn",
-        "open_instagram": "Open Instagram"
+        "open_instagram": "Open Instagram",
+        "full_immersion": "Full immersion"
     },
     "works": {
         "empty": "Here will be shown your list of works",

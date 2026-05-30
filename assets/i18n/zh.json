@@ -49,7 +49,8 @@
         "open_website": "打开网站",
         "open_github": "打开 GitHub",
         "open_linkedin": "打开 LinkedIn",
-        "open_instagram": "打开 Instagram"
+        "open_instagram": "打开 Instagram",
+        "full_immersion": "全屏模式"
     },
     "works": {
         "empty": "这里将显示你的工作列表",

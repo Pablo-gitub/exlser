@@ -1,19 +1,16 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_strings.dart';
+import '../../providers/immersive_mode_provider.dart';
 import '../../router/routes.dart';
 
-/// Shared navigation drawer used across the app.
-///
-/// Provides navigation to:
-/// - Home
-/// - Works list
-/// - Settings
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerWidget {
   static final Uri _developerWebsiteUri =
       Uri.parse('https://paolopietrelli.com');
   static final Uri _githubUri =
@@ -33,34 +30,65 @@ class AppDrawer extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final immersive = ref.watch(immersiveModeProvider);
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+
+    // SafeArea: left/right false — the drawer is always on the left side of the
+    // screen. Applying right insets would subtract the lateral nav-bar width in
+    // landscape mode, reducing available width to ~127px and breaking layout.
+    //
+    // Layout strategy: Expanded > SingleChildScrollView for nav items (nav
+    // scrolls internally if ever too tall), footer always pinned at the bottom
+    // outside the scroll. No Spacer/IntrinsicHeight/SliverFillRemaining needed.
+    // This is the only pattern guaranteed to never overflow on any screen size.
     final content = SafeArea(
+      left: false,
+      right: false,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 24),
-          ListTile(
-            selected: _isHomeSelected(context),
-            leading: const Icon(Icons.home),
-            title: Text(AppStrings.home.tr()),
-            onTap: () => _go(context, AppRoutes.homePath),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 24),
+                  ListTile(
+                    selected: _isHomeSelected(context),
+                    leading: const Icon(Icons.home),
+                    title: Text(AppStrings.home.tr()),
+                    onTap: () => _go(context, AppRoutes.homePath),
+                  ),
+                  ListTile(
+                    selected: _isWorksSelected(context),
+                    leading: const Icon(Icons.folder_copy),
+                    title: Text(AppStrings.works.tr()),
+                    onTap: () => _go(context, AppRoutes.datasetListPath),
+                  ),
+                  ListTile(
+                    selected: _isSettingsSelected(context),
+                    leading: const Icon(Icons.settings),
+                    title: Text(AppStrings.settings.tr()),
+                    onTap: () => _go(context, AppRoutes.settingsPath),
+                  ),
+                ],
+              ),
+            ),
           ),
-          ListTile(
-            selected: _isWorksSelected(context),
-            leading: const Icon(Icons.folder_copy),
-            title: Text(AppStrings.works.tr()),
-            onTap: () => _go(context, AppRoutes.datasetListPath),
-          ),
-          ListTile(
-            selected: _isSettingsSelected(context),
-            leading: const Icon(Icons.settings),
-            title: Text(AppStrings.settings.tr()),
-            onTap: () => _go(context, AppRoutes.settingsPath),
-          ),
-          const Spacer(),
           const Divider(height: 1),
+          if (isAndroid) ...[
+            _ImmersiveToggle(
+              immersive: immersive,
+              onToggle: () =>
+                  ref.read(immersiveModeProvider.notifier).toggle(),
+            ),
+            const Divider(height: 1),
+          ],
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Tooltip(
                   message: AppStrings.openWebsite.tr(),
@@ -74,8 +102,10 @@ class AppDrawer extends StatelessWidget {
                     ),
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                // Wrap: if screen is very narrow the icons wrap to next line
+                // instead of overflowing (e.g. in landscape with lateral nav bar).
+                Wrap(
+                  alignment: WrapAlignment.center,
                   children: [
                     IconButton(
                       tooltip: AppStrings.openGithub.tr(),
@@ -150,13 +180,9 @@ class AppDrawer extends StatelessWidget {
   }
 
   bool _isWorksSelected(BuildContext context) {
-    return switch (GoRouterState.of(context).matchedLocation) {
-      AppRoutes.datasetListPath ||
-      AppRoutes.datasetPath ||
-      AppRoutes.multiDatasetAnalyticsPath =>
-        true,
-      _ => false,
-    };
+    final location = GoRouterState.of(context).matchedLocation;
+    return location == AppRoutes.datasetListPath ||
+        location.startsWith('/datasets/');
   }
 
   bool _isSettingsSelected(BuildContext context) {
@@ -171,5 +197,42 @@ class AppDrawer extends StatelessWidget {
         SnackBar(content: Text(uri.toString())),
       );
     }
+  }
+}
+
+class _ImmersiveToggle extends StatelessWidget {
+  final bool immersive;
+  final VoidCallback onToggle;
+
+  const _ImmersiveToggle({
+    required this.immersive,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.fullImmersion.tr(),
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.fullscreen, size: 22),
+              const Spacer(),
+              Switch(
+                value: immersive,
+                onChanged: (_) => onToggle(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

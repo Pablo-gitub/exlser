@@ -49,7 +49,8 @@
         "open_website": "Apri sito web",
         "open_github": "Apri GitHub",
         "open_linkedin": "Apri LinkedIn",
-        "open_instagram": "Apri Instagram"
+        "open_instagram": "Apri Instagram",
+        "full_immersion": "Schermo intero"
     },
     "works": {
         "empty": "Qui verrà mostrata la tua lista lavori",

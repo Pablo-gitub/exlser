@@ -132,13 +132,15 @@ int _getDatasetId(GoRouterState state) {
 }
 
 String _shellTitle(BuildContext context, GoRouterState state) {
-  return switch (state.matchedLocation) {
-    AppRoutes.homePath => AppStrings.appName.tr(),
-    AppRoutes.datasetListPath => AppStrings.works.tr(),
-    AppRoutes.datasetPath => AppStrings.datasetWorkspaceTitle.tr(),
-    AppRoutes.multiDatasetAnalyticsPath =>
-      AppStrings.datasetWorkspaceAnalyticsTitle.tr(),
-    AppRoutes.settingsPath => AppStrings.settings.tr(),
-    _ => AppStrings.appName.tr(),
-  };
+  final location = state.matchedLocation;
+  if (location == AppRoutes.homePath) return AppStrings.appName.tr();
+  if (location == AppRoutes.datasetListPath) return AppStrings.works.tr();
+  if (location == AppRoutes.settingsPath) return AppStrings.settings.tr();
+  if (location.startsWith('/datasets/')) {
+    if (location.endsWith('/analytics')) {
+      return AppStrings.datasetWorkspaceAnalyticsTitle.tr();
+    }
+    return AppStrings.datasetWorkspaceTitle.tr();
+  }
+  return AppStrings.appName.tr();
 }
