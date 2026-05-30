@@ -581,11 +581,13 @@ class _LoadedWorkspace extends StatelessWidget {
                                     ToggleSortColumnEvent(column),
                                   );
                             },
+                      columnCurrencySymbols: state.columnCurrencySymbols,
                     )
                   else
                     DatasetCardView(
                       columns: resultColumns,
                       rows: resultRows,
+                      columnCurrencySymbols: state.columnCurrencySymbols,
                     ),
                   const SizedBox(height: 12),
                   if (!isQueryMode) ...[
@@ -683,6 +685,7 @@ class _QueryModeSelector extends StatelessWidget {
         }
 
         return SegmentedButton<DatasetQueryMode>(
+          showSelectedIcon: false,
           segments: [
             ButtonSegment(
               value: DatasetQueryMode.filters,
@@ -723,8 +726,14 @@ class _QueryModeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChoiceChip(
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 6),
+          Text(label),
+        ],
+      ),
       selected: selectedQueryMode == queryMode,
       onSelected: (_) {
         context.read<DatasetBloc>().add(ChangeQueryModeEvent(queryMode));
@@ -1260,6 +1269,7 @@ class _ViewModeSelector extends StatelessWidget {
         }
 
         return SegmentedButton<DatasetViewMode>(
+          showSelectedIcon: false,
           segments: [
             ButtonSegment(
               value: DatasetViewMode.table,
@@ -1300,8 +1310,14 @@ class _ViewModeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChoiceChip(
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 6),
+          Text(label),
+        ],
+      ),
       selected: selectedViewMode == viewMode,
       onSelected: (_) {
         context.read<DatasetBloc>().add(ChangeViewModeEvent(viewMode));
