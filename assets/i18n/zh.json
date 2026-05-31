@@ -262,7 +262,9 @@
         "language_chinese": "中文",
         "language_russian": "Русский",
         "language_japanese": "日本語",
-        "language_portuguese": "Português"
+        "language_portuguese": "Português",
+        "app_version_label": "应用版本",
+        "app_version_value": "版本 {version} ({build})"
     },
     "import": {
         "title": "创建新 dataset",

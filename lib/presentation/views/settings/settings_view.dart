@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:exlser/core/constants/app_info.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/core/theme/app_spacing.dart';
 import 'package:exlser/presentation/router/routes.dart';
@@ -96,6 +97,25 @@ class SettingsView extends StatelessWidget {
                         context.setLocale(locale);
                       }
                     },
+                  ),
+                  const SizedBox(height: AppSpacing.l),
+                  const Divider(),
+                  const SizedBox(height: AppSpacing.m),
+                  Text(
+                    AppStrings.appVersionLabel.tr(),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.s),
+                  Text(
+                    AppStrings.appVersionValue.tr(
+                      namedArgs: {
+                        'version': AppInfo.versionName,
+                        'build': AppInfo.buildNumber,
+                      },
+                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
                   const ScrollBottomSpacer(),
                 ],

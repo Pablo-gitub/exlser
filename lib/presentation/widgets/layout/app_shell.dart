@@ -15,12 +15,19 @@ class AppShell extends ConsumerStatefulWidget {
     required this.child,
   });
 
+  @visibleForTesting
+  static bool shouldUseExpandedNavigationForSize(Size size) {
+    return size.width >= _AppShellState._expandedNavigationBreakpoint &&
+        size.shortestSide >= _AppShellState._expandedNavigationMinShortestSide;
+  }
+
   @override
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
 class _AppShellState extends ConsumerState<AppShell> {
   static const double _expandedNavigationBreakpoint = 840;
+  static const double _expandedNavigationMinShortestSide = 600;
   static const double _sideNavigationWidth = 232;
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -31,9 +38,11 @@ class _AppShellState extends ConsumerState<AppShell> {
     final shellActions = ref.watch(appShellActionsProvider);
 
     return LayoutBuilder(
-      builder: (context, constraints) {
+      builder: (context, _) {
         final useExpandedNavigation =
-            constraints.maxWidth >= _expandedNavigationBreakpoint;
+            AppShell.shouldUseExpandedNavigationForSize(
+          MediaQuery.sizeOf(context),
+        );
 
         return Scaffold(
           key: _scaffoldKey,

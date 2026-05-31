@@ -256,6 +256,8 @@ class AppStrings {
   static const String languageJapanese = 'settings.language_japanese';
   static const String languagePortuguese = 'settings.language_portuguese';
   static const String languageLabel = 'settings.language';
+  static const String appVersionLabel = 'settings.app_version_label';
+  static const String appVersionValue = 'settings.app_version_value';
 
   static const String homeDropFile = 'home.drop_file';
   static const String browseFile = 'home.browse_file';
