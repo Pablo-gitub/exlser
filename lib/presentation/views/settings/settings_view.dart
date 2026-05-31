@@ -110,7 +110,6 @@ class SettingsView extends StatelessWidget {
                     AppStrings.appVersionValue.tr(
                       namedArgs: {
                         'version': AppInfo.versionName,
-                        'build': AppInfo.buildNumber,
                       },
                     ),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(

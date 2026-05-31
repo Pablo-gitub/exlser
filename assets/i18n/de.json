@@ -264,7 +264,7 @@
         "language_japanese": "日本語",
         "language_portuguese": "Português",
         "app_version_label": "App-Version",
-        "app_version_value": "Version {version} ({build})"
+        "app_version_value": "Version {version}"
     },
     "import": {
         "title": "Neues Dataset erstellen",
