@@ -1,5 +1,4 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exlser/presentation/providers/immersive_mode_provider.dart';
 import 'package:exlser/presentation/router/routes.dart';
 import 'package:exlser/presentation/widgets/layout/app_drawer.dart';
 import 'package:flutter/foundation.dart';
@@ -133,10 +132,12 @@ void main() {
       }
     });
 
-    testWidgets('landscape (Pixel 6 ~411dp height): no overflow, footer visible',
+    testWidgets(
+        'landscape (Pixel 6 ~411dp height): no overflow, footer visible',
         (tester) async {
-      // This is the regression case: footer (~200dp) + immersive toggle (~90dp)
-      // + nav (~190dp) > body height (~355dp). Previously caused overflow.
+      // This is the regression case: footer + nav can exceed the available
+      // drawer height in landscape. The nav area scrolls while the footer stays
+      // pinned.
       // Expanded>SingleChildScrollView for nav keeps footer always in view.
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       tester.view.physicalSize = const Size(2400, 1080);
@@ -190,76 +191,6 @@ void main() {
         expect(find.text('Home'), findsOneWidget);
         expect(find.text('Developer'), findsOneWidget);
         expect(find.byType(Switch), findsNothing);
-        expect(tester.takeException(), isNull);
-      } finally {
-        debugDefaultTargetPlatformOverride = null;
-      }
-    });
-  });
-
-  // ── Immersive toggle ─────────────────────────────────────────────────────────
-
-  group('AppDrawer — immersive toggle', () {
-    testWidgets('Switch visible on Android', (tester) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      tester.view.physicalSize = const Size(1080, 2400);
-      tester.view.devicePixelRatio = 2.625;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      try {
-        await _pumpApp(tester, router: _makeRouter(AppRoutes.homePath));
-        await _openDrawer(tester);
-
-        expect(find.byType(Switch), findsOneWidget);
-        expect(tester.takeException(), isNull);
-      } finally {
-        debugDefaultTargetPlatformOverride = null;
-      }
-    });
-
-    testWidgets('tapping Switch toggles immersiveModeProvider', (tester) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      tester.view.physicalSize = const Size(1080, 2400);
-      tester.view.devicePixelRatio = 2.625;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-
-      try {
-        await tester.pumpWidget(const SizedBox.shrink());
-        await tester.pump();
-        await tester.runAsync(() async {
-          await tester.pumpWidget(
-            EasyLocalization(
-              supportedLocales: const [Locale('en')],
-              path: 'assets/i18n',
-              fallbackLocale: const Locale('en'),
-              startLocale: const Locale('en'),
-              child: UncontrolledProviderScope(
-                container: container,
-                child: Builder(
-                  builder: (context) => MaterialApp.router(
-                    locale: context.locale,
-                    supportedLocales: context.supportedLocales,
-                    localizationsDelegates: context.localizationDelegates,
-                    routerConfig: _makeRouter(AppRoutes.homePath),
-                  ),
-                ),
-              ),
-            ),
-          );
-          await Future.delayed(const Duration(milliseconds: 200));
-        });
-        await tester.pumpAndSettle();
-        await _openDrawer(tester);
-
-        expect(container.read(immersiveModeProvider), isFalse);
-        await tester.tap(find.byType(Switch));
-        await tester.pumpAndSettle();
-        expect(container.read(immersiveModeProvider), isTrue);
         expect(tester.takeException(), isNull);
       } finally {
         debugDefaultTargetPlatformOverride = null;

@@ -1,16 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_strings.dart';
-import '../../providers/immersive_mode_provider.dart';
 import '../../router/routes.dart';
 
-class AppDrawer extends ConsumerWidget {
+class AppDrawer extends StatelessWidget {
   static final Uri _developerWebsiteUri =
       Uri.parse('https://paolopietrelli.com');
   static final Uri _githubUri =
@@ -30,10 +27,7 @@ class AppDrawer extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final immersive = ref.watch(immersiveModeProvider);
-    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
-
+  Widget build(BuildContext context) {
     // SafeArea: left/right false — the drawer is always on the left side of the
     // screen. Applying right insets would subtract the lateral nav-bar width in
     // landscape mode, reducing available width to ~127px and breaking layout.
@@ -77,14 +71,6 @@ class AppDrawer extends ConsumerWidget {
             ),
           ),
           const Divider(height: 1),
-          if (isAndroid) ...[
-            _ImmersiveToggle(
-              immersive: immersive,
-              onToggle: () =>
-                  ref.read(immersiveModeProvider.notifier).toggle(),
-            ),
-            const Divider(height: 1),
-          ],
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
             child: Column(
@@ -197,42 +183,5 @@ class AppDrawer extends ConsumerWidget {
         SnackBar(content: Text(uri.toString())),
       );
     }
-  }
-}
-
-class _ImmersiveToggle extends StatelessWidget {
-  final bool immersive;
-  final VoidCallback onToggle;
-
-  const _ImmersiveToggle({
-    required this.immersive,
-    required this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppStrings.fullImmersion.tr(),
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              const Icon(Icons.fullscreen, size: 22),
-              const Spacer(),
-              Switch(
-                value: immersive,
-                onChanged: (_) => onToggle(),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 }

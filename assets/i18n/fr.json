@@ -49,8 +49,7 @@
         "open_website": "Ouvrir le site web",
         "open_github": "Ouvrir GitHub",
         "open_linkedin": "Ouvrir LinkedIn",
-        "open_instagram": "Ouvrir Instagram",
-        "full_immersion": "Plein écran"
+        "open_instagram": "Ouvrir Instagram"
     },
     "works": {
         "empty": "Votre liste de travaux s’affichera ici",
@@ -254,6 +253,7 @@
     },
     "settings": {
         "language": "Langue",
+        "full_immersion": "Plein écran",
         "language_english": "English",
         "language_italian": "Italiano",
         "language_spanish": "Español",

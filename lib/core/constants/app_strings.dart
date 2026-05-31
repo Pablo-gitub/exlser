@@ -38,7 +38,6 @@ class AppStrings {
   static const String openGithub = 'menu.open_github';
   static const String openLinkedin = 'menu.open_linkedin';
   static const String openInstagram = 'menu.open_instagram';
-  static const String fullImmersion = 'menu.full_immersion';
 
   static const String noWorksYet = 'works.empty';
   static const String goHome = 'works.go_home';
@@ -256,6 +255,7 @@ class AppStrings {
   static const String languageJapanese = 'settings.language_japanese';
   static const String languagePortuguese = 'settings.language_portuguese';
   static const String languageLabel = 'settings.language';
+  static const String fullImmersion = 'settings.full_immersion';
   static const String appVersionLabel = 'settings.app_version_label';
   static const String appVersionValue = 'settings.app_version_value';
 

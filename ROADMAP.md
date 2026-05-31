@@ -1009,6 +1009,9 @@ Goal: address closed beta feedback before widening the Google Play rollout.
 - [x] Fix `confirmedSheets` in import dialog: `columnCurrencySymbols` detected
       during `prepareImport` was silently dropped when building
       `ConfirmedImportSheet`; it is now propagated correctly.
+- [x] Move the Android-only full immersion toggle from the navigation drawer to
+      Settings, because it is a display/system preference rather than a
+      navigation action.
 
 Definition of done:
 

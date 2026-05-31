@@ -49,8 +49,7 @@
         "open_website": "Webサイトを開く",
         "open_github": "GitHubを開く",
         "open_linkedin": "LinkedInを開く",
-        "open_instagram": "Instagramを開く",
-        "full_immersion": "全画面モード"
+        "open_instagram": "Instagramを開く"
     },
     "works": {
         "empty": "ここにワーク一覧が表示されます",
@@ -254,6 +253,7 @@
     },
     "settings": {
         "language": "言語",
+        "full_immersion": "全画面モード",
         "language_english": "English",
         "language_italian": "Italiano",
         "language_spanish": "Español",

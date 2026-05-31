@@ -33,12 +33,15 @@ This document collects feedback and follow-up improvements discovered during the
   - Target: tablet, desktop, and web/tablet-like widths.
   - Users should still be able to close it manually through the menu button.
   - Keep compact phone layouts closed by default.
-  - Current implementation opens the menu on wide layouts, but web navigation
-    still recreates the app chrome and creates an unpleasant loading effect.
-  - The side navigation is also too wide; target about `220-240px`.
   - Implemented with `ShellRoute`, persistent `AppShell`, active route
-    highlighting, contextual app bar actions, and a narrower side navigation.
+    highlighting, contextual app bar actions, a narrower side navigation, and
+    a wide-screen-only breakpoint that excludes phones in landscape.
   - See `NAVIGATION_SHELL_REFACTOR.md`.
+
+- [x] Add an Android-only full immersion option.
+  - Keep it out of the navigation drawer because it is a display/system
+    preference, not a navigation action.
+  - Implemented as a Settings toggle visible only on Android.
 
 ## Notes
 
@@ -51,4 +54,5 @@ Remaining beta polish:
 - [ ] Verify onboarding video auto-play, replay, and fullscreen behavior on a real Android device.
 - [ ] Verify persistent `ShellRoute` navigation on tablet,
       desktop, and resized web layouts.
-- [ ] Optional: evaluate whether an immersive fullscreen mode is worth adding for specific media screens. Avoid enabling it app-wide unless beta feedback clearly asks for it.
+- [ ] Verify the Android-only full immersion toggle from Settings on a real
+      Android device.

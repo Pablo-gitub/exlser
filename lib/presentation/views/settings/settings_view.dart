@@ -2,9 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:exlser/core/constants/app_info.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/core/theme/app_spacing.dart';
+import 'package:exlser/presentation/providers/immersive_mode_provider.dart';
 import 'package:exlser/presentation/router/routes.dart';
 import 'package:exlser/presentation/widgets/layout/scroll_bottom_spacer.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Application settings view.
@@ -18,11 +21,14 @@ import 'package:go_router/go_router.dart';
 /// - auto-save workspace state
 /// - theme mode
 
-class SettingsView extends StatelessWidget {
+class SettingsView extends ConsumerWidget {
   const SettingsView({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    final immersive = isAndroid ? ref.watch(immersiveModeProvider) : false;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -101,6 +107,20 @@ class SettingsView extends StatelessWidget {
                   const SizedBox(height: AppSpacing.l),
                   const Divider(),
                   const SizedBox(height: AppSpacing.m),
+                  if (isAndroid) ...[
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.fullscreen),
+                      title: Text(AppStrings.fullImmersion.tr()),
+                      value: immersive,
+                      onChanged: (_) {
+                        ref.read(immersiveModeProvider.notifier).toggle();
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.l),
+                    const Divider(),
+                    const SizedBox(height: AppSpacing.m),
+                  ],
                   Text(
                     AppStrings.appVersionLabel.tr(),
                     style: Theme.of(context).textTheme.titleMedium,
