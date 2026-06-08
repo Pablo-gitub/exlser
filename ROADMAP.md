@@ -82,6 +82,46 @@ A boolean filter bug was also fixed in this cycle: boolean string values
 (`"true"`, `"yes"`, `"1"`, etc.) are now normalized to integer `1`/`0`
 during import so SQL integer comparisons work correctly.
 
+## Path to Monorepo Layout
+
+Goal: split the repository into a clean monorepo where the Flutter app lives in
+`flutter_app/` and the future React landing page can live in `landing_page/`.
+
+Target structure:
+
+```text
+/
+├── README.md
+├── ROADMAP.md
+├── CHANGELOG.md
+├── .github/
+├── flutter_app/
+└── landing_page/
+```
+
+- [x] Create a local safety tag before moving files.
+- [x] Move the Flutter app source, tests, assets, and platform folders into
+      `flutter_app/`.
+- [x] Keep repository-level documentation and GitHub Actions in the root.
+- [x] Update `.gitignore` for nested Flutter build/cache paths.
+- [x] Update GitHub Actions to run Flutter commands from `flutter_app/`.
+- [x] Update Firebase hosting config to deploy Flutter web from
+      `flutter_app/build/web` until the React landing page replaces it.
+- [x] Update README commands and asset links for the new layout.
+- [ ] Scaffold `landing_page/` with React after the Flutter migration is tested
+      and committed.
+- [ ] Decide final hosting split: landing at the domain root and Flutter web at
+      `/app`, or landing only for now.
+
+Completion checkpoint:
+
+- [x] `flutter analyze` passes from `flutter_app/`.
+- [x] Full `flutter test` suite passes from `flutter_app/`.
+- [x] Android debug build succeeds from `flutter_app/`.
+- [ ] Android and desktop GitHub release workflows work with the new paths.
+- [ ] The next React landing page can be added without touching Flutter app
+      internals.
+
 ### Completed Foundation
 
 - [x] Clean Architecture structure is in place.
@@ -790,7 +830,7 @@ Repository readiness check:
 
 - [x] Android app label is set to `Exlser`.
 - [x] Android launcher icon assets exist.
-- [x] Project version is currently `2.0.0+200`.
+- [x] Project version is currently `2.0.1+201`.
 - [x] The project inherits Flutter's Android SDK defaults; with the current
   local Flutter SDK this means target SDK 36, which is above the current
   Google Play minimum requirement for new apps.
@@ -833,9 +873,10 @@ Definition of done:
 Goal: choose the permanent package identity before the first Play upload.
 
 - [x] Choose the final Play package name/application ID.
-- [x] Update `android/app/build.gradle.kts` `namespace`.
-- [x] Update `android/app/build.gradle.kts` `applicationId`.
-- [x] Update the Kotlin package under `android/app/src/main/kotlin/...`.
+- [x] Update `flutter_app/android/app/build.gradle.kts` `namespace`.
+- [x] Update `flutter_app/android/app/build.gradle.kts` `applicationId`.
+- [x] Update the Kotlin package under
+      `flutter_app/android/app/src/main/kotlin/...`.
 - [x] Verify that the Android debug build still works after the package rename.
 
 Definition of done:
@@ -868,14 +909,14 @@ use an Android App Bundle.
 
 - [ ] Add a dedicated Play release workflow or extend the existing Android
   workflow to build `flutter build appbundle --release`.
-- [ ] Upload `build/app/outputs/bundle/release/app-release.aab` as a GitHub
-  artifact for manual Play Console upload.
+- [ ] Upload `flutter_app/build/app/outputs/bundle/release/app-release.aab`
+      as a GitHub artifact for manual Play Console upload.
 - [ ] Keep split APK generation only for GitHub/sideload releases, if still
   useful.
 - [ ] Use a tag convention that separates GitHub APK releases from Play bundle
   releases, for example `android-v*` and `play-v*`.
-- [ ] Bump `pubspec.yaml` build number for every Play upload
-  (`2.0.0+2`, `2.0.0+3`, etc.).
+- [ ] Bump `flutter_app/pubspec.yaml` build number for every Play upload
+      (`2.0.1+202`, `2.0.1+203`, etc.).
 
 Definition of done:
 

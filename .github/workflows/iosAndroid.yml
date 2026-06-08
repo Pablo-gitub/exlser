@@ -23,13 +23,14 @@ jobs:
           architecture: x64
 
       - run: flutter build apk --release --split-per-abi
+        working-directory: flutter_app
       # iOS release builds are intentionally disabled for now.
       # Unsigned IPA files are not installable on standard iPhones; re-enable
       # this only after adding Apple signing certificates/provisioning profiles.
       #
       # - run: |
       #     flutter build ios --release --no-codesign
-      #     cd build/ios/iphoneos
+      #     cd flutter_app/build/ios/iphoneos
       #     mkdir Payload
       #     cd Payload
       #     ln -s ../Runner.app
@@ -38,6 +39,6 @@ jobs:
       - name: Push to Releases
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/apk/release/*"
+          artifacts: "flutter_app/build/app/outputs/apk/release/*"
           tag: ${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}

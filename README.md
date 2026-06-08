@@ -7,17 +7,17 @@ Exlser is a cross-platform app that turns CSV and Excel files into persistent, q
 [![Build](https://github.com/Pablo-gitub/exlser/actions/workflows/dart.yml/badge.svg)](https://github.com/Pablo-gitub/exlser/actions)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter)](https://flutter.dev)
 [![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-brightgreen)](#-supported-platforms)
-[![Version](https://img.shields.io/badge/version-2.0.0-informational)](ROADMAP.md)
+[![Version](https://img.shields.io/badge/version-2.0.1-informational)](ROADMAP.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Languages](https://img.shields.io/badge/languages-9-orange)](#-features)
 
 ---
 
 <p align="center">
-  <img src="assets/screenshot/home.jpeg" width="23%" alt="Import"/>
-  <img src="assets/screenshot/filtering.jpeg" width="23%" alt="Filter & sort"/>
-  <img src="assets/screenshot/data_analysis.jpeg" width="23%" alt="Analytics"/>
-  <img src="assets/screenshot/card_view.jpeg" width="23%" alt="Card view with QR"/>
+  <img src="flutter_app/assets/screenshot/home.jpeg" width="23%" alt="Import"/>
+  <img src="flutter_app/assets/screenshot/filtering.jpeg" width="23%" alt="Filter & sort"/>
+  <img src="flutter_app/assets/screenshot/data_analysis.jpeg" width="23%" alt="Analytics"/>
+  <img src="flutter_app/assets/screenshot/card_view.jpeg" width="23%" alt="Card view with QR"/>
 </p>
 
 
@@ -50,7 +50,7 @@ Exlser is a cross-platform app that turns CSV and Excel files into persistent, q
 Drop or pick any CSV or XLSX file. Exlser reads the schema, infers column types, and lets you confirm before anything is saved.
 
 <p align="center">
-  <img src="assets/screenshot/home.jpeg" width="40%" alt="Home — import screen"/>
+  <img src="flutter_app/assets/screenshot/home.jpeg" width="40%" alt="Home — import screen"/>
 </p>
 
 ---
@@ -60,7 +60,7 @@ Drop or pick any CSV or XLSX file. Exlser reads the schema, infers column types,
 Every dataset you create is persisted locally. Search by name or filter by date, then pick up exactly where you left off.
 
 <p align="center">
-  <img src="assets/screenshot/works_list.png" width="40%" alt="Works list"/>
+  <img src="flutter_app/assets/screenshot/works_list.png" width="40%" alt="Works list"/>
 </p>
 
 ---
@@ -70,7 +70,7 @@ Every dataset you create is persisted locally. Search by name or filter by date,
 16+ type-aware filter operators. Toggle column visibility — hidden state is saved per sheet so it survives reopen.
 
 <p align="center">
-  <img src="assets/screenshot/filtering.jpeg" width="40%" alt="Filtering and column visibility"/>
+  <img src="flutter_app/assets/screenshot/filtering.jpeg" width="40%" alt="Filtering and column visibility"/>
 </p>
 
 ---
@@ -80,7 +80,7 @@ Every dataset you create is persisted locally. Search by name or filter by date,
 Switch from the table to a card layout. Every card carries a scannable QR code encoding the full row as JSON — unique to Exlser.
 
 <p align="center">
-  <img src="assets/screenshot/card_view.jpeg" width="40%" alt="Card view with QR codes"/>
+  <img src="flutter_app/assets/screenshot/card_view.jpeg" width="40%" alt="Card view with QR codes"/>
 </p>
 
 ---
@@ -90,7 +90,7 @@ Switch from the table to a card layout. Every card carries a scannable QR code e
 Exlser inspects your column types and proposes the right chart. Bar, pie, line — with grouping, value, and aggregation dropdowns. Charts respect active filters.
 
 <p align="center">
-  <img src="assets/screenshot/data_analysis.jpeg" width="40%" alt="Data analysis — charts"/>
+  <img src="flutter_app/assets/screenshot/data_analysis.jpeg" width="40%" alt="Data analysis — charts"/>
 </p>
 
 ---
@@ -100,7 +100,7 @@ Exlser inspects your column types and proposes the right chart. Bar, pie, line �
 Skip the filter UI. Write a SELECT query directly against your dataset. Read-only, validated against your schema before execution. Row limit is configurable.
 
 <p align="center">
-  <img src="assets/screenshot/query.jpeg" width="40%" alt="SQL read-only query mode"/>
+  <img src="flutter_app/assets/screenshot/query.jpeg" width="40%" alt="SQL read-only query mode"/>
 </p>
 
 ---
@@ -110,7 +110,7 @@ Skip the filter UI. Write a SELECT query directly against your dataset. Read-onl
 Export the current sheet or all sheets. Active filters, sort order, and column visibility are always respected. PDF exports support both table layout and card layout with QR codes.
 
 <p align="center">
-  <img src="assets/screenshot/export.jpeg" width="40%" alt="Export dialog — Excel, CSV, PDF, SQL, JSON"/>
+  <img src="flutter_app/assets/screenshot/export.jpeg" width="40%" alt="Export dialog — Excel, CSV, PDF, SQL, JSON"/>
 </p>
 
 ---
@@ -120,7 +120,7 @@ Export the current sheet or all sheets. Active filters, sort order, and column v
 Change language from Settings. Every language is listed in its own script — Italiano, Español, Français, Deutsch, 中文, Русский, 日本語, Português.
 
 <p align="center">
-  <img src="assets/screenshot/multi_languages.png" width="40%" alt="Language selection — 9 languages"/>
+  <img src="flutter_app/assets/screenshot/multi_languages.png" width="40%" alt="Language selection — 9 languages"/>
 </p>
 
 ---
@@ -162,7 +162,7 @@ Change language from Settings. Every language is listed in its own script — It
 
 ```bash
 git clone https://github.com/Pablo-gitub/exlser.git
-cd exlser
+cd exlser/flutter_app
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 ```
@@ -184,12 +184,31 @@ flutter test
 
 ---
 
+## 📁 Repository Layout
+
+Exlser is moving toward a monorepo layout:
+
+```
+.
+├── README.md
+├── ROADMAP.md
+├── CHANGELOG.md
+├── .github/
+├── flutter_app/      Flutter application and platform projects
+└── landing_page/     Future React landing page
+```
+
+Run Flutter commands from `flutter_app/`. The repository root owns
+documentation, release workflows, and future web/landing infrastructure.
+
+---
+
 ## 🏗 Architecture
 
 Exlser is a practical example of how a non-trivial Flutter app can be structured for long-term maintainability and testability using **Clean Architecture**.
 
 ```
-lib/
+flutter_app/lib/
 ├── core/           Shared infrastructure (database connection, theme, constants)
 ├── domain/         Entities, repository interfaces, use cases, value objects
 ├── data/           Drift/SQLite datasources, repository implementations, parsers
@@ -263,6 +282,8 @@ Full detail and checklist: [ROADMAP.md](ROADMAP.md)
 ## 📦 Build
 
 ```bash
+cd flutter_app
+
 # Android (Google Play)
 flutter build appbundle --release
 

@@ -17,7 +17,9 @@ jobs:
           channel: stable
 
       - run: flutter pub get
+        working-directory: flutter_app
       - run: flutter build web --release
+        working-directory: flutter_app
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

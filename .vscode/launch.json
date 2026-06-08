@@ -5,20 +5,23 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "exel_category",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "exel_category (profile mode)",
+            "name": "Exlser",
             "request": "launch",
             "type": "dart",
+            "program": "flutter_app/lib/main.dart"
+        },
+        {
+            "name": "Exlser (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "program": "flutter_app/lib/main.dart",
             "flutterMode": "profile"
         },
         {
-            "name": "exel_category (release mode)",
+            "name": "Exlser (release mode)",
             "request": "launch",
             "type": "dart",
+            "program": "flutter_app/lib/main.dart",
             "flutterMode": "release"
         }
     ]
