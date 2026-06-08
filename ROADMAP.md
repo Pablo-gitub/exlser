@@ -823,8 +823,9 @@ Publish criteria:
 
 ## Path to Google Play First Release
 
-Goal: publish the first Android version on Google Play without losing the
-ability to keep GitHub APK releases for direct installation.
+Goal: publish Android through Google Play as the official distribution channel.
+Direct GitHub APK releases are postponed and should only return if they are
+signed with the Android upload/release key through CI secrets.
 
 Repository readiness check:
 
@@ -834,10 +835,15 @@ Repository readiness check:
 - [x] The project inherits Flutter's Android SDK defaults; with the current
   local Flutter SDK this means target SDK 36, which is above the current
   Google Play minimum requirement for new apps.
-- [x] The Android GitHub Action currently builds split APKs for GitHub releases.
+- [x] The failed `android-v2.0.1` GitHub APK tag was removed; Android APK
+  publication from GitHub is postponed while Google Play is the official
+  Android channel.
 - [x] Repository and project naming use the final `exlser` identity in tracked public metadata.
 - [x] Android package name is set to `com.paolopietrelli.exlser`.
-- [ ] Release builds are still signed with the debug signing config.
+- [x] Release builds use a release signing config and require a valid
+  `key.properties` plus keystore.
+- [ ] GitHub Actions Android release signing secrets are not configured because
+  GitHub APK publication is postponed.
 - [ ] The GitHub Action does not yet build an Android App Bundle (`.aab`).
 - [ ] Play Console store listing, privacy policy, app content declarations,
   testing tracks, and release notes are not tracked as completed yet.
@@ -904,15 +910,17 @@ Definition of done:
 
 ### 4. Build the Play Artifact
 
-Goal: keep APK artifacts for direct distribution, but make the Play release
-use an Android App Bundle.
+Goal: use Android App Bundles for Google Play. Keep GitHub split APK generation
+as a future optional channel, not as the primary Android release path.
 
 - [ ] Add a dedicated Play release workflow or extend the existing Android
   workflow to build `flutter build appbundle --release`.
 - [ ] Upload `flutter_app/build/app/outputs/bundle/release/app-release.aab`
       as a GitHub artifact for manual Play Console upload.
-- [ ] Keep split APK generation only for GitHub/sideload releases, if still
-  useful.
+- [ ] Keep split APK generation only for future GitHub/sideload releases, if
+  still useful.
+- [ ] If GitHub APK releases return, inject the upload keystore through GitHub
+  Actions secrets and never commit `.jks` or `key.properties`.
 - [ ] Use a tag convention that separates GitHub APK releases from Play bundle
   releases, for example `android-v*` and `play-v*`.
 - [ ] Bump `flutter_app/pubspec.yaml` build number for every Play upload

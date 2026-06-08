@@ -4,6 +4,8 @@
 
 Exlser is a cross-platform app that turns CSV and Excel files into persistent, queryable local datasets — with smart filtering, multi-format export, automatic chart suggestions, and a power-user SQL mode. No server. No cloud account. Everything runs on your device.
 
+Android builds are distributed through the Google Play beta program. Contact me if you want to try the latest Android beta, or download the desktop app from the GitHub Releases page.
+
 [![Build](https://github.com/Pablo-gitub/exlser/actions/workflows/dart.yml/badge.svg)](https://github.com/Pablo-gitub/exlser/actions)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter)](https://flutter.dev)
 [![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-brightgreen)](#-supported-platforms)
