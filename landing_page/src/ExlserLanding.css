@@ -100,8 +100,31 @@ a {
   background: rgba(19, 104, 200, 0.08);
 }
 
-.language-control {
+.topbar-actions {
   justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.nav-demo {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: var(--blue);
+  color: #ffffff;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.nav-demo:hover {
+  background: var(--blue-dark);
+}
+
+.language-control {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -279,6 +302,43 @@ h3 {
   align-items: center;
 }
 
+.legacy-section {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 22px;
+  align-items: center;
+  padding: 30px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(23, 32, 51, 0.06);
+}
+
+.legacy-section h2 {
+  margin-bottom: 8px;
+  font-size: 2rem;
+}
+
+.legacy-section p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.legacy-icon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  color: var(--green);
+  background: rgba(24, 165, 88, 0.1);
+  border-radius: 8px;
+}
+
+.legacy-button {
+  white-space: nowrap;
+}
+
 .section-copy p,
 .section-heading p,
 .feature-card p,
@@ -412,7 +472,7 @@ h3 {
 
 .channel-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 18px;
 }
 
@@ -544,6 +604,12 @@ h3 {
     justify-self: center;
   }
 
+  .topbar-actions {
+    justify-self: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   .hero {
     min-height: 86svh;
     padding-top: 150px;
@@ -564,6 +630,14 @@ h3 {
   .final-section {
     grid-template-columns: 1fr;
     gap: 30px;
+  }
+
+  .legacy-section {
+    grid-template-columns: 1fr;
+  }
+
+  .legacy-button {
+    justify-self: start;
   }
 
   .feature-grid,

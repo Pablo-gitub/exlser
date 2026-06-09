@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BarChart3,
   Database,
@@ -8,6 +8,7 @@ import {
   FileText,
   Filter,
   Globe2,
+  History,
   Languages,
   MonitorDown,
   QrCode,
@@ -20,6 +21,8 @@ import { getInitialLanguage, languages, translations } from "./i18n.js";
 
 const links = {
   releases: "https://github.com/Pablo-gitub/exlser/releases",
+  demo: "https://exlser.com/demo/",
+  legacy: "https://excelcategory.web.app",
   github: "https://github.com/Pablo-gitub/exlser",
   linkedin: "https://www.linkedin.com/in/paolo-pietrelli",
   instagram: "https://www.instagram.com/ing_paolo_pietrelli/",
@@ -37,7 +40,7 @@ const featureImages = [
   "/assets/multi_languages.png",
 ];
 
-const channelIcons = [Smartphone, MonitorDown, FaGithub];
+const channelIcons = [Smartphone, MonitorDown, Globe2, FaGithub];
 const featureIcons = [
   FileSpreadsheet,
   Filter,
@@ -71,17 +74,43 @@ function ExternalLink({ className, href, children, icon: Icon }) {
 
 export default function ExlserLanding() {
   const [language, setLanguage] = useState(getInitialLanguage);
+  const previewVideoRef = useRef(null);
   const copy = useMemo(() => translations[language] ?? translations.en, [language]);
   const contactUrl =
     language === "it"
       ? "https://paolopietrelli.com/it/contact"
       : "https://paolopietrelli.com/en/contact";
-  const channelLinks = [contactUrl, links.releases, links.github];
+  const channelLinks = [contactUrl, links.releases, links.demo, links.github];
 
   useEffect(() => {
     document.documentElement.lang = language;
     window.localStorage.setItem("exlserLandingLanguage", language);
   }, [language]);
+
+  useEffect(() => {
+    const video = previewVideoRef.current;
+
+    if (!video) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.intersectionRatio >= 0.9) {
+          video.play().catch(() => {
+            // Browsers can still block autoplay in some contexts; controls remain available.
+          });
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: [0, 0.9] },
+    );
+
+    observer.observe(video);
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <main className="landing">
@@ -102,20 +131,26 @@ export default function ExlserLanding() {
           </button>
         </nav>
 
-        <label className="language-control">
-          <span>{copy.nav.language}</span>
-          <select
-            value={language}
-            onChange={(event) => setLanguage(event.target.value)}
-            aria-label={copy.nav.language}
-          >
-            {languages.map((item) => (
-              <option key={item.code} value={item.code}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="topbar-actions">
+          <ExternalLink className="nav-demo" href={links.demo} icon={Globe2}>
+            {copy.nav.demo}
+          </ExternalLink>
+
+          <label className="language-control">
+            <span>{copy.nav.language}</span>
+            <select
+              value={language}
+              onChange={(event) => setLanguage(event.target.value)}
+              aria-label={copy.nav.language}
+            >
+              {languages.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </header>
 
       <section id="top" className="hero" aria-label={copy.hero.aria}>
@@ -173,7 +208,14 @@ export default function ExlserLanding() {
 
       <section className="section video-section">
         <div className="video-frame">
-          <video controls poster="/assets/home.jpeg">
+          <video
+            ref={previewVideoRef}
+            controls
+            muted
+            playsInline
+            preload="metadata"
+            poster="/assets/preview_exlser_poster.jpg"
+          >
             <source src="/assets/preview_exlser.mp4" type="video/mp4" />
           </video>
         </div>
@@ -183,6 +225,20 @@ export default function ExlserLanding() {
           <h2>{copy.video.title}</h2>
           <p>{copy.video.text}</p>
         </div>
+      </section>
+
+      <section className="section legacy-section">
+        <div className="legacy-icon" aria-hidden="true">
+          <History size={28} strokeWidth={2.2} />
+        </div>
+        <div>
+          <p className="eyebrow">{copy.legacy.eyebrow}</p>
+          <h2>{copy.legacy.title}</h2>
+          <p>{copy.legacy.text}</p>
+        </div>
+        <ExternalLink className="button secondary legacy-button" href={links.legacy}>
+          {copy.legacy.cta}
+        </ExternalLink>
       </section>
 
       <section id="features" className="section feature-section">

@@ -20,6 +20,7 @@ export const translations = {
       downloads: "Downloads",
       contact: "Contact",
       language: "Language",
+      demo: "Try Demo",
     },
     hero: {
       aria: "Exlser product overview",
@@ -46,6 +47,12 @@ export const translations = {
       eyebrow: "Quick preview",
       title: "See the workflow before installing.",
       text: "The app guides you from file selection to schema confirmation, dataset exploration, filtering, analytics, and export.",
+    },
+    legacy: {
+      eyebrow: "Project origin",
+      title: "See where everything started.",
+      text: "The original web prototype is still online as a historical snapshot of the first Exlser idea.",
+      cta: "Try the old version",
     },
     featuresHeading: {
       eyebrow: "Core features",
@@ -115,6 +122,11 @@ export const translations = {
           cta: "Open releases",
         },
         {
+          title: "Web demo",
+          text: "Try Exlser directly in your browser before installing the desktop app or joining the Android beta.",
+          cta: "Try demo",
+        },
+        {
           title: "Source code",
           text: "Exlser is open source. Follow the roadmap, inspect the code, or contribute improvements from the GitHub repository.",
           cta: "View repository",
@@ -147,6 +159,7 @@ export const translations = {
       downloads: "Download",
       contact: "Contatti",
       language: "Lingua",
+      demo: "Prova demo",
     },
     hero: {
       aria: "Panoramica del prodotto Exlser",
@@ -173,6 +186,12 @@ export const translations = {
       eyebrow: "Anteprima rapida",
       title: "Guarda il flusso prima di installare.",
       text: "L'app ti guida dalla selezione del file alla conferma dello schema, fino a esplorazione, filtri, analisi ed esportazione.",
+    },
+    legacy: {
+      eyebrow: "Origine del progetto",
+      title: "Guarda da dove è cominciato tutto.",
+      text: "Il primo prototipo web resta online come snapshot storico della prima idea di Exlser.",
+      cta: "Prova la vecchia versione",
     },
     featuresHeading: {
       eyebrow: "Funzioni principali",
@@ -242,6 +261,11 @@ export const translations = {
           cta: "Apri le release",
         },
         {
+          title: "Demo web",
+          text: "Prova Exlser direttamente nel browser prima di installare l'app desktop o partecipare alla beta Android.",
+          cta: "Prova demo",
+        },
+        {
           title: "Codice sorgente",
           text: "Exlser è open source. Segui la roadmap, leggi il codice o contribuisci dal repository GitHub.",
           cta: "Apri repository",
@@ -274,6 +298,7 @@ export const translations = {
       downloads: "Descargas",
       contact: "Contacto",
       language: "Idioma",
+      demo: "Probar demo",
     },
     hero: {
       aria: "Vista general del producto Exlser",
@@ -300,6 +325,12 @@ export const translations = {
       eyebrow: "Vista rápida",
       title: "Mira el flujo antes de instalar.",
       text: "La app te guía desde la selección del archivo hasta la confirmación del esquema, exploración, filtros, analítica y exportación.",
+    },
+    legacy: {
+      eyebrow: "Origen del proyecto",
+      title: "Mira dónde empezó todo.",
+      text: "El prototipo web original sigue online como una captura histórica de la primera idea de Exlser.",
+      cta: "Probar la versión antigua",
     },
     featuresHeading: {
       eyebrow: "Funciones clave",
@@ -328,6 +359,7 @@ export const translations = {
       channels: [
         { title: "Beta Android", text: "Las builds Android se distribuyen mediante el programa beta de Google Play mientras se prepara la primera versión pública.", cta: "Contactar al desarrollador" },
         { title: "Builds de escritorio", text: "Descarga los últimos artefactos para macOS, Windows y Linux desde GitHub Releases.", cta: "Abrir releases" },
+        { title: "Demo web", text: "Prueba Exlser directamente en el navegador antes de instalar la app de escritorio o unirte a la beta Android.", cta: "Probar demo" },
         { title: "Código fuente", text: "Exlser es open source. Sigue la roadmap, revisa el código o contribuye desde GitHub.", cta: "Ver repositorio" },
       ],
     },
@@ -349,7 +381,7 @@ export const translations = {
   },
   fr: {
     meta: { label: "Français" },
-    nav: { features: "Fonctionnalités", downloads: "Téléchargements", contact: "Contact", language: "Langue" },
+    nav: { features: "Fonctionnalités", downloads: "Téléchargements", contact: "Contact", language: "Langue", demo: "Essayer la démo" },
     hero: {
       aria: "Présentation du produit Exlser",
       eyebrow: "Espace de travail local pour tableurs",
@@ -372,6 +404,7 @@ export const translations = {
       ],
     },
     video: { eyebrow: "Aperçu rapide", title: "Découvrez le flux avant d'installer.", text: "L'application vous guide du choix du fichier à l'export, en passant par le schéma, l'exploration, les filtres et l'analyse." },
+    legacy: { eyebrow: "Origine du projet", title: "Découvrez où tout a commencé.", text: "Le prototype web original reste en ligne comme capture historique de la première idée d'Exlser.", cta: "Essayer l'ancienne version" },
     featuresHeading: { eyebrow: "Fonctionnalités clés", title: "Tout reste proche du dataset.", text: "La première version se concentre sur le travail local utile : parcourir, filtrer, analyser et exporter le résultat courant." },
     features: [
       { title: "Import guidé", text: "Ouvrez des CSV et Excel, vérifiez les colonnes détectées et confirmez le schéma avant sauvegarde.", alt: "Écran d'import Exlser" },
@@ -390,6 +423,7 @@ export const translations = {
       channels: [
         { title: "Bêta Android", text: "Les builds Android sont distribuées via la bêta Google Play pendant la préparation de la première version publique.", cta: "Contacter le développeur" },
         { title: "Builds desktop", text: "Téléchargez les derniers artefacts macOS, Windows et Linux depuis GitHub Releases.", cta: "Ouvrir les releases" },
+        { title: "Démo web", text: "Essayez Exlser directement dans le navigateur avant d'installer l'app desktop ou de rejoindre la bêta Android.", cta: "Essayer la démo" },
         { title: "Code source", text: "Exlser est open source. Suivez la roadmap, inspectez le code ou contribuez sur GitHub.", cta: "Voir le dépôt" },
       ],
     },
@@ -399,7 +433,7 @@ export const translations = {
   },
   de: {
     meta: { label: "Deutsch" },
-    nav: { features: "Funktionen", downloads: "Downloads", contact: "Kontakt", language: "Sprache" },
+    nav: { features: "Funktionen", downloads: "Downloads", contact: "Kontakt", language: "Sprache", demo: "Demo testen" },
     hero: {
       aria: "Exlser Produktübersicht",
       eyebrow: "Lokaler Workspace für Tabellen",
@@ -422,6 +456,7 @@ export const translations = {
       ],
     },
     video: { eyebrow: "Kurzer Einblick", title: "Sieh den Workflow vor der Installation.", text: "Die App führt dich von Dateiauswahl und Schema-Bestätigung bis zu Exploration, Filtern, Analyse und Export." },
+    legacy: { eyebrow: "Projektursprung", title: "Sieh, wo alles begonnen hat.", text: "Der ursprüngliche Web-Prototyp bleibt als historischer Snapshot der ersten Exlser-Idee online.", cta: "Alte Version testen" },
     featuresHeading: { eyebrow: "Kernfunktionen", title: "Alles bleibt nah am Datensatz.", text: "Die erste Version fokussiert nützliche lokale Arbeit: Daten durchsuchen, Zeilen finden, Diagramme prüfen und das aktuelle Ergebnis exportieren." },
     features: [
       { title: "Geführter Import", text: "Öffne CSV- und Excel-Dateien, prüfe erkannte Spalten und bestätige das Schema vor dem Speichern.", alt: "Exlser Importbildschirm" },
@@ -440,6 +475,7 @@ export const translations = {
       channels: [
         { title: "Android-Beta", text: "Android-Builds werden über das Google-Play-Betaprogramm verteilt, während die erste öffentliche Version vorbereitet wird.", cta: "Entwickler kontaktieren" },
         { title: "Desktop-Builds", text: "Lade die neuesten macOS-, Windows- und Linux-Artefakte von GitHub Releases herunter.", cta: "Releases öffnen" },
+        { title: "Web-Demo", text: "Teste Exlser direkt im Browser, bevor du die Desktop-App installierst oder der Android-Beta beitrittst.", cta: "Demo testen" },
         { title: "Quellcode", text: "Exlser ist Open Source. Folge der Roadmap, prüfe den Code oder trage auf GitHub bei.", cta: "Repository ansehen" },
       ],
     },
@@ -449,7 +485,7 @@ export const translations = {
   },
   zh: {
     meta: { label: "中文" },
-    nav: { features: "功能", downloads: "下载", contact: "联系", language: "语言" },
+    nav: { features: "功能", downloads: "下载", contact: "联系", language: "语言", demo: "试用演示" },
     hero: {
       aria: "Exlser 产品概览",
       eyebrow: "本地优先的表格数据工作区",
@@ -472,6 +508,7 @@ export const translations = {
       ],
     },
     video: { eyebrow: "快速预览", title: "安装前先了解工作流程。", text: "应用会引导你完成文件选择、结构确认、数据探索、筛选、分析和导出。" },
+    legacy: { eyebrow: "项目起点", title: "看看一切从哪里开始。", text: "最初的网页原型仍然在线，作为 Exlser 第一版想法的历史快照。", cta: "试用旧版本" },
     featuresHeading: { eyebrow: "核心功能", title: "所有操作都围绕数据集。", text: "首个版本聚焦实用的本地工作：浏览数据、查找行、查看图表，并导出当前结果。" },
     features: [
       { title: "引导式导入", text: "打开 CSV 和 Excel 文件，检查识别出的列，并在保存前确认结构。", alt: "Exlser 导入界面" },
@@ -490,6 +527,7 @@ export const translations = {
       channels: [
         { title: "Android 测试版", text: "Android 版本通过 Google Play 测试计划分发，同时准备首个公开版本。", cta: "联系开发者" },
         { title: "桌面版本", text: "从 GitHub Releases 下载最新的 macOS、Windows 和 Linux 构建。", cta: "打开 Releases" },
+        { title: "网页演示", text: "在安装桌面应用或加入 Android 测试前，可直接在浏览器中试用 Exlser。", cta: "试用演示" },
         { title: "源代码", text: "Exlser 是开源项目。你可以查看路线图、阅读代码或在 GitHub 贡献。", cta: "查看仓库" },
       ],
     },
@@ -499,7 +537,7 @@ export const translations = {
   },
   ru: {
     meta: { label: "Русский" },
-    nav: { features: "Функции", downloads: "Загрузки", contact: "Контакты", language: "Язык" },
+    nav: { features: "Функции", downloads: "Загрузки", contact: "Контакты", language: "Язык", demo: "Попробовать демо" },
     hero: {
       aria: "Обзор продукта Exlser",
       eyebrow: "Локальное рабочее пространство для таблиц",
@@ -522,6 +560,7 @@ export const translations = {
       ],
     },
     video: { eyebrow: "Краткий обзор", title: "Посмотрите рабочий процесс перед установкой.", text: "Приложение ведет от выбора файла до подтверждения схемы, фильтрации, аналитики и экспорта." },
+    legacy: { eyebrow: "История проекта", title: "Посмотрите, с чего все началось.", text: "Первый веб-прототип остается онлайн как исторический снимок исходной идеи Exlser.", cta: "Попробовать старую версию" },
     featuresHeading: { eyebrow: "Ключевые функции", title: "Все остается рядом с датасетом.", text: "Первая версия фокусируется на полезной локальной работе: просмотр данных, поиск строк, графики и экспорт текущего результата." },
     features: [
       { title: "Пошаговый импорт", text: "Открывайте CSV и Excel, проверяйте найденные колонки и подтверждайте схему перед сохранением.", alt: "Экран импорта Exlser" },
@@ -540,6 +579,7 @@ export const translations = {
       channels: [
         { title: "Android beta", text: "Android-сборки распространяются через beta-программу Google Play перед первой публичной версией.", cta: "Связаться с разработчиком" },
         { title: "Desktop-сборки", text: "Скачайте последние артефакты macOS, Windows и Linux из GitHub Releases.", cta: "Открыть releases" },
+        { title: "Web-демо", text: "Попробуйте Exlser прямо в браузере перед установкой desktop-приложения или участием в Android beta.", cta: "Попробовать демо" },
         { title: "Исходный код", text: "Exlser открыт. Следите за roadmap, изучайте код или участвуйте на GitHub.", cta: "Открыть репозиторий" },
       ],
     },
@@ -549,7 +589,7 @@ export const translations = {
   },
   ja: {
     meta: { label: "日本語" },
-    nav: { features: "機能", downloads: "ダウンロード", contact: "連絡先", language: "言語" },
+    nav: { features: "機能", downloads: "ダウンロード", contact: "連絡先", language: "言語", demo: "デモを試す" },
     hero: {
       aria: "Exlser 製品概要",
       eyebrow: "ローカル優先のスプレッドシート作業空間",
@@ -572,6 +612,7 @@ export const translations = {
       ],
     },
     video: { eyebrow: "クイックプレビュー", title: "インストール前に流れを確認。", text: "ファイル選択からスキーマ確認、探索、フィルター、分析、エクスポートまで案内します。" },
+    legacy: { eyebrow: "プロジェクトの原点", title: "すべての始まりを見る。", text: "最初の Web プロトタイプは、Exlser の初期アイデアの記録として今も公開されています。", cta: "旧バージョンを試す" },
     featuresHeading: { eyebrow: "主な機能", title: "すべてがデータセットの近くにあります。", text: "最初のリリースは、データ閲覧、行の検索、グラフ確認、現在の結果のエクスポートに集中しています。" },
     features: [
       { title: "ガイド付きインポート", text: "CSV と Excel を開き、検出された列を確認し、保存前にスキーマを確定します。", alt: "Exlser インポート画面" },
@@ -590,6 +631,7 @@ export const translations = {
       channels: [
         { title: "Android ベータ", text: "Android 版は最初の公開リリース準備中に Google Play ベータプログラムで配布されます。", cta: "開発者に連絡" },
         { title: "デスクトップ版", text: "macOS、Windows、Linux の最新ビルドを GitHub Releases から入手できます。", cta: "Releases を開く" },
+        { title: "Web デモ", text: "デスクトップ版のインストールや Android ベータ参加前に、ブラウザで Exlser を試せます。", cta: "デモを試す" },
         { title: "ソースコード", text: "Exlser はオープンソースです。ロードマップやコードを確認し、GitHub で貢献できます。", cta: "リポジトリを見る" },
       ],
     },
@@ -599,7 +641,7 @@ export const translations = {
   },
   pt: {
     meta: { label: "Português" },
-    nav: { features: "Recursos", downloads: "Downloads", contact: "Contato", language: "Idioma" },
+    nav: { features: "Recursos", downloads: "Downloads", contact: "Contato", language: "Idioma", demo: "Testar demo" },
     hero: {
       aria: "Visão geral do Exlser",
       eyebrow: "Workspace local para planilhas",
@@ -622,6 +664,7 @@ export const translations = {
       ],
     },
     video: { eyebrow: "Prévia rápida", title: "Veja o fluxo antes de instalar.", text: "O app guia você da seleção do arquivo até confirmação do esquema, exploração, filtros, análises e exportação." },
+    legacy: { eyebrow: "Origem do projeto", title: "Veja onde tudo começou.", text: "O protótipo web original continua online como um registro histórico da primeira ideia do Exlser.", cta: "Testar versão antiga" },
     featuresHeading: { eyebrow: "Recursos principais", title: "Tudo fica perto do dataset.", text: "A primeira versão foca no trabalho local útil: navegar dados, encontrar linhas, ver gráficos e exportar exatamente o resultado atual." },
     features: [
       { title: "Importação guiada", text: "Abra CSV e Excel, revise colunas detectadas e confirme o esquema antes de salvar.", alt: "Tela de importação do Exlser" },
@@ -640,6 +683,7 @@ export const translations = {
       channels: [
         { title: "Beta Android", text: "Builds Android são distribuídas pelo programa beta do Google Play enquanto a primeira versão pública é preparada.", cta: "Contatar desenvolvedor" },
         { title: "Builds desktop", text: "Baixe os artefatos mais recentes para macOS, Windows e Linux no GitHub Releases.", cta: "Abrir releases" },
+        { title: "Demo web", text: "Teste o Exlser diretamente no navegador antes de instalar o app desktop ou entrar na beta Android.", cta: "Testar demo" },
         { title: "Código-fonte", text: "Exlser é open source. Siga o roadmap, veja o código ou contribua pelo GitHub.", cta: "Ver repositório" },
       ],
     },
