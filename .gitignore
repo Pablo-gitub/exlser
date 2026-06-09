@@ -35,6 +35,9 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 **/build/
+**/node_modules/
+**/dist/
+landing_page/public/assets/*.mov
 
 # Symbolication related
 app.*.symbols

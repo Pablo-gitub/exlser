@@ -84,8 +84,8 @@ during import so SQL integer comparisons work correctly.
 
 ## Path to Monorepo Layout
 
-Goal: split the repository into a clean monorepo where the Flutter app lives in
-`flutter_app/` and the future React landing page can live in `landing_page/`.
+Goal: keep the Flutter app in `flutter_app/` and the React landing page in
+`landing_page/`, so both products can evolve independently.
 
 Target structure:
 
@@ -108,8 +108,15 @@ Target structure:
 - [x] Update Firebase hosting config to deploy Flutter web from
       `flutter_app/build/web` until the React landing page replaces it.
 - [x] Update README commands and asset links for the new layout.
-- [ ] Scaffold `landing_page/` with React after the Flutter migration is tested
-      and committed.
+- [x] Scaffold `landing_page/` with React/Vite after the Flutter migration is
+      tested and committed.
+- [x] Add the first Exlser landing page implementation using real product
+      screenshots, preview video, download/contact CTAs, and desktop/mobile
+      responsive layout.
+- [x] Convert the landing hero trailer to web-safe MP4 and use it in the hero
+      section.
+- [x] Add lightweight landing-page i18n aligned with the Flutter app languages.
+- [ ] Review the landing page visually on desktop and mobile breakpoints.
 - [ ] Decide final hosting split: landing at the domain root and Flutter web at
       `/app`, or landing only for now.
 
@@ -119,7 +126,7 @@ Completion checkpoint:
 - [x] Full `flutter test` suite passes from `flutter_app/`.
 - [x] Android debug build succeeds from `flutter_app/`.
 - [ ] Android and desktop GitHub release workflows work with the new paths.
-- [ ] The next React landing page can be added without touching Flutter app
+- [x] The React landing page can be developed without touching Flutter app
       internals.
 
 ### Completed Foundation
