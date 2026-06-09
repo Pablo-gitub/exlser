@@ -1,13 +1,13 @@
 export const languages = [
-  { code: "en", name: "English" },
-  { code: "it", name: "Italiano" },
-  { code: "es", name: "Español" },
-  { code: "fr", name: "Français" },
-  { code: "de", name: "Deutsch" },
-  { code: "zh", name: "中文" },
-  { code: "ru", name: "Русский" },
-  { code: "ja", name: "日本語" },
-  { code: "pt", name: "Português" },
+  { code: "en", name: "English", flag: "🇬🇧" },
+  { code: "it", name: "Italiano", flag: "🇮🇹" },
+  { code: "es", name: "Español", flag: "🇪🇸" },
+  { code: "fr", name: "Français", flag: "🇫🇷" },
+  { code: "de", name: "Deutsch", flag: "🇩🇪" },
+  { code: "zh", name: "中文", flag: "🇨🇳" },
+  { code: "ru", name: "Русский", flag: "🇷🇺" },
+  { code: "ja", name: "日本語", flag: "🇯🇵" },
+  { code: "pt", name: "Português", flag: "🇵🇹" },
 ];
 
 const sharedFormats = ["Excel", "CSV", "JSON", "PDF", "SQL"];
@@ -47,6 +47,15 @@ export const translations = {
       eyebrow: "Quick preview",
       title: "See the workflow before installing.",
       text: "The app guides you from file selection to schema confirmation, dataset exploration, filtering, analytics, and export.",
+      demoCta: "Try the demo",
+      desktopCta: "Download for your computer",
+    },
+    trailer: {
+      eyebrow: "Mobile beta",
+      title: "Join the mobile beta and see what is coming.",
+      text: "The video shows the mobile experience you can expect: import files, review data, explore insights, and keep the workflow local on your device.",
+      betaCta: "Request beta access",
+      moreInfo: "Get more information",
     },
     legacy: {
       eyebrow: "Project origin",
@@ -186,6 +195,15 @@ export const translations = {
       eyebrow: "Anteprima rapida",
       title: "Guarda il flusso prima di installare.",
       text: "L'app ti guida dalla selezione del file alla conferma dello schema, fino a esplorazione, filtri, analisi ed esportazione.",
+      demoCta: "Prova la demo",
+      desktopCta: "Scarica per il tuo computer",
+    },
+    trailer: {
+      eyebrow: "Beta mobile",
+      title: "Partecipa alla beta mobile e scopri cosa ti aspetta.",
+      text: "Il video mostra l'esperienza mobile prevista: importazione dei file, revisione dei dati, analisi e lavoro locale direttamente sul tuo dispositivo.",
+      betaCta: "Richiedi accesso beta",
+      moreInfo: "Ottieni maggiori informazioni",
     },
     legacy: {
       eyebrow: "Origine del progetto",
@@ -325,6 +343,15 @@ export const translations = {
       eyebrow: "Vista rápida",
       title: "Mira el flujo antes de instalar.",
       text: "La app te guía desde la selección del archivo hasta la confirmación del esquema, exploración, filtros, analítica y exportación.",
+      demoCta: "Probar la demo",
+      desktopCta: "Descargar para tu ordenador",
+    },
+    trailer: {
+      eyebrow: "Beta móvil",
+      title: "Únete a la beta móvil y descubre lo que viene.",
+      text: "El video muestra la experiencia móvil prevista: importar archivos, revisar datos, explorar análisis y trabajar localmente en tu dispositivo.",
+      betaCta: "Solicitar acceso beta",
+      moreInfo: "Obtener más información",
     },
     legacy: {
       eyebrow: "Origen del proyecto",
@@ -403,7 +430,8 @@ export const translations = {
         { value: "6", label: "plateformes" },
       ],
     },
-    video: { eyebrow: "Aperçu rapide", title: "Découvrez le flux avant d'installer.", text: "L'application vous guide du choix du fichier à l'export, en passant par le schéma, l'exploration, les filtres et l'analyse." },
+    video: { eyebrow: "Aperçu rapide", title: "Découvrez le flux avant d'installer.", text: "L'application vous guide du choix du fichier à l'export, en passant par le schéma, l'exploration, les filtres et l'analyse.", demoCta: "Essayer la démo", desktopCta: "Télécharger pour votre ordinateur" },
+    trailer: { eyebrow: "Bêta mobile", title: "Rejoignez la bêta mobile et découvrez la suite.", text: "La vidéo montre l'expérience mobile prévue : importer des fichiers, vérifier les données, explorer les analyses et travailler localement sur votre appareil.", betaCta: "Demander l'accès bêta", moreInfo: "Obtenir plus d'informations" },
     legacy: { eyebrow: "Origine du projet", title: "Découvrez où tout a commencé.", text: "Le prototype web original reste en ligne comme capture historique de la première idée d'Exlser.", cta: "Essayer l'ancienne version" },
     featuresHeading: { eyebrow: "Fonctionnalités clés", title: "Tout reste proche du dataset.", text: "La première version se concentre sur le travail local utile : parcourir, filtrer, analyser et exporter le résultat courant." },
     features: [
@@ -455,7 +483,8 @@ export const translations = {
         { value: "6", label: "Plattformen" },
       ],
     },
-    video: { eyebrow: "Kurzer Einblick", title: "Sieh den Workflow vor der Installation.", text: "Die App führt dich von Dateiauswahl und Schema-Bestätigung bis zu Exploration, Filtern, Analyse und Export." },
+    video: { eyebrow: "Kurzer Einblick", title: "Sieh den Workflow vor der Installation.", text: "Die App führt dich von Dateiauswahl und Schema-Bestätigung bis zu Exploration, Filtern, Analyse und Export.", demoCta: "Demo testen", desktopCta: "Für deinen Computer herunterladen" },
+    trailer: { eyebrow: "Mobile Beta", title: "Mach bei der mobilen Beta mit und sieh, was kommt.", text: "Das Video zeigt die geplante mobile Erfahrung: Dateien importieren, Daten prüfen, Analysen erkunden und lokal auf deinem Gerät arbeiten.", betaCta: "Beta-Zugang anfragen", moreInfo: "Mehr Informationen" },
     legacy: { eyebrow: "Projektursprung", title: "Sieh, wo alles begonnen hat.", text: "Der ursprüngliche Web-Prototyp bleibt als historischer Snapshot der ersten Exlser-Idee online.", cta: "Alte Version testen" },
     featuresHeading: { eyebrow: "Kernfunktionen", title: "Alles bleibt nah am Datensatz.", text: "Die erste Version fokussiert nützliche lokale Arbeit: Daten durchsuchen, Zeilen finden, Diagramme prüfen und das aktuelle Ergebnis exportieren." },
     features: [
@@ -507,7 +536,8 @@ export const translations = {
         { value: "6", label: "个平台" },
       ],
     },
-    video: { eyebrow: "快速预览", title: "安装前先了解工作流程。", text: "应用会引导你完成文件选择、结构确认、数据探索、筛选、分析和导出。" },
+    video: { eyebrow: "快速预览", title: "安装前先了解工作流程。", text: "应用会引导你完成文件选择、结构确认、数据探索、筛选、分析和导出。", demoCta: "试用演示", desktopCta: "下载到你的电脑" },
+    trailer: { eyebrow: "移动端测试版", title: "加入移动端测试，看看即将上线的体验。", text: "视频展示了预期的移动端体验：导入文件、检查数据、查看分析，并在设备本地完成工作。", betaCta: "申请测试资格", moreInfo: "获取更多信息" },
     legacy: { eyebrow: "项目起点", title: "看看一切从哪里开始。", text: "最初的网页原型仍然在线，作为 Exlser 第一版想法的历史快照。", cta: "试用旧版本" },
     featuresHeading: { eyebrow: "核心功能", title: "所有操作都围绕数据集。", text: "首个版本聚焦实用的本地工作：浏览数据、查找行、查看图表，并导出当前结果。" },
     features: [
@@ -559,7 +589,8 @@ export const translations = {
         { value: "6", label: "платформ" },
       ],
     },
-    video: { eyebrow: "Краткий обзор", title: "Посмотрите рабочий процесс перед установкой.", text: "Приложение ведет от выбора файла до подтверждения схемы, фильтрации, аналитики и экспорта." },
+    video: { eyebrow: "Краткий обзор", title: "Посмотрите рабочий процесс перед установкой.", text: "Приложение ведет от выбора файла до подтверждения схемы, фильтрации, аналитики и экспорта.", demoCta: "Попробовать демо", desktopCta: "Скачать для компьютера" },
+    trailer: { eyebrow: "Мобильная beta", title: "Присоединяйтесь к мобильной beta и посмотрите, что будет дальше.", text: "Видео показывает ожидаемый мобильный опыт: импорт файлов, просмотр данных, аналитика и локальная работа на вашем устройстве.", betaCta: "Запросить доступ к beta", moreInfo: "Получить больше информации" },
     legacy: { eyebrow: "История проекта", title: "Посмотрите, с чего все началось.", text: "Первый веб-прототип остается онлайн как исторический снимок исходной идеи Exlser.", cta: "Попробовать старую версию" },
     featuresHeading: { eyebrow: "Ключевые функции", title: "Все остается рядом с датасетом.", text: "Первая версия фокусируется на полезной локальной работе: просмотр данных, поиск строк, графики и экспорт текущего результата." },
     features: [
@@ -611,7 +642,8 @@ export const translations = {
         { value: "6", label: "対象プラットフォーム" },
       ],
     },
-    video: { eyebrow: "クイックプレビュー", title: "インストール前に流れを確認。", text: "ファイル選択からスキーマ確認、探索、フィルター、分析、エクスポートまで案内します。" },
+    video: { eyebrow: "クイックプレビュー", title: "インストール前に流れを確認。", text: "ファイル選択からスキーマ確認、探索、フィルター、分析、エクスポートまで案内します。", demoCta: "デモを試す", desktopCta: "コンピューター用をダウンロード" },
+    trailer: { eyebrow: "モバイルベータ", title: "モバイルベータに参加して今後の体験を確認。", text: "動画では、ファイルのインポート、データ確認、分析、端末上でのローカル作業というモバイル体験を紹介します。", betaCta: "ベータアクセスを依頼", moreInfo: "詳しい情報を見る" },
     legacy: { eyebrow: "プロジェクトの原点", title: "すべての始まりを見る。", text: "最初の Web プロトタイプは、Exlser の初期アイデアの記録として今も公開されています。", cta: "旧バージョンを試す" },
     featuresHeading: { eyebrow: "主な機能", title: "すべてがデータセットの近くにあります。", text: "最初のリリースは、データ閲覧、行の検索、グラフ確認、現在の結果のエクスポートに集中しています。" },
     features: [
@@ -663,7 +695,8 @@ export const translations = {
         { value: "6", label: "plataformas" },
       ],
     },
-    video: { eyebrow: "Prévia rápida", title: "Veja o fluxo antes de instalar.", text: "O app guia você da seleção do arquivo até confirmação do esquema, exploração, filtros, análises e exportação." },
+    video: { eyebrow: "Prévia rápida", title: "Veja o fluxo antes de instalar.", text: "O app guia você da seleção do arquivo até confirmação do esquema, exploração, filtros, análises e exportação.", demoCta: "Testar demo", desktopCta: "Baixar para seu computador" },
+    trailer: { eyebrow: "Beta mobile", title: "Participe da beta mobile e veja o que está chegando.", text: "O vídeo mostra a experiência mobile prevista: importar arquivos, revisar dados, explorar análises e trabalhar localmente no seu dispositivo.", betaCta: "Solicitar acesso beta", moreInfo: "Obter mais informações" },
     legacy: { eyebrow: "Origem do projeto", title: "Veja onde tudo começou.", text: "O protótipo web original continua online como um registro histórico da primeira ideia do Exlser.", cta: "Testar versão antiga" },
     featuresHeading: { eyebrow: "Recursos principais", title: "Tudo fica perto do dataset.", text: "A primeira versão foca no trabalho local útil: navegar dados, encontrar linhas, ver gráficos e exportar exatamente o resultado atual." },
     features: [

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
   Database,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { FaGithub, FaInstagram, FaLinkedin } from "react-icons/fa";
 import { getInitialLanguage, languages, translations } from "./i18n.js";
+import { useLandingVideoPreviews } from "./useLandingVideoPreviews.js";
 
 const links = {
   releases: "https://github.com/Pablo-gitub/exlser/releases",
@@ -63,9 +64,14 @@ function scrollToSection(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 }
 
-function ExternalLink({ className, href, children, icon: Icon }) {
+function ExternalLink({ className, href, children, icon: Icon, newTab = true }) {
   return (
-    <a className={className} href={href} target="_blank" rel="noreferrer">
+    <a
+      className={className}
+      href={href}
+      target={newTab ? "_blank" : undefined}
+      rel={newTab ? "noreferrer" : undefined}
+    >
       {Icon ? <Icon aria-hidden="true" size={18} strokeWidth={2.2} /> : null}
       {children}
     </a>
@@ -74,8 +80,8 @@ function ExternalLink({ className, href, children, icon: Icon }) {
 
 export default function ExlserLanding() {
   const [language, setLanguage] = useState(getInitialLanguage);
-  const previewVideoRef = useRef(null);
   const copy = useMemo(() => translations[language] ?? translations.en, [language]);
+  const selectedLanguage = languages.find((item) => item.code === language) ?? languages[0];
   const contactUrl =
     language === "it"
       ? "https://paolopietrelli.com/it/contact"
@@ -87,30 +93,19 @@ export default function ExlserLanding() {
     window.localStorage.setItem("exlserLandingLanguage", language);
   }, [language]);
 
-  useEffect(() => {
-    const video = previewVideoRef.current;
-
-    if (!video) {
-      return undefined;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.intersectionRatio >= 0.9) {
-          video.play().catch(() => {
-            // Browsers can still block autoplay in some contexts; controls remain available.
-          });
-        } else {
-          video.pause();
-        }
-      },
-      { threshold: [0, 0.9] },
-    );
-
-    observer.observe(video);
-
-    return () => observer.disconnect();
-  }, []);
+  const videos = {
+    preview: {
+      poster: "/assets/preview_exlser_poster.jpg",
+      src: "/assets/preview_exlser.mp4",
+      title: copy.video.title,
+    },
+    trailer: {
+      poster: "/assets/trailer_poster.jpg",
+      src: "/assets/trailer.mp4",
+      title: copy.trailer.title,
+    },
+  };
+  const { previewVideoRef, trailerVideoRef } = useLandingVideoPreviews();
 
   return (
     <main className="landing">
@@ -132,20 +127,24 @@ export default function ExlserLanding() {
         </nav>
 
         <div className="topbar-actions">
-          <ExternalLink className="nav-demo" href={links.demo} icon={Globe2}>
+          <ExternalLink className="nav-demo" href={links.demo} icon={Globe2} newTab={false}>
             {copy.nav.demo}
           </ExternalLink>
 
           <label className="language-control">
-            <span>{copy.nav.language}</span>
+            <span className="sr-only">{copy.nav.language}</span>
+            <span className="language-flag" aria-hidden="true">
+              {selectedLanguage.flag}
+            </span>
             <select
               value={language}
               onChange={(event) => setLanguage(event.target.value)}
-              aria-label={copy.nav.language}
+              aria-label={`${copy.nav.language}: ${selectedLanguage.name}`}
+              title={selectedLanguage.name}
             >
               {languages.map((item) => (
-                <option key={item.code} value={item.code}>
-                  {item.name}
+                <option key={item.code} value={item.code} aria-label={item.name}>
+                  {item.flag}
                 </option>
               ))}
             </select>
@@ -154,32 +153,28 @@ export default function ExlserLanding() {
       </header>
 
       <section id="top" className="hero" aria-label={copy.hero.aria}>
-        <video
-          className="hero-video-bg"
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster="/assets/data_analysis.jpeg"
-          aria-hidden="true"
-        >
-          <source src="/assets/trailer.mp4" type="video/mp4" />
-        </video>
-        <div className="hero-overlay" aria-hidden="true" />
-
         <div className="hero-content">
-          <p className="eyebrow">{copy.hero.eyebrow}</p>
-          <h1>{copy.hero.title}</h1>
-          <p className="hero-copy">{copy.hero.copy}</p>
+          <div className="hero-copy-block">
+            <p className="eyebrow">{copy.hero.eyebrow}</p>
+            <h1>{copy.hero.title}</h1>
+            <p className="hero-copy">{copy.hero.copy}</p>
 
-          <div className="hero-actions" aria-label={copy.hero.actions}>
-            <ExternalLink className="button primary" href={links.releases}>
-              {copy.hero.desktop}
-            </ExternalLink>
-            <ExternalLink className="button secondary" href={contactUrl}>
-              {copy.hero.beta}
-            </ExternalLink>
+            <div className="hero-actions" aria-label={copy.hero.actions}>
+              <ExternalLink className="button primary" href={links.releases}>
+                {copy.hero.desktop}
+              </ExternalLink>
+              <ExternalLink className="button secondary" href={contactUrl}>
+                {copy.hero.beta}
+              </ExternalLink>
+            </div>
           </div>
+
+          <img
+            className="hero-logo"
+            src="/assets/logo_full_tagline_high.png"
+            alt="Exlser"
+            fetchPriority="high"
+          />
         </div>
 
         <div className="hero-strip" aria-label="Exlser strengths">
@@ -207,16 +202,21 @@ export default function ExlserLanding() {
       </section>
 
       <section className="section video-section">
-        <div className="video-frame">
+        <div className="video-frame preview-frame">
           <video
             ref={previewVideoRef}
             controls
+            disablePictureInPicture
+            disableRemotePlayback
             muted
+            loop
             playsInline
             preload="metadata"
-            poster="/assets/preview_exlser_poster.jpg"
+            controlsList="nodownload noremoteplayback"
+            poster={videos.preview.poster}
+            aria-label={copy.video.title}
           >
-            <source src="/assets/preview_exlser.mp4" type="video/mp4" />
+            <source src={videos.preview.src} type="video/mp4" />
           </video>
         </div>
 
@@ -224,6 +224,14 @@ export default function ExlserLanding() {
           <p className="eyebrow">{copy.video.eyebrow}</p>
           <h2>{copy.video.title}</h2>
           <p>{copy.video.text}</p>
+          <div className="section-actions">
+            <ExternalLink className="button primary" href={links.demo} icon={Globe2} newTab={false}>
+              {copy.video.demoCta}
+            </ExternalLink>
+            <ExternalLink className="button secondary light" href={links.releases} icon={MonitorDown}>
+              {copy.video.desktopCta}
+            </ExternalLink>
+          </div>
         </div>
       </section>
 
@@ -239,6 +247,51 @@ export default function ExlserLanding() {
         <ExternalLink className="button secondary legacy-button" href={links.legacy}>
           {copy.legacy.cta}
         </ExternalLink>
+      </section>
+
+      <section className="section trailer-section">
+        <div className="section-copy">
+          <p className="eyebrow">{copy.trailer.eyebrow}</p>
+          <h2>{copy.trailer.title}</h2>
+          <p>{copy.trailer.text}</p>
+          <div className="section-actions">
+            <ExternalLink className="button primary" href={contactUrl} icon={Smartphone}>
+              {copy.trailer.betaCta}
+            </ExternalLink>
+          </div>
+          <div className="trailer-more">
+            <h3>{copy.trailer.moreInfo}</h3>
+            <div className="trailer-links">
+              <ExternalLink href={links.instagram} icon={FaInstagram}>
+                Instagram
+              </ExternalLink>
+              <ExternalLink href={links.linkedin} icon={FaLinkedin}>
+                LinkedIn
+              </ExternalLink>
+              <ExternalLink href={links.github} icon={FaGithub}>
+                GitHub
+              </ExternalLink>
+            </div>
+          </div>
+        </div>
+
+        <div className="video-frame trailer-frame">
+          <video
+            ref={trailerVideoRef}
+            controls
+            disablePictureInPicture
+            disableRemotePlayback
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            controlsList="nodownload noremoteplayback"
+            poster={videos.trailer.poster}
+            aria-label={copy.trailer.title}
+          >
+            <source src={videos.trailer.src} type="video/mp4" />
+          </video>
+        </div>
       </section>
 
       <section id="features" className="section feature-section">
@@ -303,6 +356,7 @@ export default function ExlserLanding() {
                   className="text-link"
                   href={channelLinks[index]}
                   icon={index === 0 ? Globe2 : Icon}
+                  newTab={channelLinks[index] !== links.demo}
                 >
                   {channel.cta}
                 </ExternalLink>
@@ -369,6 +423,7 @@ export default function ExlserLanding() {
           </ExternalLink>
         </nav>
       </footer>
+
     </main>
   );
 }
