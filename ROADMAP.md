@@ -105,8 +105,8 @@ Target structure:
 - [x] Keep repository-level documentation and GitHub Actions in the root.
 - [x] Update `.gitignore` for nested Flutter build/cache paths.
 - [x] Update GitHub Actions to run Flutter commands from `flutter_app/`.
-- [x] Update Firebase hosting config to deploy Flutter web from
-      `flutter_app/build/web` until the React landing page replaces it.
+- [x] Update Firebase hosting config to deploy the React landing page from
+      `landing_page/dist` through the dedicated `landing` Hosting target.
 - [x] Update README commands and asset links for the new layout.
 - [x] Scaffold `landing_page/` with React/Vite after the Flutter migration is
       tested and committed.
@@ -116,9 +116,20 @@ Target structure:
 - [x] Convert the landing hero trailer to web-safe MP4 and use it in the hero
       section.
 - [x] Add lightweight landing-page i18n aligned with the Flutter app languages.
+- [x] Update the web deploy GitHub Action to build the React landing page.
+- [ ] Create the Firebase Hosting site `exlser-landing` in the existing
+      `excelcategory` Firebase project.
+- [ ] Connect `exlser.com` to the `exlser-landing` Firebase Hosting site.
+- [ ] Connect `exlser.it` to the same Hosting site, or decide whether it should
+      redirect to `exlser.com` from a separate Hosting site.
+- [ ] Configure DNS records in the domain registrar for `exlser.com` and
+      `exlser.it`.
+- [x] Configure `/demo` as the destination for the current Flutter web app
+      inside the landing Hosting site.
+- [x] Keep the original `excelcategory.web.app` prototype linked as historical
+      context instead of overwriting it.
 - [ ] Review the landing page visually on desktop and mobile breakpoints.
-- [ ] Decide final hosting split: landing at the domain root and Flutter web at
-      `/app`, or landing only for now.
+- [x] Update the landing `Try Demo` URL to `https://exlser.com/demo/`.
 
 Completion checkpoint:
 
