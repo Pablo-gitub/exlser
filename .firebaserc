@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "excelcategory"
-  }
+  },
+  "targets": {
+    "excelcategory": {
+      "hosting": {
+        "landing": [
+          "exlser-landing"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

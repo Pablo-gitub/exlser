@@ -1,9 +1,10 @@
-name: Deploy Web
+name: Deploy Landing Page
 
 on:
+  workflow_dispatch:
   push:
     tags:
-      - "v*"
+      - "landing-v*"
 
 jobs:
   build-and-deploy:
@@ -12,18 +13,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: landing_page/package-lock.json
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
+      - run: npm ci
+        working-directory: landing_page
+
+      - run: npm run build
+        working-directory: landing_page
+
       - run: flutter pub get
         working-directory: flutter_app
-      - run: flutter build web --release
+
+      - run: flutter build web --release --base-href /demo/
         working-directory: flutter_app
+
+      - run: |
+          mkdir -p landing_page/dist/demo
+          cp -R flutter_app/build/web/. landing_page/dist/demo/
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
           channelId: live
+          target: landing
           projectId: excelcategory
