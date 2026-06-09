@@ -60,6 +60,8 @@ app.*.map.json
 # Gradle (Android / embedded)
 .gradle/
 **/.gradle/
+.firebase/
+FIREBASE_DOMAIN_SETUP.md
 
 
 scripts/
