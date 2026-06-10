@@ -10,6 +10,8 @@ export const languages = [
   { code: "pt", name: "Português", flag: "🇵🇹" },
 ];
 
+export const languageCodes = languages.map((language) => language.code);
+
 const sharedFormats = ["Excel", "CSV", "JSON", "PDF", "SQL"];
 
 export const translations = {
@@ -727,10 +729,10 @@ export const translations = {
 };
 
 export function getInitialLanguage() {
-  const storedLanguage = window.localStorage.getItem("exlserLandingLanguage");
+  const pathLanguage = getLanguageFromPath(window.location.pathname);
 
-  if (storedLanguage && translations[storedLanguage]) {
-    return storedLanguage;
+  if (pathLanguage) {
+    return pathLanguage;
   }
 
   const browserLanguage = window.navigator.language.split("-")[0];
@@ -740,4 +742,32 @@ export function getInitialLanguage() {
   }
 
   return "en";
+}
+
+export function getLanguageFromPath(pathname) {
+  const firstSegment = pathname.split("/").filter(Boolean)[0];
+
+  return languageCodes.includes(firstSegment) ? firstSegment : null;
+}
+
+export function getLocalizedPath(language, currentLocation = window.location) {
+  const safeLanguage = translations[language] ? language : "en";
+  const segments = currentLocation.pathname.split("/").filter(Boolean);
+
+  if (languageCodes.includes(segments[0])) {
+    segments[0] = safeLanguage;
+  } else {
+    segments.unshift(safeLanguage);
+  }
+
+  const path = `/${segments.join("/")}/`;
+
+  return `${path}${currentLocation.search}${currentLocation.hash}`;
+}
+
+export function getDemoPath(currentLocation = window.location) {
+  const demoPath = "/demo/";
+  const isLocalHost = ["localhost", "127.0.0.1", "::1"].includes(currentLocation.hostname);
+
+  return isLocalHost ? `https://exlser.com${demoPath}` : demoPath;
 }

@@ -17,12 +17,18 @@ import {
   Table2,
 } from "lucide-react";
 import { FaGithub, FaInstagram, FaLinkedin } from "react-icons/fa";
-import { getInitialLanguage, languages, translations } from "./i18n.js";
+import {
+  getDemoPath,
+  getInitialLanguage,
+  getLanguageFromPath,
+  getLocalizedPath,
+  languages,
+  translations,
+} from "./i18n.js";
 import { useLandingVideoPreviews } from "./useLandingVideoPreviews.js";
 
 const links = {
   releases: "https://github.com/Pablo-gitub/exlser/releases",
-  demo: "https://exlser.com/demo/",
   legacy: "https://excelcategory.web.app",
   github: "https://github.com/Pablo-gitub/exlser",
   linkedin: "https://www.linkedin.com/in/paolo-pietrelli",
@@ -86,12 +92,71 @@ export default function ExlserLanding() {
     language === "it"
       ? "https://paolopietrelli.com/it/contact"
       : "https://paolopietrelli.com/en/contact";
-  const channelLinks = [contactUrl, links.releases, links.demo, links.github];
+  const demoUrl = getDemoPath();
+  const channelLinks = [contactUrl, links.releases, demoUrl, links.github];
 
   useEffect(() => {
     document.documentElement.lang = language;
-    window.localStorage.setItem("exlserLandingLanguage", language);
+
+    const origin = window.location.origin;
+    const canonicalHref = `${origin}/${language}/`;
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+
+    if (!canonicalLink) {
+      canonicalLink = document.createElement("link");
+      canonicalLink.setAttribute("rel", "canonical");
+      document.head.appendChild(canonicalLink);
+    }
+
+    canonicalLink.setAttribute("href", canonicalHref);
+
+    document
+      .querySelectorAll('link[rel="alternate"][data-exlser-language]')
+      .forEach((link) => link.remove());
+
+    languages.forEach((item) => {
+      const alternateLink = document.createElement("link");
+      alternateLink.setAttribute("rel", "alternate");
+      alternateLink.setAttribute("hreflang", item.code);
+      alternateLink.setAttribute("href", `${origin}/${item.code}/`);
+      alternateLink.dataset.exlserLanguage = item.code;
+      document.head.appendChild(alternateLink);
+    });
+
+    const defaultLink = document.createElement("link");
+    defaultLink.setAttribute("rel", "alternate");
+    defaultLink.setAttribute("hreflang", "x-default");
+    defaultLink.setAttribute("href", `${origin}/en/`);
+    defaultLink.dataset.exlserLanguage = "x-default";
+    document.head.appendChild(defaultLink);
   }, [language]);
+
+  useEffect(() => {
+    if (!getLanguageFromPath(window.location.pathname)) {
+      window.history.replaceState(null, "", getLocalizedPath(language));
+    }
+
+    const handlePopState = () => {
+      const pathLanguage = getLanguageFromPath(window.location.pathname);
+
+      if (pathLanguage) {
+        setLanguage(pathLanguage);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [language]);
+
+  const handleLanguageChange = (nextLanguage) => {
+    if (nextLanguage === language) {
+      return;
+    }
+
+    setLanguage(nextLanguage);
+    window.history.pushState(null, "", getLocalizedPath(nextLanguage));
+  };
 
   const videos = {
     preview: {
@@ -127,7 +192,7 @@ export default function ExlserLanding() {
         </nav>
 
         <div className="topbar-actions">
-          <ExternalLink className="nav-demo" href={links.demo} icon={Globe2} newTab={false}>
+          <ExternalLink className="nav-demo" href={demoUrl} icon={Globe2} newTab={false}>
             {copy.nav.demo}
           </ExternalLink>
 
@@ -138,7 +203,7 @@ export default function ExlserLanding() {
             </span>
             <select
               value={language}
-              onChange={(event) => setLanguage(event.target.value)}
+              onChange={(event) => handleLanguageChange(event.target.value)}
               aria-label={`${copy.nav.language}: ${selectedLanguage.name}`}
               title={selectedLanguage.name}
             >
@@ -225,7 +290,7 @@ export default function ExlserLanding() {
           <h2>{copy.video.title}</h2>
           <p>{copy.video.text}</p>
           <div className="section-actions">
-            <ExternalLink className="button primary" href={links.demo} icon={Globe2} newTab={false}>
+            <ExternalLink className="button primary" href={demoUrl} icon={Globe2} newTab={false}>
               {copy.video.demoCta}
             </ExternalLink>
             <ExternalLink className="button secondary light" href={links.releases} icon={MonitorDown}>
@@ -356,7 +421,7 @@ export default function ExlserLanding() {
                   className="text-link"
                   href={channelLinks[index]}
                   icon={index === 0 ? Globe2 : Icon}
-                  newTab={channelLinks[index] !== links.demo}
+                  newTab={channelLinks[index] !== demoUrl}
                 >
                   {channel.cta}
                 </ExternalLink>
