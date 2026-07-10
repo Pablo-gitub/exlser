@@ -264,7 +264,17 @@
         "language_japanese": "日本語",
         "language_portuguese": "Português",
         "app_version_label": "Versión de la app",
-        "app_version_value": "Versión {version}"
+        "app_version_value": "Versión {version}",
+        "update_check": "Buscar actualizaciones",
+        "update_checking": "Buscando actualizaciones...",
+        "update_available_title": "Actualización disponible",
+        "update_available_message": "Exlser {version} está disponible.",
+        "update_download": "Descargar actualización",
+        "update_open_release": "Abrir release",
+        "update_up_to_date": "Estás usando la versión de escritorio más reciente.",
+        "update_unsupported": "Las actualizaciones de escritorio no están disponibles en esta plataforma.",
+        "update_error": "No se pudo buscar actualizaciones.",
+        "update_open_failed": "No se pudo abrir el enlace de actualización."
     },
     "import": {
         "title": "Crear nuevo dataset",

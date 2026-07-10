@@ -264,7 +264,17 @@
         "language_japanese": "日本語",
         "language_portuguese": "Português",
         "app_version_label": "Versione app",
-        "app_version_value": "Versione {version}"
+        "app_version_value": "Versione {version}",
+        "update_check": "Controlla aggiornamenti",
+        "update_checking": "Controllo aggiornamenti...",
+        "update_available_title": "Aggiornamento disponibile",
+        "update_available_message": "È disponibile Exlser {version}.",
+        "update_download": "Scarica aggiornamento",
+        "update_open_release": "Apri release",
+        "update_up_to_date": "Stai usando l'ultima versione desktop.",
+        "update_unsupported": "Gli aggiornamenti desktop non sono disponibili su questa piattaforma.",
+        "update_error": "Impossibile controllare gli aggiornamenti.",
+        "update_open_failed": "Impossibile aprire il link dell'aggiornamento."
     },
     "import": {
         "title": "Crea nuovo dataset",

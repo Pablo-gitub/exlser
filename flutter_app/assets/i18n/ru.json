@@ -264,7 +264,17 @@
         "language_japanese": "日本語",
         "language_portuguese": "Português",
         "app_version_label": "Версия приложения",
-        "app_version_value": "Версия {version}"
+        "app_version_value": "Версия {version}",
+        "update_check": "Проверить обновления",
+        "update_checking": "Проверка обновлений...",
+        "update_available_title": "Доступно обновление",
+        "update_available_message": "Доступна версия Exlser {version}.",
+        "update_download": "Скачать обновление",
+        "update_open_release": "Открыть release",
+        "update_up_to_date": "У вас установлена последняя desktop-версия.",
+        "update_unsupported": "Desktop-обновления недоступны на этой платформе.",
+        "update_error": "Не удалось проверить обновления.",
+        "update_open_failed": "Не удалось открыть ссылку обновления."
     },
     "import": {
         "title": "Создать новый dataset",

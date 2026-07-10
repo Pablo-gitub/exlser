@@ -264,7 +264,17 @@
         "language_japanese": "日本語",
         "language_portuguese": "Português",
         "app_version_label": "App-Version",
-        "app_version_value": "Version {version}"
+        "app_version_value": "Version {version}",
+        "update_check": "Nach Updates suchen",
+        "update_checking": "Suche nach Updates...",
+        "update_available_title": "Update verfügbar",
+        "update_available_message": "Exlser {version} ist verfügbar.",
+        "update_download": "Update herunterladen",
+        "update_open_release": "Release öffnen",
+        "update_up_to_date": "Du verwendest die neueste Desktop-Version.",
+        "update_unsupported": "Desktop-Updates sind auf dieser Plattform nicht verfügbar.",
+        "update_error": "Es konnte nicht nach Updates gesucht werden.",
+        "update_open_failed": "Der Update-Link konnte nicht geöffnet werden."
     },
     "import": {
         "title": "Neues Dataset erstellen",

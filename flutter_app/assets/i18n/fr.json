@@ -264,7 +264,17 @@
         "language_japanese": "日本語",
         "language_portuguese": "Português",
         "app_version_label": "Version de l’app",
-        "app_version_value": "Version {version}"
+        "app_version_value": "Version {version}",
+        "update_check": "Rechercher des mises à jour",
+        "update_checking": "Recherche de mises à jour...",
+        "update_available_title": "Mise à jour disponible",
+        "update_available_message": "Exlser {version} est disponible.",
+        "update_download": "Télécharger la mise à jour",
+        "update_open_release": "Ouvrir la release",
+        "update_up_to_date": "Vous utilisez la dernière version desktop.",
+        "update_unsupported": "Les mises à jour desktop ne sont pas disponibles sur cette plateforme.",
+        "update_error": "Impossible de rechercher des mises à jour.",
+        "update_open_failed": "Impossible d’ouvrir le lien de mise à jour."
     },
     "import": {
         "title": "Créer un nouveau dataset",

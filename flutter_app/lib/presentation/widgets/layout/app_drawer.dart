@@ -4,19 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/constants/app_links.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../router/routes.dart';
 
 class AppDrawer extends StatelessWidget {
-  static final Uri _developerWebsiteUri =
-      Uri.parse('https://paolopietrelli.com');
-  static final Uri _githubUri =
-      Uri.parse('https://github.com/Pablo-gitub/exlser');
-  static final Uri _linkedinUri =
-      Uri.parse('https://www.linkedin.com/in/paolo-pietrelli');
-  static final Uri _instagramUri =
-      Uri.parse('https://www.instagram.com/ing_paolo_pietrelli/');
-
   final bool closeOnNavigate;
   final VoidCallback? onCloseRequested;
 
@@ -84,7 +76,7 @@ class AppDrawer extends StatelessWidget {
                     subtitle: Text(AppStrings.developerWebsite.tr()),
                     onTap: () => _openExternalLink(
                       context,
-                      _developerWebsiteUri,
+                      AppLinks.developerWebsite,
                     ),
                   ),
                 ),
@@ -98,7 +90,7 @@ class AppDrawer extends StatelessWidget {
                       icon: const FaIcon(FontAwesomeIcons.github),
                       onPressed: () => _openExternalLink(
                         context,
-                        _githubUri,
+                        AppLinks.githubRepository,
                       ),
                     ),
                     IconButton(
@@ -106,7 +98,7 @@ class AppDrawer extends StatelessWidget {
                       icon: const FaIcon(FontAwesomeIcons.linkedin),
                       onPressed: () => _openExternalLink(
                         context,
-                        _linkedinUri,
+                        AppLinks.linkedin,
                       ),
                     ),
                     IconButton(
@@ -114,7 +106,7 @@ class AppDrawer extends StatelessWidget {
                       icon: const FaIcon(FontAwesomeIcons.instagram),
                       onPressed: () => _openExternalLink(
                         context,
-                        _instagramUri,
+                        AppLinks.instagram,
                       ),
                     ),
                   ],

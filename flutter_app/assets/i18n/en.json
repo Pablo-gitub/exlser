@@ -264,7 +264,17 @@
         "language_japanese": "日本語",
         "language_portuguese": "Português",
         "app_version_label": "App version",
-        "app_version_value": "Version {version}"
+        "app_version_value": "Version {version}",
+        "update_check": "Check for updates",
+        "update_checking": "Checking for updates...",
+        "update_available_title": "Update available",
+        "update_available_message": "Exlser {version} is available.",
+        "update_download": "Download update",
+        "update_open_release": "Open release",
+        "update_up_to_date": "You are using the latest desktop version.",
+        "update_unsupported": "Desktop updates are not available on this platform.",
+        "update_error": "Could not check for updates.",
+        "update_open_failed": "Could not open the update link."
     },
     "import": {
         "title": "Create new dataset",

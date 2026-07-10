@@ -264,7 +264,17 @@
         "language_japanese": "日本語",
         "language_portuguese": "Português",
         "app_version_label": "应用版本",
-        "app_version_value": "版本 {version}"
+        "app_version_value": "版本 {version}",
+        "update_check": "检查更新",
+        "update_checking": "正在检查更新...",
+        "update_available_title": "有可用更新",
+        "update_available_message": "Exlser {version} 已可用。",
+        "update_download": "下载更新",
+        "update_open_release": "打开 release",
+        "update_up_to_date": "你正在使用最新的桌面版本。",
+        "update_unsupported": "此平台不支持桌面更新。",
+        "update_error": "无法检查更新。",
+        "update_open_failed": "无法打开更新链接。"
     },
     "import": {
         "title": "创建新 dataset",

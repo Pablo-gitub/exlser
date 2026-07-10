@@ -1,8 +1,13 @@
 import 'package:exlser/application/services/create_dataset_service.dart';
 import 'package:exlser/application/services/export_data_service.dart';
 import 'package:exlser/application/services/import_data_service.dart';
+import 'package:exlser/application/services/update_service.dart';
+import 'package:exlser/core/constants/app_info.dart';
+import 'package:exlser/core/constants/app_links.dart';
 import 'package:exlser/data/adapters/parsers/parser_factory.dart';
 import 'package:exlser/data/services/drift_transaction_runner.dart';
+import 'package:exlser/data/services/github_release_client.dart';
+import 'package:exlser/data/services/github_release_models.dart';
 import 'package:exlser/presentation/providers/database_providers.dart';
 import 'package:exlser/presentation/providers/repository_providers.dart';
 import 'package:exlser/presentation/providers/usecase_providers.dart';
@@ -42,5 +47,18 @@ final exportDataServiceProvider = Provider<ExportDataService>((ref) {
     exportPdfUseCase: ref.watch(exportPdfUseCaseProvider),
     exportSqlUseCase: ref.watch(exportSqlUseCaseProvider),
     exportJsonUseCase: ref.watch(exportJsonUseCaseProvider),
+  );
+});
+
+final githubReleaseClientProvider = Provider<GitHubReleaseClient>((ref) {
+  return createGitHubReleaseClient();
+});
+
+final updateServiceProvider = Provider<UpdateService>((ref) {
+  return UpdateService(
+    releaseClient: ref.watch(githubReleaseClientProvider),
+    owner: AppLinks.githubOwner,
+    repo: AppLinks.githubRepo,
+    currentVersion: '${AppInfo.versionName}+${AppInfo.buildNumber}',
   );
 });

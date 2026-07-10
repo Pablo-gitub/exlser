@@ -264,7 +264,17 @@
         "language_japanese": "日本語",
         "language_portuguese": "Português",
         "app_version_label": "アプリのバージョン",
-        "app_version_value": "バージョン {version}"
+        "app_version_value": "バージョン {version}",
+        "update_check": "更新を確認",
+        "update_checking": "更新を確認中...",
+        "update_available_title": "更新があります",
+        "update_available_message": "Exlser {version} を利用できます。",
+        "update_download": "更新をダウンロード",
+        "update_open_release": "リリースを開く",
+        "update_up_to_date": "最新のデスクトップ版を使用しています。",
+        "update_unsupported": "このプラットフォームではデスクトップ更新を利用できません。",
+        "update_error": "更新を確認できませんでした。",
+        "update_open_failed": "更新リンクを開けませんでした。"
     },
     "import": {
         "title": "新しい dataset を作成",

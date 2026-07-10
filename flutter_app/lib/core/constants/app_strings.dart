@@ -258,6 +258,17 @@ class AppStrings {
   static const String fullImmersion = 'settings.full_immersion';
   static const String appVersionLabel = 'settings.app_version_label';
   static const String appVersionValue = 'settings.app_version_value';
+  static const String updateCheck = 'settings.update_check';
+  static const String updateChecking = 'settings.update_checking';
+  static const String updateAvailableTitle = 'settings.update_available_title';
+  static const String updateAvailableMessage =
+      'settings.update_available_message';
+  static const String updateDownload = 'settings.update_download';
+  static const String updateOpenRelease = 'settings.update_open_release';
+  static const String updateUpToDate = 'settings.update_up_to_date';
+  static const String updateUnsupported = 'settings.update_unsupported';
+  static const String updateError = 'settings.update_error';
+  static const String updateOpenFailed = 'settings.update_open_failed';
 
   static const String homeDropFile = 'home.drop_file';
   static const String browseFile = 'home.browse_file';

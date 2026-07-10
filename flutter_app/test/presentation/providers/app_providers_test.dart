@@ -46,6 +46,7 @@ void main() {
       expect(container.read(datasetsRepositoryProvider), isNotNull);
       expect(container.read(schemaRepositoryProvider), isNotNull);
       expect(container.read(queryRepositoryProvider), isNotNull);
+      expect(container.read(updateServiceProvider), isNotNull);
     });
 
     test('should create a dataset through wired providers', () async {
