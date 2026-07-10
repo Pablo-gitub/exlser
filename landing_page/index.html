@@ -3,13 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#071a33" />
+
+    <title>Exlser | Turn spreadsheets into local datasets</title>
     <meta
       name="description"
-      content="Exlser turns CSV and Excel files into local data workspaces with filtering, SQL queries, charts, and multi-format exports."
+      content="Exlser turns CSV and Excel files into persistent local datasets with type-aware filters, read-only SQL, charts, QR cards, and exports to Excel, CSV, JSON, PDF, and SQL. No server, no cloud account."
     />
+
     <link rel="icon" type="image/png" href="/assets/favicon.png" />
     <link rel="apple-touch-icon" href="/assets/favicon.png" />
-    <title>Exlser | Spreadsheet data workspace</title>
+
+    <meta property="og:site_name" content="Exlser" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://exlser.com/en/" />
+    <meta property="og:title" content="Exlser — spreadsheets, explored like a database" />
+    <meta
+      property="og:description"
+      content="Import CSV and Excel once, then filter, query with SQL, chart, and export. Everything stays on your device. Android beta is open."
+    />
+    <meta property="og:image" content="https://exlser.com/assets/og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Exlser: a local-first spreadsheet workspace with SQL, charts, and exports"
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Exlser — spreadsheets, explored like a database" />
+    <meta
+      name="twitter:description"
+      content="Import CSV and Excel once, then filter, query with SQL, chart, and export. Everything stays on your device."
+    />
+    <meta name="twitter:image" content="https://exlser.com/assets/og-card.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Exlser",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Android, macOS, Windows, Linux, Web",
+        "url": "https://exlser.com",
+        "description": "Local-first workspace that turns CSV and Excel files into persistent datasets with filters, read-only SQL, charts, and multi-format exports.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "author": { "@type": "Person", "name": "Paolo Pietrelli", "url": "https://paolopietrelli.com" }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
