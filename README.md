@@ -4,9 +4,11 @@
 
 Exlser is a cross-platform app that turns CSV and Excel files into persistent, queryable local datasets — with smart filtering, multi-format export, automatic chart suggestions, and a power-user SQL mode. No server. No cloud account. Everything runs on your device.
 
-Android builds are distributed through the Google Play beta program. Contact me if you want to try the latest Android beta, or download the desktop app from the GitHub Releases page.
+**▶️ [Try the live web demo](https://exlser.com/demo)** — it runs entirely in your browser, with no install and no account. The spreadsheet you open never leaves your tab: SQLite is compiled to WebAssembly and runs locally in a web worker.
 
-The original web prototype remains available at [excelcategory.web.app](https://excelcategory.web.app). It is kept as a historical snapshot of where the project started. The current web demo is planned for `https://exlser.com/demo`.
+**🧪 The Android closed beta is open, and I am looking for testers.** Android builds are distributed through the Google Play beta program. If you would like to join, [open an issue](https://github.com/Pablo-gitub/exlser/issues/new) and I will send you the invite — please do not post your email address publicly. Desktop builds for macOS, Windows and Linux are on the [Releases page](https://github.com/Pablo-gitub/exlser/releases).
+
+The original web prototype remains available at [excelcategory.web.app](https://excelcategory.web.app). It is kept as a historical snapshot of where the project started.
 
 [![Build](https://github.com/Pablo-gitub/exlser/actions/workflows/dart.yml/badge.svg)](https://github.com/Pablo-gitub/exlser/actions)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter)](https://flutter.dev)
