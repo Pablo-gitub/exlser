@@ -131,5 +131,19 @@ void main() {
         );
       },
     );
+
+    test(
+      'should populate sourceSheetName and cellRange metadata on parsed sheets',
+      () async {
+        final sheets = await parser.parsePath(
+          'test/fixtures/excel/simple.xlsx',
+        );
+
+        final sheet = sheets.first;
+        expect(sheet.sourceSheetName, 'Foglio1');
+        expect(sheet.cellRange, isNotNull);
+        expect(sheet.cellRange, startsWith('A'));
+      },
+    );
   });
 }

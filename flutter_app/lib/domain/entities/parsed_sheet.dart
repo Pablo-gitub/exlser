@@ -15,8 +15,16 @@ class ParsedSheet {
   /// ]
   final List<Map<String, dynamic>> rows;
 
+  /// Original source sheet name within the file (if distinguishable).
+  final String? sourceSheetName;
+
+  /// Detected cell boundary range (e.g. `A1:D20`).
+  final String? cellRange;
+
   const ParsedSheet({
     required this.name,
     required this.rows,
+    this.sourceSheetName,
+    this.cellRange,
   });
 }

@@ -7,6 +7,7 @@ import 'package:excel_community/excel_community.dart';
 import 'package:exlser/data/adapters/mappers/table_row_mapper.dart';
 import 'package:exlser/data/adapters/parsers/spreadsheet_parser.dart';
 import 'package:exlser/data/adapters/table_normalizers/header_detector.dart';
+import 'package:exlser/data/adapters/table_normalizers/table_boundary_detector.dart';
 import 'package:exlser/domain/entities/parsed_sheet.dart';
 
 /// Parser responsible for reading Excel files.
@@ -53,26 +54,51 @@ class ExcelParser implements SpreadsheetParser {
         return row.map(_cellString).toList();
       }).toList();
 
-      /// Normalize headers.
-      final normalizedRows = HeaderDetector.detect(rawRows);
-
-      if (normalizedRows.isEmpty) {
-        continue;
-      }
-
-      /// Convert rows into key-value maps.
-      final parsedRows = TableRowMapper.map(normalizedRows);
-
-      if (parsedRows.isEmpty) {
-        continue;
-      }
-
-      sheets.add(
-        ParsedSheet(
-          name: sheetName,
-          rows: parsedRows,
-        ),
+      /// Detect table boundaries within the sheet.
+      final detectedBlocks = TableBoundaryDetector.detect(
+        rawRows,
+        defaultSheetName: sheetName,
       );
+
+      if (detectedBlocks.isNotEmpty) {
+        for (var i = 0; i < detectedBlocks.length; i++) {
+          final block = detectedBlocks[i];
+          final parsedRows = TableRowMapper.map(block.rows);
+          if (parsedRows.isEmpty) continue;
+
+          final tableName =
+              (detectedBlocks.length == 1 && block.detectedTitle == null)
+                  ? sheetName
+                  : block.suggestedTableName(
+                      fallbackBaseName: sheetName,
+                      tableIndex: i + 1,
+                    );
+
+          sheets.add(
+            ParsedSheet(
+              name: tableName,
+              rows: parsedRows,
+              sourceSheetName: sheetName,
+              cellRange: block.cellRange,
+            ),
+          );
+        }
+      } else {
+        /// Fallback to legacy single header detection if spatial detection was inconclusive
+        final normalizedRows = HeaderDetector.detect(rawRows);
+        if (normalizedRows.isNotEmpty) {
+          final parsedRows = TableRowMapper.map(normalizedRows);
+          if (parsedRows.isNotEmpty) {
+            sheets.add(
+              ParsedSheet(
+                name: sheetName,
+                rows: parsedRows,
+                sourceSheetName: sheetName,
+              ),
+            );
+          }
+        }
+      }
     }
 
     if (sheets.isEmpty) {

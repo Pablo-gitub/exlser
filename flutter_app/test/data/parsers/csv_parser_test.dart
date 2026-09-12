@@ -97,5 +97,37 @@ void main() {
         );
       },
     );
+
+    test(
+      'should detect multiple tables separated by blank lines in CSV',
+      () async {
+        const csvContent = 'Customers\n'
+            'id,name\n'
+            '1,Alice\n'
+            '2,Bob\n'
+            '\n'
+            'Orders\n'
+            'order_id,total\n'
+            '101,50\n'
+            '102,75\n';
+        final sheets = await parser.parseBytes(csvContent.codeUnits);
+
+        expect(sheets.length, 2);
+
+        final first = sheets[0];
+        expect(first.name, 'Customers');
+        expect(first.rows.length, 2);
+        expect(first.rows.first['id'], '1');
+        expect(first.rows.first['name'], 'Alice');
+        expect(first.cellRange, 'A2:B4');
+
+        final second = sheets[1];
+        expect(second.name, 'Orders');
+        expect(second.rows.length, 2);
+        expect(second.rows.first['order_id'], '101');
+        expect(second.rows.first['total'], '50');
+        expect(second.cellRange, 'A7:B9');
+      },
+    );
   });
 }
