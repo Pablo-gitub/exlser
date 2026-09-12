@@ -145,5 +145,20 @@ void main() {
         expect(sheet.cellRange, startsWith('A'));
       },
     );
+
+    test(
+      'should parse as single table per sheet when detectMultipleTables is false',
+      () async {
+        final sheets = await parser.parsePath(
+          'test/fixtures/excel/simple.xlsx',
+          detectMultipleTables: false,
+        );
+
+        final sheet = sheets.first;
+        expect(sheet.name, 'Foglio1');
+        expect(sheet.sourceSheetName, 'Foglio1');
+        expect(sheet.cellRange, isNull);
+      },
+    );
   });
 }

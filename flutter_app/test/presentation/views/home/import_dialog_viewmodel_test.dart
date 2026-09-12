@@ -12,6 +12,7 @@ import 'package:exlser/domain/entities/source_file_reference.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:exlser/domain/value_objects/dataset_file_storage_mode.dart';
 import 'package:exlser/presentation/views/home/widgets/import_dialog/import_dialog_viewmodel.dart';
+import 'package:exlser/core/constants/app_strings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -23,7 +24,7 @@ void main() {
 
       final viewModel = _viewModel(
         file: importFile,
-        prepareImport: ({required file}) async {
+        prepareImport: ({required file, detectMultipleTables = true}) async {
           callCount++;
           expect(file, same(importFile));
           return preparedResult;
@@ -42,7 +43,8 @@ void main() {
     test('should expose loading state while preparing import', () async {
       final completer = Completer<PreparedImportResult>();
       final viewModel = _viewModel(
-        prepareImport: ({required file}) => completer.future,
+        prepareImport: ({required file, detectMultipleTables = true}) =>
+            completer.future,
       );
 
       final nextStep = viewModel.goToNextStep();
@@ -59,7 +61,7 @@ void main() {
 
     test('should stay on general step and expose import error code', () async {
       final viewModel = _viewModel(
-        prepareImport: ({required file}) {
+        prepareImport: ({required file, detectMultipleTables = true}) {
           throw const ParsingException(
             code: 'parsing_failed',
             message: 'Cannot parse file',
@@ -79,7 +81,7 @@ void main() {
     test('should retry import preparation after failure', () async {
       var callCount = 0;
       final viewModel = _viewModel(
-        prepareImport: ({required file}) async {
+        prepareImport: ({required file, detectMultipleTables = true}) async {
           callCount++;
 
           if (callCount == 1) {
@@ -110,7 +112,7 @@ void main() {
     test('should not prepare import when current step is invalid', () async {
       var callCount = 0;
       final viewModel = _viewModel(
-        prepareImport: ({required file}) async {
+        prepareImport: ({required file, detectMultipleTables = true}) async {
           callCount++;
           return _preparedResult();
         },
@@ -128,7 +130,7 @@ void main() {
         () async {
       var callCount = 0;
       final viewModel = _viewModel(
-        prepareImport: ({required file}) async {
+        prepareImport: ({required file, detectMultipleTables = true}) async {
           callCount++;
           return _preparedResult();
         },
@@ -145,7 +147,8 @@ void main() {
     test('should initialize selected column types from prepared import',
         () async {
       final viewModel = _viewModel(
-        prepareImport: ({required file}) async => _preparedResult(),
+        prepareImport: ({required file, detectMultipleTables = true}) async =>
+            _preparedResult(),
       );
 
       await viewModel.goToNextStep();
@@ -164,7 +167,8 @@ void main() {
     test('should build confirmed import with selected type overrides',
         () async {
       final viewModel = _viewModel(
-        prepareImport: ({required file}) async => _preparedResult(),
+        prepareImport: ({required file, detectMultipleTables = true}) async =>
+            _preparedResult(),
       );
 
       viewModel.updateDatasetName('  Sales 2026  ');
@@ -199,7 +203,8 @@ void main() {
     test('should advance to confirmation after column types are confirmed',
         () async {
       final viewModel = _viewModel(
-        prepareImport: ({required file}) async => _preparedResult(),
+        prepareImport: ({required file, detectMultipleTables = true}) async =>
+            _preparedResult(),
       );
 
       await viewModel.goToNextStep();
@@ -215,7 +220,8 @@ void main() {
       bool? capturedSaveLocally;
 
       final viewModel = _viewModel(
-        prepareImport: ({required file}) async => _preparedResult(),
+        prepareImport: ({required file, detectMultipleTables = true}) async =>
+            _preparedResult(),
         saveUploadedFile: (
           file, {
           importedAt,
@@ -247,7 +253,8 @@ void main() {
 
     test('should expose creation error when dataset creation fails', () async {
       final viewModel = _viewModel(
-        prepareImport: ({required file}) async => _preparedResult(),
+        prepareImport: ({required file, detectMultipleTables = true}) async =>
+            _preparedResult(),
         createDataset: ({required confirmedImport}) {
           throw Exception('create failed');
         },
@@ -288,6 +295,114 @@ void main() {
       expect(createCallCount, 0);
       expect(viewModel.currentStep, ImportDialogStep.general);
     });
+
+    test('should toggle detectMultipleTables and pass flag to prepareImport',
+        () async {
+      bool? capturedFlag;
+      final viewModel = _viewModel(
+        prepareImport: ({required file, detectMultipleTables = true}) async {
+          capturedFlag = detectMultipleTables;
+          return _preparedResult();
+        },
+      );
+
+      expect(viewModel.detectMultipleTables, isTrue);
+
+      viewModel.updateDetectMultipleTables(false);
+      expect(viewModel.detectMultipleTables, isFalse);
+
+      await viewModel.goToNextStep();
+      expect(capturedFlag, isFalse);
+    });
+
+    test('should allow custom table names and propagate to confirmed sheets',
+        () async {
+      final viewModel = _viewModel(
+        prepareImport: ({required file, detectMultipleTables = true}) async =>
+            _preparedResult(),
+      );
+
+      await viewModel.goToNextStep();
+      expect(viewModel.currentStep, ImportDialogStep.columnTypes);
+      expect(viewModel.tableNameFor(0), 'Sheet1');
+
+      viewModel.updateTableName(sheetIndex: 0, name: 'CustomProducts');
+      expect(viewModel.tableNameFor(0), 'CustomProducts');
+
+      final confirmed = viewModel.confirmedSheets;
+      expect(confirmed.first.sheet.name, 'CustomProducts');
+    });
+
+    test('should validate empty and duplicate table names', () async {
+      final multiSheetResult = PreparedImportResult(
+        fileName: 'sales.csv',
+        fileExtension: 'csv',
+        sheets: [
+          PreparedSheet(
+            sheet: const ParsedSheet(name: 'TableA', rows: [
+              {'id': '1'}
+            ]),
+            inferredColumns: [
+              const DatasetColumn(
+                id: 0,
+                datasetTableId: 0,
+                originalName: 'id',
+                dbName: 'id',
+                declaredType: ColumnType.integer,
+                inferredType: ColumnType.integer,
+                nullable: false,
+              ),
+            ],
+          ),
+          PreparedSheet(
+            sheet: const ParsedSheet(name: 'TableB', rows: [
+              {'id': '2'}
+            ]),
+            inferredColumns: [
+              const DatasetColumn(
+                id: 0,
+                datasetTableId: 0,
+                originalName: 'id',
+                dbName: 'id',
+                declaredType: ColumnType.integer,
+                inferredType: ColumnType.integer,
+                nullable: false,
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final viewModel = _viewModel(
+        prepareImport: ({required file, detectMultipleTables = true}) async =>
+            multiSheetResult,
+      );
+
+      await viewModel.goToNextStep();
+      expect(viewModel.hasValidTableNames, isTrue);
+      expect(viewModel.canContinue, isTrue);
+
+      // Empty name
+      viewModel.updateTableName(sheetIndex: 0, name: '   ');
+      expect(viewModel.hasValidTableNames, isFalse);
+      expect(viewModel.tableNameErrorFor(0), AppStrings.importTableNameEmpty);
+      expect(viewModel.canContinue, isFalse);
+
+      // Duplicate name
+      viewModel.updateTableName(sheetIndex: 0, name: 'TableB');
+      expect(viewModel.hasValidTableNames, isFalse);
+      expect(
+          viewModel.tableNameErrorFor(0), AppStrings.importTableNameDuplicate);
+      expect(
+          viewModel.tableNameErrorFor(1), AppStrings.importTableNameDuplicate);
+      expect(viewModel.canContinue, isFalse);
+
+      // Fixed unique name
+      viewModel.updateTableName(sheetIndex: 0, name: 'TableA_Renamed');
+      expect(viewModel.hasValidTableNames, isTrue);
+      expect(viewModel.tableNameErrorFor(0), isNull);
+      expect(viewModel.canContinue, isTrue);
+    });
   });
 }
 
@@ -301,8 +416,9 @@ ImportDialogViewModel _viewModel({
   return ImportDialogViewModel(
     file: file ?? _importFile(),
     initialDatasetName: initialDatasetName,
-    prepareImport:
-        prepareImport ?? ({required file}) async => _preparedResult(),
+    prepareImport: prepareImport ??
+        ({required file, detectMultipleTables = true}) async =>
+            _preparedResult(),
     saveUploadedFile: saveUploadedFile ??
         (file, {importedAt, saveLocally = false}) async {
           return _sourceFileReference();

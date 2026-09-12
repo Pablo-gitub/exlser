@@ -357,6 +357,12 @@
         "title": "Neues Dataset erstellen",
         "dataset_name": "Dataset-Name",
         "save_locally": "Datei lokal speichern",
+        "detect_multiple_tables": "Mehrere Tabellen pro Blatt erkennen",
+        "detect_multiple_tables_subtitle": "Tabellen automatisch anhand leerer Zeilen und Spalten trennen",
+        "table_name": "Tabellenname",
+        "table_name_empty": "Tabellenname darf nicht leer sein",
+        "table_name_duplicate": "Tabellenname muss eindeutig sein",
+        "sheet_range": "Bereich",
         "next": "Weiter",
         "finish": "Fertigstellen",
         "column_types": {

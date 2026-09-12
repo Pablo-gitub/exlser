@@ -31,22 +31,31 @@ import 'package:exlser/domain/entities/parsed_sheet.dart';
 /// by the schema inference pipeline.
 class CsvParser implements SpreadsheetParser {
   @override
-  Future<List<ParsedSheet>> parsePath(String path) async {
+  Future<List<ParsedSheet>> parsePath(
+    String path, {
+    bool detectMultipleTables = true,
+  }) async {
     final file = File(path);
 
     final content = await file.readAsString();
 
-    return _parseContent(content);
+    return _parseContent(content, detectMultipleTables: detectMultipleTables);
   }
 
   @override
-  Future<List<ParsedSheet>> parseBytes(List<int> bytes) async {
+  Future<List<ParsedSheet>> parseBytes(
+    List<int> bytes, {
+    bool detectMultipleTables = true,
+  }) async {
     final content = utf8.decode(bytes);
 
-    return _parseContent(content);
+    return _parseContent(content, detectMultipleTables: detectMultipleTables);
   }
 
-  List<ParsedSheet> _parseContent(String content) {
+  List<ParsedSheet> _parseContent(
+    String content, {
+    bool detectMultipleTables = true,
+  }) {
     if (content.trim().isEmpty) {
       throw Exception('CSV file is empty');
     }
@@ -67,39 +76,45 @@ class CsvParser implements SpreadsheetParser {
       throw Exception('CSV file contains no data');
     }
 
-    /// Detect table boundaries within the CSV.
-    final detectedBlocks = TableBoundaryDetector.detect(
-      rows,
-      defaultSheetName: 'Sheet1',
-    );
+    if (detectMultipleTables) {
+      /// Detect table boundaries within the CSV.
+      final detectedBlocks = TableBoundaryDetector.detect(
+        rows,
+        defaultSheetName: 'Sheet1',
+      );
 
-    if (detectedBlocks.isNotEmpty) {
-      final sheets = <ParsedSheet>[];
-      for (var i = 0; i < detectedBlocks.length; i++) {
-        final block = detectedBlocks[i];
-        final parsedRows = TableRowMapper.map(block.rows);
-        if (parsedRows.isEmpty) continue;
+      if (detectedBlocks.isNotEmpty) {
+        final sheets = <ParsedSheet>[];
+        final usedTableNames = <String>{};
 
-        final tableName =
-            (detectedBlocks.length == 1 && block.detectedTitle == null)
-                ? 'Sheet1'
-                : block.suggestedTableName(
-                    fallbackBaseName: 'Sheet1',
-                    tableIndex: i + 1,
-                  );
+        for (var i = 0; i < detectedBlocks.length; i++) {
+          final block = detectedBlocks[i];
+          final parsedRows = TableRowMapper.map(block.rows);
+          if (parsedRows.isEmpty) continue;
 
-        sheets.add(
-          ParsedSheet(
-            name: tableName,
-            rows: parsedRows,
-            sourceSheetName: 'Sheet1',
-            cellRange: block.cellRange,
-          ),
-        );
-      }
+          final baseName =
+              (detectedBlocks.length == 1 && block.detectedTitle == null)
+                  ? 'Sheet1'
+                  : block.suggestedTableName(
+                      fallbackBaseName: 'Sheet1',
+                      tableIndex: i + 1,
+                    );
+          final tableName = _deduplicateTableName(baseName, usedTableNames);
+          usedTableNames.add(tableName.toLowerCase());
 
-      if (sheets.isNotEmpty) {
-        return sheets;
+          sheets.add(
+            ParsedSheet(
+              name: tableName,
+              rows: parsedRows,
+              sourceSheetName: 'Sheet1',
+              cellRange: block.cellRange,
+            ),
+          );
+        }
+
+        if (sheets.isNotEmpty) {
+          return sheets;
+        }
       }
     }
 
@@ -118,6 +133,16 @@ class CsvParser implements SpreadsheetParser {
         sourceSheetName: 'Sheet1',
       ),
     ];
+  }
+
+  static String _deduplicateTableName(String name, Set<String> existingNames) {
+    var candidate = name;
+    var counter = 2;
+    while (existingNames.contains(candidate.toLowerCase())) {
+      candidate = '$name ($counter)';
+      counter++;
+    }
+    return candidate;
   }
 
   static const String _blankRowMarker = '__EXLSER_BLANK_ROW__';

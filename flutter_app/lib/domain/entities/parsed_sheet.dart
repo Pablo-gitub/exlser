@@ -27,4 +27,18 @@ class ParsedSheet {
     this.sourceSheetName,
     this.cellRange,
   });
+
+  ParsedSheet copyWith({
+    String? name,
+    List<Map<String, dynamic>>? rows,
+    String? sourceSheetName,
+    String? cellRange,
+  }) {
+    return ParsedSheet(
+      name: name ?? this.name,
+      rows: rows ?? this.rows,
+      sourceSheetName: sourceSheetName ?? this.sourceSheetName,
+      cellRange: cellRange ?? this.cellRange,
+    );
+  }
 }

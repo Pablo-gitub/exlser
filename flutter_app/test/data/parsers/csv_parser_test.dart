@@ -129,5 +129,22 @@ void main() {
         expect(second.cellRange, 'A7:B9');
       },
     );
+
+    test(
+      'should parse as single table when detectMultipleTables is false',
+      () async {
+        const csvContent = 'id,name\n'
+            '1,Alice\n'
+            '2,Bob\n';
+        final sheets = await parser.parseBytes(
+          csvContent.codeUnits,
+          detectMultipleTables: false,
+        );
+
+        expect(sheets.length, 1);
+        expect(sheets.first.name, 'Sheet1');
+        expect(sheets.first.cellRange, isNull);
+      },
+    );
   });
 }

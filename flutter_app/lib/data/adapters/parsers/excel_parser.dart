@@ -21,7 +21,10 @@ import 'package:exlser/domain/entities/parsed_sheet.dart';
 /// Values remain raw strings.
 class ExcelParser implements SpreadsheetParser {
   @override
-  Future<List<ParsedSheet>> parsePath(String path) async {
+  Future<List<ParsedSheet>> parsePath(
+    String path, {
+    bool detectMultipleTables = true,
+  }) async {
     final file = File(path);
 
     if (!await file.exists()) {
@@ -30,14 +33,18 @@ class ExcelParser implements SpreadsheetParser {
 
     final bytes = await file.readAsBytes();
 
-    return parseBytes(bytes);
+    return parseBytes(bytes, detectMultipleTables: detectMultipleTables);
   }
 
   @override
-  Future<List<ParsedSheet>> parseBytes(List<int> bytes) async {
+  Future<List<ParsedSheet>> parseBytes(
+    List<int> bytes, {
+    bool detectMultipleTables = true,
+  }) async {
     final excel = Excel.decodeBytes(_normalizePackageForDecoder(bytes));
 
     final sheets = <ParsedSheet>[];
+    final usedTableNames = <String>{};
 
     for (final sheetName in excel.tables.keys) {
       final table = excel.tables[sheetName];
@@ -54,49 +61,58 @@ class ExcelParser implements SpreadsheetParser {
         return row.map(_cellString).toList();
       }).toList();
 
-      /// Detect table boundaries within the sheet.
-      final detectedBlocks = TableBoundaryDetector.detect(
-        rawRows,
-        defaultSheetName: sheetName,
-      );
+      if (detectMultipleTables) {
+        /// Detect table boundaries within the sheet.
+        final detectedBlocks = TableBoundaryDetector.detect(
+          rawRows,
+          defaultSheetName: sheetName,
+        );
 
-      if (detectedBlocks.isNotEmpty) {
-        for (var i = 0; i < detectedBlocks.length; i++) {
-          final block = detectedBlocks[i];
-          final parsedRows = TableRowMapper.map(block.rows);
-          if (parsedRows.isEmpty) continue;
+        if (detectedBlocks.isNotEmpty) {
+          for (var i = 0; i < detectedBlocks.length; i++) {
+            final block = detectedBlocks[i];
+            final parsedRows = TableRowMapper.map(block.rows);
+            if (parsedRows.isEmpty) continue;
 
-          final tableName =
-              (detectedBlocks.length == 1 && block.detectedTitle == null)
-                  ? sheetName
-                  : block.suggestedTableName(
-                      fallbackBaseName: sheetName,
-                      tableIndex: i + 1,
-                    );
+            final baseName =
+                (detectedBlocks.length == 1 && block.detectedTitle == null)
+                    ? sheetName
+                    : block.suggestedTableName(
+                        fallbackBaseName: sheetName,
+                        tableIndex: i + 1,
+                      );
+            final tableName = _deduplicateTableName(baseName, usedTableNames);
+            usedTableNames.add(tableName.toLowerCase());
+
+            sheets.add(
+              ParsedSheet(
+                name: tableName,
+                rows: parsedRows,
+                sourceSheetName: sheetName,
+                cellRange: block.cellRange,
+              ),
+            );
+          }
+          continue;
+        }
+      }
+
+      /// Fallback to single header detection if spatial detection was inconclusive
+      /// or detectMultipleTables is false.
+      final normalizedRows = HeaderDetector.detect(rawRows);
+      if (normalizedRows.isNotEmpty) {
+        final parsedRows = TableRowMapper.map(normalizedRows);
+        if (parsedRows.isNotEmpty) {
+          final tableName = _deduplicateTableName(sheetName, usedTableNames);
+          usedTableNames.add(tableName.toLowerCase());
 
           sheets.add(
             ParsedSheet(
               name: tableName,
               rows: parsedRows,
               sourceSheetName: sheetName,
-              cellRange: block.cellRange,
             ),
           );
-        }
-      } else {
-        /// Fallback to legacy single header detection if spatial detection was inconclusive
-        final normalizedRows = HeaderDetector.detect(rawRows);
-        if (normalizedRows.isNotEmpty) {
-          final parsedRows = TableRowMapper.map(normalizedRows);
-          if (parsedRows.isNotEmpty) {
-            sheets.add(
-              ParsedSheet(
-                name: sheetName,
-                rows: parsedRows,
-                sourceSheetName: sheetName,
-              ),
-            );
-          }
         }
       }
     }
@@ -108,6 +124,16 @@ class ExcelParser implements SpreadsheetParser {
     }
 
     return sheets;
+  }
+
+  static String _deduplicateTableName(String name, Set<String> existingNames) {
+    var candidate = name;
+    var counter = 2;
+    while (existingNames.contains(candidate.toLowerCase())) {
+      candidate = '$name ($counter)';
+      counter++;
+    }
+    return candidate;
   }
 
   /// Normalizes valid OOXML variants that `excel_community` 1.x does not read:

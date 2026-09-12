@@ -35,6 +35,14 @@ class ImportGeneralPage extends StatelessWidget {
           title: Text(AppStrings.importSaveLocally.tr()),
           contentPadding: EdgeInsets.zero,
         ),
+        const SizedBox(height: 8),
+        SwitchListTile(
+          value: viewModel.detectMultipleTables,
+          onChanged: viewModel.updateDetectMultipleTables,
+          title: Text(AppStrings.importDetectMultipleTables.tr()),
+          subtitle: Text(AppStrings.importDetectMultipleTablesSubtitle.tr()),
+          contentPadding: EdgeInsets.zero,
+        ),
       ],
     );
   }

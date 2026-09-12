@@ -357,6 +357,12 @@
         "title": "新しい dataset を作成",
         "dataset_name": "Dataset 名",
         "save_locally": "ファイルをローカルに保存",
+        "detect_multiple_tables": "シート内の複数テーブルを検出",
+        "detect_multiple_tables_subtitle": "空行および空列でテーブルを自動分割",
+        "table_name": "テーブル名",
+        "table_name_empty": "テーブル名は空にできません",
+        "table_name_duplicate": "テーブル名は一意である必要があります",
+        "sheet_range": "範囲",
         "next": "次へ",
         "finish": "完了",
         "column_types": {

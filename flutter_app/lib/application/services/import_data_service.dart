@@ -29,13 +29,18 @@ class ImportDataService {
 
   Future<PreparedImportResult> prepareImport({
     required ImportFile file,
+    bool detectMultipleTables = true,
   }) async {
     try {
       final extension = _getFileExtension(file.fileName);
 
       final parser = _resolveParser(extension);
 
-      final parsedSheets = await _parseFile(parser, file);
+      final parsedSheets = await _parseFile(
+        parser,
+        file,
+        detectMultipleTables: detectMultipleTables,
+      );
 
       final prepared = _processSheets(parsedSheets);
 
@@ -85,12 +90,19 @@ class ImportDataService {
 
   Future<List<ParsedSheet>> _parseFile(
     SpreadsheetParser parser,
-    ImportFile file,
-  ) async {
+    ImportFile file, {
+    bool detectMultipleTables = true,
+  }) async {
     try {
       final sheets = file.hasPath
-          ? await parser.parsePath(file.path!)
-          : await parser.parseBytes(file.bytes!);
+          ? await parser.parsePath(
+              file.path!,
+              detectMultipleTables: detectMultipleTables,
+            )
+          : await parser.parseBytes(
+              file.bytes!,
+              detectMultipleTables: detectMultipleTables,
+            );
 
       if (sheets.isEmpty) {
         throw const ParsingException(
@@ -203,8 +215,8 @@ class ImportDataService {
       if (symbolCounts.isEmpty || nonEmptyCount == 0) continue;
 
       // Accept the symbol only if it appears in over half the non-empty cells.
-      final dominant = symbolCounts.entries
-          .reduce((a, b) => a.value >= b.value ? a : b);
+      final dominant =
+          symbolCounts.entries.reduce((a, b) => a.value >= b.value ? a : b);
       if (dominant.value > nonEmptyCount * 0.5) {
         result[col.dbName] = dominant.key;
       }

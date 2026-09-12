@@ -357,6 +357,12 @@
         "title": "Создать новый dataset",
         "dataset_name": "Имя dataset",
         "save_locally": "Сохранить файл локально",
+        "detect_multiple_tables": "Определять несколько таблиц на листе",
+        "detect_multiple_tables_subtitle": "Автоматически разделять таблицы по пустым строкам и столбцам",
+        "table_name": "Имя таблицы",
+        "table_name_empty": "Имя таблицы не может быть пустым",
+        "table_name_duplicate": "Имя таблицы должно быть уникальным",
+        "sheet_range": "Диапазон",
         "next": "Далее",
         "finish": "Готово",
         "column_types": {

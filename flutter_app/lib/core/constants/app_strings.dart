@@ -277,6 +277,14 @@ class AppStrings {
   static const String importTitle = 'import.title';
   static const String importDatasetName = 'import.dataset_name';
   static const String importSaveLocally = 'import.save_locally';
+  static const String importDetectMultipleTables =
+      'import.detect_multiple_tables';
+  static const String importDetectMultipleTablesSubtitle =
+      'import.detect_multiple_tables_subtitle';
+  static const String importTableName = 'import.table_name';
+  static const String importTableNameEmpty = 'import.table_name_empty';
+  static const String importTableNameDuplicate = 'import.table_name_duplicate';
+  static const String importSheetRange = 'import.sheet_range';
   static const String importNext = 'import.next';
   static const String importFinish = 'import.finish';
   static const String importColumnTypesTitle = 'import.column_types.title';

@@ -357,6 +357,12 @@
         "title": "Criar novo dataset",
         "dataset_name": "Nome do dataset",
         "save_locally": "Salvar arquivo localmente",
+        "detect_multiple_tables": "Detectar várias tabelas por planilha",
+        "detect_multiple_tables_subtitle": "Separar tabelas automaticamente por linhas e colunas vazias",
+        "table_name": "Nome da tabela",
+        "table_name_empty": "O nome da tabela não pode estar vazio",
+        "table_name_duplicate": "O nome da tabela deve ser exclusivo",
+        "sheet_range": "Intervalo",
         "next": "Próximo",
         "finish": "Finalizar",
         "column_types": {

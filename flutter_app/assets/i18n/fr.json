@@ -357,6 +357,12 @@
         "title": "Créer un nouveau dataset",
         "dataset_name": "Nom du dataset",
         "save_locally": "Enregistrer le fichier localement",
+        "detect_multiple_tables": "Détecter plusieurs tableaux par feuille",
+        "detect_multiple_tables_subtitle": "Séparer automatiquement les tableaux par lignes et colonnes vides",
+        "table_name": "Nom de la table",
+        "table_name_empty": "Le nom de la table ne peut pas être vide",
+        "table_name_duplicate": "Le nom de la table doit être unique",
+        "sheet_range": "Plage",
         "next": "Suivant",
         "finish": "Terminer",
         "column_types": {

@@ -77,10 +77,47 @@ class _SheetColumnTypeSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '${sheet.sheet.name} · ${sheet.sheet.rows.length} '
-              '${AppStrings.importColumnTypesRows.tr()}',
-              style: Theme.of(context).textTheme.titleSmall,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${viewModel.tableNameFor(sheetIndex)} · '
+                    '${sheet.sheet.rows.length} '
+                    '${AppStrings.importColumnTypesRows.tr()}',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                if (sheet.sheet.cellRange != null) ...[
+                  const SizedBox(width: 8),
+                  Chip(
+                    visualDensity: VisualDensity.compact,
+                    avatar: const Icon(Icons.grid_on, size: 16),
+                    label: Text(sheet.sheet.cellRange!),
+                  ),
+                ],
+              ],
+            ),
+            if (sheet.sheet.sourceSheetName != null &&
+                sheet.sheet.sourceSheetName !=
+                    viewModel.tableNameFor(sheetIndex)) ...[
+              const SizedBox(height: 4),
+              Text(
+                '${AppStrings.importConfirmationSheets.tr()}: ${sheet.sheet.sourceSheetName}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+            const SizedBox(height: 8),
+            TextFormField(
+              initialValue: viewModel.tableNameFor(sheetIndex),
+              decoration: InputDecoration(
+                labelText: AppStrings.importTableName.tr(),
+                errorText: viewModel.tableNameErrorFor(sheetIndex)?.tr(),
+                isDense: true,
+              ),
+              onChanged: (value) => viewModel.updateTableName(
+                sheetIndex: sheetIndex,
+                name: value,
+              ),
             ),
             const SizedBox(height: 12),
             for (var columnIndex = 0;

@@ -357,6 +357,12 @@
         "title": "创建新 dataset",
         "dataset_name": "Dataset 名称",
         "save_locally": "本地保存文件",
+        "detect_multiple_tables": "检测每个工作表中的多个表格",
+        "detect_multiple_tables_subtitle": "通过空行和空列自动分离表格",
+        "table_name": "表名",
+        "table_name_empty": "表名不能为空",
+        "table_name_duplicate": "表名必须唯一",
+        "sheet_range": "单元格范围",
         "next": "下一步",
         "finish": "完成",
         "column_types": {

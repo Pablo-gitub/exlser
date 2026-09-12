@@ -357,6 +357,12 @@
         "title": "Create new dataset",
         "dataset_name": "Dataset name",
         "save_locally": "Save file locally",
+        "detect_multiple_tables": "Detect multiple tables per sheet",
+        "detect_multiple_tables_subtitle": "Automatically separate tables by empty rows and columns",
+        "table_name": "Table name",
+        "table_name_empty": "Table name cannot be empty",
+        "table_name_duplicate": "Table name must be unique",
+        "sheet_range": "Range",
         "next": "Next",
         "finish": "Finish",
         "column_types": {

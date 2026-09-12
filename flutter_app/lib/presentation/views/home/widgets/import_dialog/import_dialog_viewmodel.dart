@@ -7,10 +7,12 @@ import 'package:exlser/application/dto/prepared_import_result.dart';
 import 'package:exlser/application/exceptions/import_exceptions.dart';
 import 'package:exlser/domain/entities/source_file_reference.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
+import 'package:exlser/core/constants/app_strings.dart';
 import 'package:flutter/foundation.dart';
 
 typedef PrepareImportCallback = Future<PreparedImportResult> Function({
   required ImportFile file,
+  bool detectMultipleTables,
 });
 
 typedef SaveUploadedFileCallback = Future<SourceFileReference> Function(
@@ -65,6 +67,8 @@ class ImportDialogViewModel extends ChangeNotifier {
 
   bool _saveLocally;
 
+  bool _detectMultipleTables = true;
+
   bool _isPreparingImport = false;
 
   bool _isCreatingDataset = false;
@@ -81,11 +85,15 @@ class ImportDialogViewModel extends ChangeNotifier {
 
   final Map<int, Map<int, ColumnType>> _selectedColumnTypes = {};
 
+  final Map<int, String> _customTableNames = {};
+
   ImportDialogStep get currentStep => _currentStep;
 
   String get datasetName => _datasetName;
 
   bool get saveLocally => _saveLocally;
+
+  bool get detectMultipleTables => _detectMultipleTables;
 
   String get sourceFileName => file.fileName;
 
@@ -99,6 +107,59 @@ class ImportDialogViewModel extends ChangeNotifier {
 
   CreatedDatasetResult? get createdDatasetResult => _createdDatasetResult;
 
+  String tableNameFor(int sheetIndex) {
+    return _customTableNames[sheetIndex] ??
+        _preparedImportResult?.sheets[sheetIndex].sheet.name ??
+        '';
+  }
+
+  void updateTableName({
+    required int sheetIndex,
+    required String name,
+  }) {
+    _customTableNames[sheetIndex] = name;
+    notifyListeners();
+  }
+
+  void updateDetectMultipleTables(bool value) {
+    if (_detectMultipleTables == value) return;
+    _detectMultipleTables = value;
+    _preparedImportResult = null;
+    _customTableNames.clear();
+    notifyListeners();
+  }
+
+  bool get hasValidTableNames {
+    final prepared = _preparedImportResult;
+    if (prepared == null || !prepared.hasSheets) return true;
+
+    final names = <String>{};
+    for (var i = 0; i < prepared.sheets.length; i++) {
+      final name = tableNameFor(i).trim();
+      if (name.isEmpty) return false;
+      if (names.contains(name.toLowerCase())) return false;
+      names.add(name.toLowerCase());
+    }
+    return true;
+  }
+
+  String? tableNameErrorFor(int sheetIndex) {
+    final name = tableNameFor(sheetIndex).trim();
+    if (name.isEmpty) {
+      return AppStrings.importTableNameEmpty;
+    }
+    final prepared = _preparedImportResult;
+    if (prepared != null) {
+      for (var i = 0; i < prepared.sheets.length; i++) {
+        if (i != sheetIndex &&
+            tableNameFor(i).trim().toLowerCase() == name.toLowerCase()) {
+          return AppStrings.importTableNameDuplicate;
+        }
+      }
+    }
+    return null;
+  }
+
   List<ConfirmedImportSheet> get confirmedSheets {
     final preparedImportResult = _preparedImportResult;
 
@@ -111,7 +172,11 @@ class ImportDialogViewModel extends ChangeNotifier {
           sheetIndex < preparedImportResult.sheets.length;
           sheetIndex++)
         ConfirmedImportSheet(
-          sheet: preparedImportResult.sheets[sheetIndex].sheet,
+          sheet: preparedImportResult.sheets[sheetIndex].sheet.copyWith(
+            name: tableNameFor(sheetIndex).trim().isNotEmpty
+                ? tableNameFor(sheetIndex).trim()
+                : preparedImportResult.sheets[sheetIndex].sheet.name,
+          ),
           columns: [
             for (var columnIndex = 0;
                 columnIndex <
@@ -127,8 +192,8 @@ class ImportDialogViewModel extends ChangeNotifier {
                 ),
               ),
           ],
-          columnCurrencySymbols: preparedImportResult
-              .sheets[sheetIndex].columnCurrencySymbols,
+          columnCurrencySymbols:
+              preparedImportResult.sheets[sheetIndex].columnCurrencySymbols,
         ),
     ];
   }
@@ -200,7 +265,7 @@ class ImportDialogViewModel extends ChangeNotifier {
         return _datasetName.trim().isNotEmpty;
 
       case ImportDialogStep.columnTypes:
-        return hasConfirmedColumnTypes;
+        return hasConfirmedColumnTypes && hasValidTableNames;
 
       case ImportDialogStep.confirmation:
         return confirmedImport != null;
@@ -319,8 +384,12 @@ class ImportDialogViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final preparedImportResult = await _prepareImport(file: file);
+      final preparedImportResult = await _prepareImport(
+        file: file,
+        detectMultipleTables: _detectMultipleTables,
+      );
       _preparedImportResult = preparedImportResult;
+      _customTableNames.clear();
       _initializeSelectedColumnTypes(preparedImportResult);
     } on ImportException catch (e) {
       _preparedImportResult = null;
