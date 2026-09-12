@@ -363,6 +363,13 @@
         "table_name_empty": "Tabellenname darf nicht leer sein",
         "table_name_duplicate": "Tabellenname muss eindeutig sein",
         "sheet_range": "Bereich",
+        "matrix": {
+            "detected": "Kreuztabelle/Matrix erkannt",
+            "detected_subtitle": "Diese Tabelle sieht wie eine 2D-Matrix aus. Sie können sie in eine normalisierte relationale Tabelle entpivotieren.",
+            "unpivot_toggle": "Matrix normalisieren (Entpivotieren)",
+            "dimension_column": "Dimensionsspalte",
+            "value_column": "Wertspalte"
+        },
         "next": "Weiter",
         "finish": "Fertigstellen",
         "column_types": {

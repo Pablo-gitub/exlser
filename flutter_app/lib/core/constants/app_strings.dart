@@ -285,6 +285,14 @@ class AppStrings {
   static const String importTableNameEmpty = 'import.table_name_empty';
   static const String importTableNameDuplicate = 'import.table_name_duplicate';
   static const String importSheetRange = 'import.sheet_range';
+  static const String importMatrixDetected = 'import.matrix.detected';
+  static const String importMatrixDetectedSubtitle =
+      'import.matrix.detected_subtitle';
+  static const String importMatrixUnpivotToggle =
+      'import.matrix.unpivot_toggle';
+  static const String importMatrixDimensionColumn =
+      'import.matrix.dimension_column';
+  static const String importMatrixValueColumn = 'import.matrix.value_column';
   static const String importNext = 'import.next';
   static const String importFinish = 'import.finish';
   static const String importColumnTypesTitle = 'import.column_types.title';

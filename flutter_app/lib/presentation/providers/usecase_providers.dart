@@ -24,9 +24,11 @@ import 'package:exlser/domain/usecases/query/fetch_rows_usecase.dart';
 import 'package:exlser/domain/usecases/query/get_distinct_values_usecase.dart';
 import 'package:exlser/domain/usecases/schema/build_dynamic_table_usecase.dart';
 import 'package:exlser/domain/usecases/schema/create_dataset_table_usecase.dart';
+import 'package:exlser/domain/usecases/schema/detect_matrix_table_usecase.dart';
 import 'package:exlser/domain/usecases/schema/infer_schema_usecase.dart';
 import 'package:exlser/domain/usecases/schema/insert_rows_usecase.dart';
 import 'package:exlser/domain/usecases/schema/register_columns_usecase.dart';
+import 'package:exlser/domain/usecases/schema/unpivot_matrix_table_usecase.dart';
 import 'package:exlser/presentation/providers/database_providers.dart';
 import 'package:exlser/presentation/providers/repository_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,6 +51,20 @@ final inferSchemaUseCaseProvider = Provider<InferSchemaUseCase>((ref) {
     dateNormalizer: ref.watch(dateNormalizerProvider),
     booleanNormalizer: ref.watch(booleanNormalizerProvider),
   );
+});
+
+final detectMatrixTableUseCaseProvider =
+    Provider<DetectMatrixTableUseCase>((ref) {
+  return DetectMatrixTableUseCase(
+    numberNormalizer: ref.watch(numberNormalizerProvider),
+    dateNormalizer: ref.watch(dateNormalizerProvider),
+    booleanNormalizer: ref.watch(booleanNormalizerProvider),
+  );
+});
+
+final unpivotMatrixTableUseCaseProvider =
+    Provider<UnpivotMatrixTableUseCase>((ref) {
+  return const UnpivotMatrixTableUseCase();
 });
 
 final saveUploadedFileUseCaseProvider =

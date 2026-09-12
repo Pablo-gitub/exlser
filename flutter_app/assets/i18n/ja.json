@@ -363,6 +363,13 @@
         "table_name_empty": "テーブル名は空にできません",
         "table_name_duplicate": "テーブル名は一意である必要があります",
         "sheet_range": "範囲",
+        "matrix": {
+            "detected": "クロス集計マトリックスを検出",
+            "detected_subtitle": "この表は2次元マトリックスの形式です。正規化されたリレーショナルテーブルにアンピボット（変換）できます。",
+            "unpivot_toggle": "マトリックスを正規化 (アンピボット)",
+            "dimension_column": "ディメンション列",
+            "value_column": "値列"
+        },
         "next": "次へ",
         "finish": "完了",
         "column_types": {

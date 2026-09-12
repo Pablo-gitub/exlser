@@ -363,6 +363,13 @@
         "table_name_empty": "Il nome della tabella non può essere vuoto",
         "table_name_duplicate": "Il nome della tabella deve essere univoco",
         "sheet_range": "Intervallo",
+        "matrix": {
+            "detected": "Matrice cross-tab rilevata",
+            "detected_subtitle": "Questa tabella ha una struttura a matrice 2D. Puoi normalizzarla (unpivot) in formato relazionale.",
+            "unpivot_toggle": "Normalizza matrice (Unpivot)",
+            "dimension_column": "Colonna dimensione",
+            "value_column": "Colonna valore"
+        },
         "next": "Avanti",
         "finish": "Completa",
         "column_types": {

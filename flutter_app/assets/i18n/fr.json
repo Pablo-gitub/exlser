@@ -363,6 +363,13 @@
         "table_name_empty": "Le nom de la table ne peut pas être vide",
         "table_name_duplicate": "Le nom de la table doit être unique",
         "sheet_range": "Plage",
+        "matrix": {
+            "detected": "Matrice croisée détectée",
+            "detected_subtitle": "Ce tableau ressemble à une matrice 2D. Vous pouvez le normaliser (unpivot) en format relationnel.",
+            "unpivot_toggle": "Normaliser la matrice (Unpivot)",
+            "dimension_column": "Colonne dimension",
+            "value_column": "Colonne valeur"
+        },
         "next": "Suivant",
         "finish": "Terminer",
         "column_types": {

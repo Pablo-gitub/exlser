@@ -363,6 +363,13 @@
         "table_name_empty": "El nombre de la tabla no puede estar vacío",
         "table_name_duplicate": "El nombre de la tabla debe ser único",
         "sheet_range": "Rango",
+        "matrix": {
+            "detected": "Matriz cruzada detectada",
+            "detected_subtitle": "Esta tabla parece una matriz 2D. Puedes normalizarla (unpivot) a formato relacional.",
+            "unpivot_toggle": "Normalizar matriz (Unpivot)",
+            "dimension_column": "Columna dimensión",
+            "value_column": "Columna valor"
+        },
         "next": "Siguiente",
         "finish": "Finalizar",
         "column_types": {

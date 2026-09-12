@@ -37,6 +37,11 @@ final importDialogViewModelProvider = ChangeNotifierProvider.family<
     final importDataService = ref.watch(importDataServiceProvider);
     final saveUploadedFileUseCase = ref.watch(saveUploadedFileUseCaseProvider);
     final createDatasetService = ref.watch(createDatasetServiceProvider);
+    final detectMatrixTableUseCase =
+        ref.watch(detectMatrixTableUseCaseProvider);
+    final unpivotMatrixTableUseCase =
+        ref.watch(unpivotMatrixTableUseCaseProvider);
+    final inferSchemaUseCase = ref.watch(inferSchemaUseCaseProvider);
 
     return ImportDialogViewModel(
       file: args.file,
@@ -44,6 +49,9 @@ final importDialogViewModelProvider = ChangeNotifierProvider.family<
       prepareImport: importDataService.prepareImport,
       saveUploadedFile: saveUploadedFileUseCase.call,
       createDataset: createDatasetService.createDataset,
+      detectMatrixTableUseCase: detectMatrixTableUseCase,
+      unpivotMatrixTableUseCase: unpivotMatrixTableUseCase,
+      inferSchemaUseCase: inferSchemaUseCase,
     );
   },
 );

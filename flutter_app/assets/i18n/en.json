@@ -363,6 +363,13 @@
         "table_name_empty": "Table name cannot be empty",
         "table_name_duplicate": "Table name must be unique",
         "sheet_range": "Range",
+        "matrix": {
+            "detected": "Cross-tab matrix detected",
+            "detected_subtitle": "This table looks like a 2D matrix. You can unpivot it into a normalized relational table.",
+            "unpivot_toggle": "Normalize matrix (Unpivot)",
+            "dimension_column": "Dimension column",
+            "value_column": "Value column"
+        },
         "next": "Next",
         "finish": "Finish",
         "column_types": {

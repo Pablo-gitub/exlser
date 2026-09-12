@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:exlser/application/dto/prepared_sheet.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/usecases/schema/detect_matrix_table_usecase.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:flutter/material.dart';
 
@@ -43,7 +44,7 @@ class ImportColumnTypePage extends StatelessWidget {
             sheetIndex++) ...[
           _SheetColumnTypeSection(
             sheetIndex: sheetIndex,
-            sheet: preparedImportResult.sheets[sheetIndex],
+            sheet: viewModel.effectiveSheetFor(sheetIndex),
             viewModel: viewModel,
           ),
           if (sheetIndex < preparedImportResult.sheets.length - 1)
@@ -67,6 +68,9 @@ class _SheetColumnTypeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final matrixCandidate = viewModel.matrixCandidateFor(sheetIndex);
+    final isUnpivotEnabled = viewModel.isMatrixUnpivotEnabled(sheetIndex);
+
     return Card(
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
@@ -119,11 +123,23 @@ class _SheetColumnTypeSection extends StatelessWidget {
                 name: value,
               ),
             ),
+            if (matrixCandidate != null) ...[
+              const SizedBox(height: 12),
+              _MatrixDetectionCard(
+                sheetIndex: sheetIndex,
+                candidate: matrixCandidate,
+                isUnpivotEnabled: isUnpivotEnabled,
+                viewModel: viewModel,
+              ),
+            ],
             const SizedBox(height: 12),
             for (var columnIndex = 0;
                 columnIndex < sheet.inferredColumns.length;
                 columnIndex++) ...[
               _ColumnTypeRow(
+                key: ValueKey(
+                  '${sheetIndex}_${sheet.inferredColumns[columnIndex].originalName}_$isUnpivotEnabled',
+                ),
                 column: sheet.inferredColumns[columnIndex],
                 selectedType: viewModel.selectedColumnTypeFor(
                   sheetIndex: sheetIndex,
@@ -149,12 +165,142 @@ class _SheetColumnTypeSection extends StatelessWidget {
   }
 }
 
+class _MatrixDetectionCard extends StatelessWidget {
+  final int sheetIndex;
+  final MatrixCandidate candidate;
+  final bool isUnpivotEnabled;
+  final ImportDialogViewModel viewModel;
+
+  const _MatrixDetectionCard({
+    required this.sheetIndex,
+    required this.candidate,
+    required this.isUnpivotEnabled,
+    required this.viewModel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Material(
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: isUnpivotEnabled
+              ? colorScheme.primary.withValues(alpha: 0.5)
+              : theme.dividerColor,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    AppStrings.importMatrixDetected.tr(),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              AppStrings.importMatrixDetectedSubtitle.tr(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                AppStrings.importMatrixUnpivotToggle.tr(),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              value: isUnpivotEnabled,
+              onChanged: (val) =>
+                  viewModel.toggleMatrixUnpivot(sheetIndex, val),
+            ),
+            if (isUnpivotEnabled) ...[
+              const SizedBox(height: 8),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 450;
+                  final dimField = TextFormField(
+                    key: ValueKey('matrix_dim_$sheetIndex'),
+                    initialValue: viewModel.unpivotDimensionNameFor(sheetIndex),
+                    decoration: InputDecoration(
+                      labelText: AppStrings.importMatrixDimensionColumn.tr(),
+                      isDense: true,
+                    ),
+                    onChanged: (val) => viewModel.updateUnpivotDimensionName(
+                      sheetIndex: sheetIndex,
+                      name: val,
+                    ),
+                  );
+                  final valField = TextFormField(
+                    key: ValueKey('matrix_val_$sheetIndex'),
+                    initialValue: viewModel.unpivotValueNameFor(sheetIndex),
+                    decoration: InputDecoration(
+                      labelText: AppStrings.importMatrixValueColumn.tr(),
+                      isDense: true,
+                    ),
+                    onChanged: (val) => viewModel.updateUnpivotValueName(
+                      sheetIndex: sheetIndex,
+                      name: val,
+                    ),
+                  );
+
+                  if (isNarrow) {
+                    return Column(
+                      children: [
+                        dimField,
+                        const SizedBox(height: 8),
+                        valField,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(child: dimField),
+                      const SizedBox(width: 12),
+                      Expanded(child: valField),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ColumnTypeRow extends StatelessWidget {
   final DatasetColumn column;
   final ColumnType? selectedType;
   final ValueChanged<ColumnType?> onChanged;
 
   const _ColumnTypeRow({
+    super.key,
     required this.column,
     required this.selectedType,
     required this.onChanged,

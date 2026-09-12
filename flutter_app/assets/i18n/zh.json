@@ -363,6 +363,13 @@
         "table_name_empty": "表名不能为空",
         "table_name_duplicate": "表名必须唯一",
         "sheet_range": "单元格范围",
+        "matrix": {
+            "detected": "检测到交叉制表矩阵",
+            "detected_subtitle": "此表格呈现二维矩阵形式。您可以将其逆透视（Unpivot）为规范化的关系表。",
+            "unpivot_toggle": "规范化矩阵 (逆透视)",
+            "dimension_column": "维度列",
+            "value_column": "数值列"
+        },
         "next": "下一步",
         "finish": "完成",
         "column_types": {

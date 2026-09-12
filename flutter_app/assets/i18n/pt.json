@@ -363,6 +363,13 @@
         "table_name_empty": "O nome da tabela não pode estar vazio",
         "table_name_duplicate": "O nome da tabela deve ser exclusivo",
         "sheet_range": "Intervalo",
+        "matrix": {
+            "detected": "Matriz cruzada detectada",
+            "detected_subtitle": "Esta tabela parece uma matriz bidimensional. Você pode normalizá-la em uma tabela relacional.",
+            "unpivot_toggle": "Normalizar matriz (Unpivot)",
+            "dimension_column": "Coluna de dimensão",
+            "value_column": "Coluna de valor"
+        },
         "next": "Próximo",
         "finish": "Finalizar",
         "column_types": {

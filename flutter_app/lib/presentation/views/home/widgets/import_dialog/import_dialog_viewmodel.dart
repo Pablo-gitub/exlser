@@ -4,10 +4,19 @@ import 'package:exlser/application/dto/import_file.dart';
 import 'package:exlser/application/dto/confirmed_import.dart';
 import 'package:exlser/application/dto/created_dataset_result.dart';
 import 'package:exlser/application/dto/prepared_import_result.dart';
+import 'package:exlser/application/dto/prepared_sheet.dart';
 import 'package:exlser/application/exceptions/import_exceptions.dart';
-import 'package:exlser/domain/entities/source_file_reference.dart';
-import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:exlser/core/constants/app_strings.dart';
+import 'package:exlser/core/normalizers/sql_name_sanitizer.dart';
+import 'package:exlser/data/adapters/normalizers/boolean_normalizer.dart';
+import 'package:exlser/data/adapters/normalizers/date_normalizer.dart';
+import 'package:exlser/data/adapters/normalizers/number_normalizer.dart';
+import 'package:exlser/domain/entities/dataset_column.dart';
+import 'package:exlser/domain/entities/source_file_reference.dart';
+import 'package:exlser/domain/usecases/schema/detect_matrix_table_usecase.dart';
+import 'package:exlser/domain/usecases/schema/infer_schema_usecase.dart';
+import 'package:exlser/domain/usecases/schema/unpivot_matrix_table_usecase.dart';
+import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:flutter/foundation.dart';
 
 typedef PrepareImportCallback = Future<PreparedImportResult> Function({
@@ -47,11 +56,28 @@ class ImportDialogViewModel extends ChangeNotifier {
     required SaveUploadedFileCallback saveUploadedFile,
     required CreateDatasetCallback createDataset,
     required String initialDatasetName,
+    DetectMatrixTableUseCase? detectMatrixTableUseCase,
+    UnpivotMatrixTableUseCase? unpivotMatrixTableUseCase,
+    InferSchemaUseCase? inferSchemaUseCase,
   })  : _datasetName = initialDatasetName,
         _saveLocally = !kIsWeb,
         _prepareImport = prepareImport,
         _saveUploadedFile = saveUploadedFile,
-        _createDataset = createDataset;
+        _createDataset = createDataset,
+        _detectMatrixTableUseCase = detectMatrixTableUseCase ??
+            DetectMatrixTableUseCase(
+              numberNormalizer: NumberNormalizer(),
+              dateNormalizer: DateNormalizer(),
+              booleanNormalizer: BooleanNormalizer(),
+            ),
+        _unpivotMatrixTableUseCase =
+            unpivotMatrixTableUseCase ?? const UnpivotMatrixTableUseCase(),
+        _inferSchemaUseCase = inferSchemaUseCase ??
+            InferSchemaUseCase(
+              numberNormalizer: NumberNormalizer(),
+              dateNormalizer: DateNormalizer(),
+              booleanNormalizer: BooleanNormalizer(),
+            );
 
   final ImportFile file;
 
@@ -60,6 +86,12 @@ class ImportDialogViewModel extends ChangeNotifier {
   final SaveUploadedFileCallback _saveUploadedFile;
 
   final CreateDatasetCallback _createDataset;
+
+  final DetectMatrixTableUseCase _detectMatrixTableUseCase;
+
+  final UnpivotMatrixTableUseCase _unpivotMatrixTableUseCase;
+
+  final InferSchemaUseCase _inferSchemaUseCase;
 
   ImportDialogStep _currentStep = ImportDialogStep.general;
 
@@ -86,6 +118,16 @@ class ImportDialogViewModel extends ChangeNotifier {
   final Map<int, Map<int, ColumnType>> _selectedColumnTypes = {};
 
   final Map<int, String> _customTableNames = {};
+
+  final Map<int, MatrixCandidate> _matrixCandidates = {};
+
+  final Map<int, bool> _matrixUnpivotEnabled = {};
+
+  final Map<int, String> _unpivotDimensionNames = {};
+
+  final Map<int, String> _unpivotValueNames = {};
+
+  final Map<int, PreparedSheet> _unpivotedSheets = {};
 
   ImportDialogStep get currentStep => _currentStep;
 
@@ -126,7 +168,82 @@ class ImportDialogViewModel extends ChangeNotifier {
     _detectMultipleTables = value;
     _preparedImportResult = null;
     _customTableNames.clear();
+    _matrixCandidates.clear();
+    _matrixUnpivotEnabled.clear();
+    _unpivotDimensionNames.clear();
+    _unpivotValueNames.clear();
+    _unpivotedSheets.clear();
     notifyListeners();
+  }
+
+  MatrixCandidate? matrixCandidateFor(int sheetIndex) {
+    return _matrixCandidates[sheetIndex];
+  }
+
+  bool isMatrixUnpivotEnabled(int sheetIndex) {
+    return _matrixUnpivotEnabled[sheetIndex] ?? false;
+  }
+
+  void toggleMatrixUnpivot(int sheetIndex, bool enabled) {
+    if (_matrixUnpivotEnabled[sheetIndex] == enabled) return;
+    _matrixUnpivotEnabled[sheetIndex] = enabled;
+    if (enabled && !_unpivotedSheets.containsKey(sheetIndex)) {
+      _updateUnpivotedSheet(sheetIndex);
+    }
+    _reinitializeColumnTypesForSheet(sheetIndex);
+    notifyListeners();
+  }
+
+  String unpivotDimensionNameFor(int sheetIndex) {
+    return _unpivotDimensionNames[sheetIndex] ??
+        _matrixCandidates[sheetIndex]?.suggestedDimensionName ??
+        'Dimension';
+  }
+
+  void updateUnpivotDimensionName({
+    required int sheetIndex,
+    required String name,
+  }) {
+    _unpivotDimensionNames[sheetIndex] = name;
+    if (isMatrixUnpivotEnabled(sheetIndex)) {
+      _updateUnpivotedSheet(sheetIndex);
+      _reinitializeColumnTypesForSheet(sheetIndex);
+      notifyListeners();
+    }
+  }
+
+  String unpivotValueNameFor(int sheetIndex) {
+    return _unpivotValueNames[sheetIndex] ??
+        _matrixCandidates[sheetIndex]?.suggestedValueName ??
+        'Value';
+  }
+
+  void updateUnpivotValueName({
+    required int sheetIndex,
+    required String name,
+  }) {
+    _unpivotValueNames[sheetIndex] = name;
+    if (isMatrixUnpivotEnabled(sheetIndex)) {
+      _updateUnpivotedSheet(sheetIndex);
+      _reinitializeColumnTypesForSheet(sheetIndex);
+      notifyListeners();
+    }
+  }
+
+  PreparedSheet effectiveSheetFor(int sheetIndex) {
+    final prepared = _preparedImportResult;
+    if (prepared == null ||
+        sheetIndex < 0 ||
+        sheetIndex >= prepared.sheets.length) {
+      throw StateError('Sheet index $sheetIndex out of bounds');
+    }
+    if (isMatrixUnpivotEnabled(sheetIndex)) {
+      final unpivoted = _unpivotedSheets[sheetIndex];
+      if (unpivoted != null) {
+        return unpivoted;
+      }
+    }
+    return prepared.sheets[sheetIndex];
   }
 
   bool get hasValidTableNames {
@@ -172,28 +289,27 @@ class ImportDialogViewModel extends ChangeNotifier {
           sheetIndex < preparedImportResult.sheets.length;
           sheetIndex++)
         ConfirmedImportSheet(
-          sheet: preparedImportResult.sheets[sheetIndex].sheet.copyWith(
-            name: tableNameFor(sheetIndex).trim().isNotEmpty
-                ? tableNameFor(sheetIndex).trim()
-                : preparedImportResult.sheets[sheetIndex].sheet.name,
-          ),
+          sheet: effectiveSheetFor(sheetIndex).sheet.copyWith(
+                name: tableNameFor(sheetIndex).trim().isNotEmpty
+                    ? tableNameFor(sheetIndex).trim()
+                    : effectiveSheetFor(sheetIndex).sheet.name,
+              ),
           columns: [
             for (var columnIndex = 0;
                 columnIndex <
-                    preparedImportResult
-                        .sheets[sheetIndex].inferredColumns.length;
+                    effectiveSheetFor(sheetIndex).inferredColumns.length;
                 columnIndex++)
-              preparedImportResult
-                  .sheets[sheetIndex].inferredColumns[columnIndex]
+              effectiveSheetFor(sheetIndex)
+                  .inferredColumns[columnIndex]
                   .copyWith(
-                declaredType: selectedColumnTypeFor(
-                  sheetIndex: sheetIndex,
-                  columnIndex: columnIndex,
-                ),
-              ),
+                    declaredType: selectedColumnTypeFor(
+                      sheetIndex: sheetIndex,
+                      columnIndex: columnIndex,
+                    ),
+                  ),
           ],
           columnCurrencySymbols:
-              preparedImportResult.sheets[sheetIndex].columnCurrencySymbols,
+              effectiveSheetFor(sheetIndex).columnCurrencySymbols,
         ),
     ];
   }
@@ -239,7 +355,7 @@ class ImportDialogViewModel extends ChangeNotifier {
     for (var sheetIndex = 0;
         sheetIndex < preparedImportResult.sheets.length;
         sheetIndex++) {
-      final columns = preparedImportResult.sheets[sheetIndex].inferredColumns;
+      final columns = effectiveSheetFor(sheetIndex).inferredColumns;
 
       if (columns.isEmpty) {
         return false;
@@ -259,13 +375,27 @@ class ImportDialogViewModel extends ChangeNotifier {
     return true;
   }
 
+  bool get hasValidMatrixColumnNames {
+    for (final entry in _matrixCandidates.entries) {
+      final sheetIndex = entry.key;
+      if (isMatrixUnpivotEnabled(sheetIndex)) {
+        final dimName = unpivotDimensionNameFor(sheetIndex).trim();
+        final valName = unpivotValueNameFor(sheetIndex).trim();
+        if (dimName.isEmpty || valName.isEmpty) return false;
+      }
+    }
+    return true;
+  }
+
   bool get isCurrentStepValid {
     switch (_currentStep) {
       case ImportDialogStep.general:
         return _datasetName.trim().isNotEmpty;
 
       case ImportDialogStep.columnTypes:
-        return hasConfirmedColumnTypes && hasValidTableNames;
+        return hasConfirmedColumnTypes &&
+            hasValidTableNames &&
+            hasValidMatrixColumnNames;
 
       case ImportDialogStep.confirmation:
         return confirmedImport != null;
@@ -276,7 +406,14 @@ class ImportDialogViewModel extends ChangeNotifier {
     required int sheetIndex,
     required int columnIndex,
   }) {
-    return _selectedColumnTypes[sheetIndex]?[columnIndex];
+    final selected = _selectedColumnTypes[sheetIndex]?[columnIndex];
+    if (selected != null) return selected;
+    if (_hasColumn(sheetIndex: sheetIndex, columnIndex: columnIndex)) {
+      return effectiveSheetFor(sheetIndex)
+          .inferredColumns[columnIndex]
+          .declaredType;
+    }
+    return null;
   }
 
   void updateColumnType({
@@ -390,14 +527,30 @@ class ImportDialogViewModel extends ChangeNotifier {
       );
       _preparedImportResult = preparedImportResult;
       _customTableNames.clear();
-      _initializeSelectedColumnTypes(preparedImportResult);
+      _matrixCandidates.clear();
+      _matrixUnpivotEnabled.clear();
+      _unpivotDimensionNames.clear();
+      _unpivotValueNames.clear();
+      _unpivotedSheets.clear();
+      _detectMatrixTables(preparedImportResult);
+      _initializeSelectedColumnTypes();
     } on ImportException catch (e) {
       _preparedImportResult = null;
       _selectedColumnTypes.clear();
+      _matrixCandidates.clear();
+      _matrixUnpivotEnabled.clear();
+      _unpivotDimensionNames.clear();
+      _unpivotValueNames.clear();
+      _unpivotedSheets.clear();
       _importErrorCode = e.code;
     } catch (_) {
       _preparedImportResult = null;
       _selectedColumnTypes.clear();
+      _matrixCandidates.clear();
+      _matrixUnpivotEnabled.clear();
+      _unpivotDimensionNames.clear();
+      _unpivotValueNames.clear();
+      _unpivotedSheets.clear();
       _importErrorCode = 'unexpected_error';
     } finally {
       _isPreparingImport = false;
@@ -405,21 +558,109 @@ class ImportDialogViewModel extends ChangeNotifier {
     }
   }
 
-  void _initializeSelectedColumnTypes(
-    PreparedImportResult preparedImportResult,
-  ) {
+  void _detectMatrixTables(PreparedImportResult preparedImportResult) {
+    for (var i = 0; i < preparedImportResult.sheets.length; i++) {
+      final sheet = preparedImportResult.sheets[i].sheet;
+      final candidate = _detectMatrixTableUseCase(sheet.rows);
+      if (candidate != null) {
+        _matrixCandidates[i] = candidate;
+        _matrixUnpivotEnabled[i] = true;
+        _unpivotDimensionNames[i] = candidate.suggestedDimensionName;
+        _unpivotValueNames[i] = candidate.suggestedValueName;
+        _updateUnpivotedSheet(i);
+      }
+    }
+  }
+
+  void _initializeSelectedColumnTypes() {
     _selectedColumnTypes.clear();
+    final prepared = _preparedImportResult;
+    if (prepared == null) return;
 
     for (var sheetIndex = 0;
-        sheetIndex < preparedImportResult.sheets.length;
+        sheetIndex < prepared.sheets.length;
         sheetIndex++) {
-      final columns = preparedImportResult.sheets[sheetIndex].inferredColumns;
-
-      _selectedColumnTypes[sheetIndex] = {
-        for (var columnIndex = 0; columnIndex < columns.length; columnIndex++)
-          columnIndex: columns[columnIndex].declaredType,
-      };
+      _reinitializeColumnTypesForSheet(sheetIndex);
     }
+  }
+
+  void _reinitializeColumnTypesForSheet(int sheetIndex) {
+    final sheet = effectiveSheetFor(sheetIndex);
+    _selectedColumnTypes[sheetIndex] = {
+      for (var colIdx = 0; colIdx < sheet.inferredColumns.length; colIdx++)
+        colIdx: sheet.inferredColumns[colIdx].declaredType,
+    };
+  }
+
+  void _updateUnpivotedSheet(int sheetIndex) {
+    final original = _preparedImportResult?.sheets[sheetIndex];
+    final candidate = _matrixCandidates[sheetIndex];
+    if (original == null || candidate == null) return;
+
+    try {
+      final unpivotedParsedSheet = _unpivotMatrixTableUseCase.unpivotSheet(
+        original.sheet,
+        candidate: candidate,
+        customDimensionName: unpivotDimensionNameFor(sheetIndex),
+        customValueName: unpivotValueNameFor(sheetIndex),
+      );
+
+      final columns = _inferColumnsForRows(
+        unpivotedParsedSheet.rows,
+        [
+          ...candidate.idColumnNames,
+          unpivotDimensionNameFor(sheetIndex),
+          unpivotValueNameFor(sheetIndex),
+        ],
+      );
+
+      _unpivotedSheets[sheetIndex] = PreparedSheet(
+        sheet: unpivotedParsedSheet,
+        inferredColumns: columns,
+        columnCurrencySymbols: const {},
+      );
+    } catch (_) {
+      _unpivotedSheets.remove(sheetIndex);
+      _matrixUnpivotEnabled[sheetIndex] = false;
+    }
+  }
+
+  List<DatasetColumn> _inferColumnsForRows(
+    List<Map<String, dynamic>> rows,
+    List<String> headers,
+  ) {
+    if (rows.isEmpty) {
+      final seenDbNames = <String>[];
+      return [
+        for (final header in headers)
+          DatasetColumn(
+            id: 0,
+            datasetTableId: 0,
+            originalName: header,
+            dbName: SqlNameSanitizer.sanitizeColumnName(
+              header,
+              existingNames: seenDbNames,
+            ),
+            inferredType: ColumnType.text,
+            declaredType: ColumnType.text,
+            nullable: true,
+          ),
+      ];
+    }
+    final matrix = _convertToMatrix(rows);
+    return _inferSchemaUseCase(matrix, 0);
+  }
+
+  List<List<String>> _convertToMatrix(List<Map<String, dynamic>> rows) {
+    if (rows.isEmpty) return [];
+    final headers = rows.first.keys.toList();
+    final matrix = <List<String>>[headers];
+    for (final row in rows) {
+      matrix.add(
+        headers.map((h) => row[h]?.toString() ?? '').toList(),
+      );
+    }
+    return matrix;
   }
 
   bool _hasColumn({
@@ -434,7 +675,7 @@ class ImportDialogViewModel extends ChangeNotifier {
       return false;
     }
 
-    final columns = preparedImportResult.sheets[sheetIndex].inferredColumns;
+    final columns = effectiveSheetFor(sheetIndex).inferredColumns;
 
     return columnIndex >= 0 && columnIndex < columns.length;
   }

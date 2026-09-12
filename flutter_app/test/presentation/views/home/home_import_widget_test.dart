@@ -47,16 +47,14 @@ void main() {
       when(() => importDataService.prepareImport(file: any(named: 'file')))
           .thenAnswer((_) async => _preparedResult());
 
-      await tester.pumpWidget(
-        _localizedApp(
-          overrides: [
-            homeViewModelProvider.overrideWith((ref) => homeViewModel),
-            ..._serviceOverrides(importDataService: importDataService),
-          ],
-          child: const HomeView(),
-        ),
+      await _pumpApp(
+        tester,
+        overrides: [
+          homeViewModelProvider.overrideWith((ref) => homeViewModel),
+          ..._serviceOverrides(importDataService: importDataService),
+        ],
+        child: const HomeView(),
       );
-      await tester.pumpAndSettle();
 
       var processButton = tester.widget<ElevatedButton>(
         find.widgetWithText(ElevatedButton, 'Process File'),
@@ -108,7 +106,108 @@ void main() {
       verify(() => importDataService.prepareImport(file: any(named: 'file')))
           .called(1);
     });
+
+    testWidgets(
+        'displays matrix detection card and unpivot switch in column type page',
+        (tester) async {
+      tester.view.physicalSize = const Size(1200, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final homeViewModel = HomeViewModel();
+      final importDataService = MockImportDataService();
+      when(() => importDataService.prepareImport(
+            file: any(named: 'file'),
+            detectMultipleTables: any(named: 'detectMultipleTables'),
+          )).thenAnswer((_) async => PreparedImportResult(
+            fileName: 'matrix_data.csv',
+            fileExtension: 'csv',
+            sheets: [
+              PreparedSheet(
+                sheet: const ParsedSheet(
+                  name: 'Quarterly',
+                  rows: [
+                    {'Region': 'North', 'Q1': '10', 'Q2': '20', 'Q3': '30'},
+                    {'Region': 'South', 'Q1': '40', 'Q2': '50', 'Q3': '60'},
+                  ],
+                ),
+                inferredColumns: [
+                  _column(
+                    originalName: 'Region',
+                    dbName: 'region',
+                    type: ColumnType.text,
+                  ),
+                  _column(
+                    originalName: 'Q1',
+                    dbName: 'q1',
+                    type: ColumnType.integer,
+                  ),
+                  _column(
+                    originalName: 'Q2',
+                    dbName: 'q2',
+                    type: ColumnType.integer,
+                  ),
+                  _column(
+                    originalName: 'Q3',
+                    dbName: 'q3',
+                    type: ColumnType.integer,
+                  ),
+                ],
+              ),
+            ],
+          ));
+
+      await _pumpApp(
+        tester,
+        overrides: [
+          homeViewModelProvider.overrideWith((ref) => homeViewModel),
+          ..._serviceOverrides(importDataService: importDataService),
+        ],
+        child: const HomeView(),
+      );
+
+      homeViewModel.setSelectedFile(
+        name: 'matrix_data.csv',
+        bytes: Uint8List.fromList([1, 2, 3]),
+      );
+      await tester.pump();
+
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Process File'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cross-tab matrix detected'), findsOneWidget);
+      expect(find.text('Normalize matrix (Unpivot)'), findsOneWidget);
+      expect(find.text('Dimension column'), findsOneWidget);
+      expect(find.text('Value column'), findsOneWidget);
+
+      // Verify unpivoted rows count: 2 regions * 3 quarters = 6 rows
+      expect(find.text('Quarterly · 6 rows'), findsOneWidget);
+
+      // Toggle unpivot switch off
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      // Should return to wide format (2 rows)
+      expect(find.text('Quarterly · 2 rows'), findsOneWidget);
+      expect(find.text('Dimension column'), findsNothing);
+    });
   });
+}
+
+Future<void> _pumpApp(
+  WidgetTester tester, {
+  required Widget child,
+  List<Override> overrides = const [],
+}) async {
+  await tester.runAsync(() async {
+    await tester.pumpWidget(_localizedApp(child: child, overrides: overrides));
+    await Future.delayed(const Duration(milliseconds: 200));
+  });
+  await tester.pumpAndSettle();
 }
 
 Widget _localizedApp({

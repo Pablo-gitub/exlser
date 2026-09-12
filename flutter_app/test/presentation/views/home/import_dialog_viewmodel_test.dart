@@ -403,6 +403,142 @@ void main() {
       expect(viewModel.tableNameErrorFor(0), isNull);
       expect(viewModel.canContinue, isTrue);
     });
+
+    test('should detect cross-tab matrix table and unpivot by default',
+        () async {
+      final matrixResult = PreparedImportResult(
+        fileName: 'yearly_sales.xlsx',
+        fileExtension: 'xlsx',
+        sheets: [
+          PreparedSheet(
+            sheet: const ParsedSheet(
+              name: 'Sales',
+              rows: [
+                {
+                  'Product': 'Apples',
+                  '2020': '100',
+                  '2021': '150',
+                  '2022': '200'
+                },
+                {
+                  'Product': 'Bananas',
+                  '2020': '80',
+                  '2021': '90',
+                  '2022': '110'
+                },
+              ],
+            ),
+            inferredColumns: [
+              const DatasetColumn(
+                id: 0,
+                datasetTableId: 0,
+                originalName: 'Product',
+                dbName: 'product',
+                declaredType: ColumnType.text,
+                inferredType: ColumnType.text,
+                nullable: false,
+              ),
+              const DatasetColumn(
+                id: 0,
+                datasetTableId: 0,
+                originalName: '2020',
+                dbName: 'col_2020',
+                declaredType: ColumnType.integer,
+                inferredType: ColumnType.integer,
+                nullable: false,
+              ),
+              const DatasetColumn(
+                id: 0,
+                datasetTableId: 0,
+                originalName: '2021',
+                dbName: 'col_2021',
+                declaredType: ColumnType.integer,
+                inferredType: ColumnType.integer,
+                nullable: false,
+              ),
+              const DatasetColumn(
+                id: 0,
+                datasetTableId: 0,
+                originalName: '2022',
+                dbName: 'col_2022',
+                declaredType: ColumnType.integer,
+                inferredType: ColumnType.integer,
+                nullable: false,
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final viewModel = _viewModel(
+        prepareImport: ({required file, detectMultipleTables = true}) async =>
+            matrixResult,
+      );
+
+      await viewModel.goToNextStep();
+
+      expect(viewModel.currentStep, ImportDialogStep.columnTypes);
+      final candidate = viewModel.matrixCandidateFor(0);
+      expect(candidate, isNotNull);
+      expect(candidate!.suggestedDimensionName, 'Year');
+      expect(candidate.suggestedValueName, 'Value');
+      expect(viewModel.isMatrixUnpivotEnabled(0), isTrue);
+
+      // Unpivoted effective sheet should have 3 columns: Product, Year, Value
+      final effectiveSheet = viewModel.effectiveSheetFor(0);
+      expect(effectiveSheet.inferredColumns.length, 3);
+      expect(
+        effectiveSheet.inferredColumns.map((c) => c.originalName).toList(),
+        ['Product', 'Year', 'Value'],
+      );
+      expect(
+          effectiveSheet.sheet.rows.length, 6); // 2 products * 3 years = 6 rows
+
+      // Toggle unpivot off
+      viewModel.toggleMatrixUnpivot(0, false);
+      expect(viewModel.isMatrixUnpivotEnabled(0), isFalse);
+      final wideSheet = viewModel.effectiveSheetFor(0);
+      expect(wideSheet.inferredColumns.length, 4);
+      expect(wideSheet.sheet.rows.length, 2);
+
+      // Toggle unpivot back on
+      viewModel.toggleMatrixUnpivot(0, true);
+      expect(viewModel.isMatrixUnpivotEnabled(0), isTrue);
+      expect(viewModel.effectiveSheetFor(0).sheet.rows.length, 6);
+
+      // Update dimension and value names
+      viewModel.updateUnpivotDimensionName(sheetIndex: 0, name: 'FiscalYear');
+      viewModel.updateUnpivotValueName(sheetIndex: 0, name: 'Revenue');
+      expect(viewModel.unpivotDimensionNameFor(0), 'FiscalYear');
+      expect(viewModel.unpivotValueNameFor(0), 'Revenue');
+      expect(
+        viewModel
+            .effectiveSheetFor(0)
+            .inferredColumns
+            .map((c) => c.originalName)
+            .toList(),
+        ['Product', 'FiscalYear', 'Revenue'],
+      );
+
+      // Confirmed sheets reflect unpivoted structure
+      final confirmed = viewModel.confirmedSheets;
+      expect(confirmed.length, 1);
+      expect(confirmed.first.columns.length, 3);
+      expect(
+        confirmed.first.columns.map((c) => c.originalName).toList(),
+        ['Product', 'FiscalYear', 'Revenue'],
+      );
+      expect(confirmed.first.sheet.rows.length, 6);
+
+      // Validation: blank dimension or value column name blocks next step
+      viewModel.updateUnpivotDimensionName(sheetIndex: 0, name: '   ');
+      expect(viewModel.hasValidMatrixColumnNames, isFalse);
+      expect(viewModel.canContinue, isFalse);
+
+      viewModel.updateUnpivotDimensionName(sheetIndex: 0, name: 'FiscalYear');
+      expect(viewModel.hasValidMatrixColumnNames, isTrue);
+      expect(viewModel.canContinue, isTrue);
+    });
   });
 }
 
