@@ -160,5 +160,52 @@ void main() {
         expect(sheet.cellRange, isNull);
       },
     );
+
+    test(
+      'should detect multiple tables separated by blank rows with titles in a real excel file',
+      () async {
+        final sheets = await parser.parsePath(
+          'test/fixtures/excel/multi_table_same_sheet.xlsx',
+          detectMultipleTables: true,
+        );
+
+        expect(sheets.length, 2);
+
+        final customersTable = sheets[0];
+        expect(customersTable.name, 'Customers');
+        expect(customersTable.sourceSheetName, 'Dashboard');
+        expect(customersTable.cellRange, 'A2:C5');
+        expect(customersTable.rows.length, 3);
+        expect(customersTable.rows[0]['id'], '1');
+        expect(customersTable.rows[0]['name'], 'Alice');
+        expect(customersTable.rows[0]['city'], 'Rome');
+
+        final ordersTable = sheets[1];
+        expect(ordersTable.name, 'Orders');
+        expect(ordersTable.sourceSheetName, 'Dashboard');
+        expect(ordersTable.cellRange, 'A9:D12');
+        expect(ordersTable.rows.length, 3);
+        expect(ordersTable.rows[0]['order_id'], '101');
+        expect(ordersTable.rows[0]['customer_id'], '1');
+        expect(ordersTable.rows[0]['amount'], '250.50');
+      },
+    );
+
+    test(
+      'should parse real cross-tab matrix excel file',
+      () async {
+        final sheets = await parser.parsePath(
+          'test/fixtures/excel/matrix_cross_tab.xlsx',
+        );
+
+        expect(sheets.length, 1);
+        final sheet = sheets.first;
+        expect(sheet.name, 'SalesByMonth');
+        expect(sheet.rows.length, 3);
+        expect(sheet.rows[0]['Department'], 'Electronics');
+        expect(sheet.rows[0]['Jan'], '10000');
+        expect(sheet.rows[0]['Jun'], '16000');
+      },
+    );
   });
 }

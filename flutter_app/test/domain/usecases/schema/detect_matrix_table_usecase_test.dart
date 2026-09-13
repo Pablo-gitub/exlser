@@ -1,3 +1,4 @@
+import 'package:exlser/data/adapters/parsers/excel_parser.dart';
 import 'package:exlser/domain/usecases/schema/detect_matrix_table_usecase.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -129,6 +130,23 @@ void main() {
       final result = detector(rows);
 
       expect(result, isNull);
+    });
+
+    test('should detect matrix from real parsed excel file', () async {
+      final parser = ExcelParser();
+      final sheets =
+          await parser.parsePath('test/fixtures/excel/matrix_cross_tab.xlsx');
+      expect(sheets, hasLength(1));
+
+      final result = detector(sheets.first.rows);
+      expect(result, isNotNull);
+      expect(result!.idColumnNames, ['Department']);
+      expect(
+        result.valueColumnNames,
+        ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      );
+      expect(result.suggestedDimensionName, 'Month');
+      expect(result.inferredValueType, ColumnType.integer);
     });
   });
 }
