@@ -324,8 +324,20 @@
             "discard_configuration_message": "A configuração atual será perdida.",
             "delete_configuration_title": "Eliminar configuração?",
             "delete_configuration_message": "Eliminar \"{name}\"? Apenas a configuração guardada é eliminada, não os dados do dataset nem as relações.",
-            "loading": "Carregando planilhas…",
-            "relationship_already_added": "Já adicionada"
+            "loading": "A carregar folhas…",
+            "relationship_already_added": "Já adicionada",
+            "view_mode_list": "Lista guiada",
+            "view_mode_graph": "Mapa visual",
+            "graph_zoom_in": "Aproximar",
+            "graph_zoom_out": "Afastar",
+            "graph_reset": "Ajustar à vista",
+            "graph_base_table": "Tabela base",
+            "graph_explanation_title": "Detalhes da ligação",
+            "graph_explanation_match": "Liga cada linha de {fromTable} com {toTable} onde {fromCol} = {toCol}.",
+            "graph_rule_left": "Mantém todas as linhas de {baseTable}, mesmo sem correspondência em {otherTable}.",
+            "graph_rule_inner": "Mantém apenas as linhas com correspondência em ambas as folhas.",
+            "graph_tap_to_edit": "Toque na ligação para editar",
+            "graph_add_suggestion": "Ligar campos sugeridos"
         }
     },
     "settings": {

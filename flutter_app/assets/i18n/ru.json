@@ -325,7 +325,19 @@
             "delete_configuration_title": "Удалить конфигурацию?",
             "delete_configuration_message": "Удалить «{name}»? Будет удалена только сохранённая конфигурация, данные датасета и связи останутся.",
             "loading": "Загрузка листов…",
-            "relationship_already_added": "Уже добавлено"
+            "relationship_already_added": "Уже добавлено",
+            "view_mode_list": "Пошаговый список",
+            "view_mode_graph": "Визуальная схема",
+            "graph_zoom_in": "Увеличить",
+            "graph_zoom_out": "Уменьшить",
+            "graph_reset": "По размеру экрана",
+            "graph_base_table": "Базовая таблица",
+            "graph_explanation_title": "Детали соединения",
+            "graph_explanation_match": "Сопоставляет строки {fromTable} с {toTable}, где {fromCol} = {toCol}.",
+            "graph_rule_left": "Сохраняет все строки из {baseTable}, даже если нет совпадения в {otherTable}.",
+            "graph_rule_inner": "Сохраняет только те строки, которые есть в обеих таблицах.",
+            "graph_tap_to_edit": "Нажмите на соединение для настройки",
+            "graph_add_suggestion": "Соединить предложенные поля"
         }
     },
     "settings": {

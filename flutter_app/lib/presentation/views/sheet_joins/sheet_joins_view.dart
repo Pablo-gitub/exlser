@@ -12,11 +12,14 @@ import 'package:exlser/domain/value_objects/sheet_join_relationship.dart';
 import 'package:exlser/domain/value_objects/sheet_join_type.dart';
 import 'package:exlser/domain/value_objects/sheet_relationship_suggestion.dart';
 import 'package:exlser/presentation/views/sheet_joins/manual_relationship_dialog.dart';
+import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_canvas.dart';
 import 'package:exlser/presentation/views/sheet_joins/join_risk_confirmation_dialog.dart';
 import 'package:exlser/presentation/views/sheet_joins/multi_sheet_join_controller.dart';
 import 'package:exlser/presentation/views/sheet_joins/saved_join_configurations_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+enum JoinViewMode { list, graph }
 
 /// Guided workspace to combine two or more sheets of the same dataset.
 ///
@@ -32,6 +35,8 @@ class SheetJoinsView extends ConsumerStatefulWidget {
 }
 
 class _SheetJoinsViewState extends ConsumerState<SheetJoinsView> {
+  JoinViewMode _viewMode = JoinViewMode.list;
+
   @override
   void initState() {
     super.initState();
@@ -99,7 +104,13 @@ class _SheetJoinsViewState extends ConsumerState<SheetJoinsView> {
                   const SizedBox(height: 16),
                   _SuggestionsSection(state: state, controller: controller),
                   const SizedBox(height: 16),
-                  _RelationshipsSection(state: state, controller: controller),
+                  _RelationshipsSection(
+                    state: state,
+                    controller: controller,
+                    viewMode: _viewMode,
+                    onViewModeChanged: (mode) =>
+                        setState(() => _viewMode = mode),
+                  ),
                   const SizedBox(height: 16),
                   _OutputColumnsSection(state: state, controller: controller),
                   const SizedBox(height: 16),
@@ -403,38 +414,78 @@ class _ConfidenceChip extends StatelessWidget {
 class _RelationshipsSection extends StatelessWidget {
   final MultiSheetJoinState state;
   final MultiSheetJoinController controller;
+  final JoinViewMode viewMode;
+  final ValueChanged<JoinViewMode> onViewModeChanged;
 
-  const _RelationshipsSection({required this.state, required this.controller});
+  const _RelationshipsSection({
+    required this.state,
+    required this.controller,
+    required this.viewMode,
+    required this.onViewModeChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     final joins = state.spec.joins;
     return _SectionCard(
       title: AppStrings.datasetJoinsRelationships.tr(),
-      trailing: TextButton.icon(
-        key: const ValueKey('manual_relationship_open'),
-        onPressed: () => showManualRelationshipDialog(
-          context: context,
-          state: state,
-          controller: controller,
-        ),
-        icon: const Icon(Icons.add_link),
-        label: Text(AppStrings.datasetJoinsAddRelationship.tr()),
-      ),
-      child: joins.isEmpty
-          ? Text(AppStrings.datasetJoinsNoRelationships.tr())
-          : Column(
-              children: [
-                for (final join in joins)
-                  if (state.relationshipFor(join) case final relationship?)
-                    _RelationshipTile(
-                      join: join,
-                      relationship: relationship,
-                      state: state,
-                      controller: controller,
-                    ),
-              ],
+      trailing: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          SegmentedButton<JoinViewMode>(
+            key: const ValueKey('join_view_mode_segmented_button'),
+            showSelectedIcon: false,
+            segments: [
+              ButtonSegment(
+                value: JoinViewMode.list,
+                icon: const Icon(Icons.view_list_outlined, size: 16),
+                label: Text(
+                  AppStrings.datasetJoinsViewModeList.tr(),
+                  key: const ValueKey('join_view_mode_list'),
+                ),
+              ),
+              ButtonSegment(
+                value: JoinViewMode.graph,
+                icon: const Icon(Icons.account_tree_outlined, size: 16),
+                label: Text(
+                  AppStrings.datasetJoinsViewModeGraph.tr(),
+                  key: const ValueKey('join_view_mode_graph'),
+                ),
+              ),
+            ],
+            selected: {viewMode},
+            onSelectionChanged: (set) => onViewModeChanged(set.first),
+          ),
+          TextButton.icon(
+            key: const ValueKey('manual_relationship_open'),
+            onPressed: () => showManualRelationshipDialog(
+              context: context,
+              state: state,
+              controller: controller,
             ),
+            icon: const Icon(Icons.add_link),
+            label: Text(AppStrings.datasetJoinsAddRelationship.tr()),
+          ),
+        ],
+      ),
+      child: viewMode == JoinViewMode.graph
+          ? JoinGraphCanvas(state: state, controller: controller)
+          : (joins.isEmpty
+              ? Text(AppStrings.datasetJoinsNoRelationships.tr())
+              : Column(
+                  children: [
+                    for (final join in joins)
+                      if (state.relationshipFor(join) case final relationship?)
+                        _RelationshipTile(
+                          join: join,
+                          relationship: relationship,
+                          state: state,
+                          controller: controller,
+                        ),
+                  ],
+                )),
     );
   }
 }

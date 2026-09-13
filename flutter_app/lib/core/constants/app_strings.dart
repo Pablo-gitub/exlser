@@ -568,4 +568,24 @@ class AppStrings {
   static const String datasetJoinsLoading = 'dataset.joins.loading';
   static const String datasetJoinsRelationshipAlreadyAdded =
       'dataset.joins.relationship_already_added';
+  static const String datasetJoinsViewModeList = 'dataset.joins.view_mode_list';
+  static const String datasetJoinsViewModeGraph =
+      'dataset.joins.view_mode_graph';
+  static const String datasetJoinsGraphZoomIn = 'dataset.joins.graph_zoom_in';
+  static const String datasetJoinsGraphZoomOut = 'dataset.joins.graph_zoom_out';
+  static const String datasetJoinsGraphReset = 'dataset.joins.graph_reset';
+  static const String datasetJoinsGraphBaseTable =
+      'dataset.joins.graph_base_table';
+  static const String datasetJoinsGraphExplanationTitle =
+      'dataset.joins.graph_explanation_title';
+  static const String datasetJoinsGraphExplanationMatch =
+      'dataset.joins.graph_explanation_match';
+  static const String datasetJoinsGraphRuleLeft =
+      'dataset.joins.graph_rule_left';
+  static const String datasetJoinsGraphRuleInner =
+      'dataset.joins.graph_rule_inner';
+  static const String datasetJoinsGraphTapToEdit =
+      'dataset.joins.graph_tap_to_edit';
+  static const String datasetJoinsGraphAddSuggestion =
+      'dataset.joins.graph_add_suggestion';
 }

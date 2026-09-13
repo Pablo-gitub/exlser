@@ -13,6 +13,7 @@ import 'package:exlser/domain/value_objects/multi_sheet_query_spec.dart';
 import 'package:exlser/domain/value_objects/sheet_join_relationship.dart';
 import 'package:exlser/domain/value_objects/sheet_relationship_suggestion.dart';
 import 'package:exlser/presentation/providers/service_providers.dart';
+import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_canvas.dart';
 import 'package:exlser/presentation/views/sheet_joins/sheet_joins_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1407,5 +1408,38 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Already added'), findsOneWidget);
+  });
+
+  testWidgets(
+      'toggling view mode segmented button switches between list and visual graph',
+      (tester) async {
+    when(() => service.loadSheets(any())).thenAnswer((_) async => [
+          sheet(1, 'Sales', ['Product ID']),
+          sheet(2, 'Products', ['Product']),
+        ]);
+
+    final container = containerWith(service);
+    addTearDown(container.dispose);
+    await pumpView(tester, container);
+
+    await tester.tap(find.byKey(const ValueKey('join_sheet_1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('join_sheet_2')));
+    await tester.pumpAndSettle();
+
+    // Default is list mode
+    expect(find.byType(JoinGraphCanvas), findsNothing);
+
+    // Switch to graph mode
+    await tester.tap(find.byKey(const ValueKey('join_view_mode_graph')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(JoinGraphCanvas), findsOneWidget);
+
+    // Switch back to list mode
+    await tester.tap(find.byKey(const ValueKey('join_view_mode_list')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(JoinGraphCanvas), findsNothing);
   });
 }

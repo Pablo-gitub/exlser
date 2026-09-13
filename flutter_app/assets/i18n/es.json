@@ -325,7 +325,19 @@
             "delete_configuration_title": "¿Eliminar configuración?",
             "delete_configuration_message": "¿Eliminar \"{name}\"? Solo se elimina la configuración guardada, no los datos del dataset ni las relaciones.",
             "loading": "Cargando hojas…",
-            "relationship_already_added": "Ya añadida"
+            "relationship_already_added": "Ya añadida",
+            "view_mode_list": "Lista guiada",
+            "view_mode_graph": "Mapa visual",
+            "graph_zoom_in": "Acercar",
+            "graph_zoom_out": "Alejar",
+            "graph_reset": "Ajustar a la vista",
+            "graph_base_table": "Hoja base",
+            "graph_explanation_title": "Detalles de la conexión",
+            "graph_explanation_match": "Conecta cada fila de {fromTable} con {toTable} donde {fromCol} = {toCol}.",
+            "graph_rule_left": "Conserva todas las filas de {baseTable}, incluso sin coincidencia en {otherTable}.",
+            "graph_rule_inner": "Conserva solo las filas con coincidencia en ambas hojas.",
+            "graph_tap_to_edit": "Toca la conexión para editar",
+            "graph_add_suggestion": "Conectar campos sugeridos"
         }
     },
     "settings": {

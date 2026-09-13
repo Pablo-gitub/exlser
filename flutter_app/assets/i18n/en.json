@@ -325,7 +325,19 @@
             "delete_configuration_title": "Delete configuration?",
             "delete_configuration_message": "Delete \"{name}\"? Only the saved configuration is deleted, not dataset data or relationships.",
             "loading": "Loading sheets…",
-            "relationship_already_added": "Already added"
+            "relationship_already_added": "Already added",
+            "view_mode_list": "Guided list",
+            "view_mode_graph": "Visual map",
+            "graph_zoom_in": "Zoom in",
+            "graph_zoom_out": "Zoom out",
+            "graph_reset": "Fit to view",
+            "graph_base_table": "Base sheet",
+            "graph_explanation_title": "Connection details",
+            "graph_explanation_match": "Connects each row of {fromTable} with {toTable} where {fromCol} = {toCol}.",
+            "graph_rule_left": "Keeps all rows from {baseTable}, even if there is no match in {otherTable}.",
+            "graph_rule_inner": "Keeps only rows that have a match in both sheets.",
+            "graph_tap_to_edit": "Tap connection to edit",
+            "graph_add_suggestion": "Connect suggested fields"
         }
     },
     "settings": {

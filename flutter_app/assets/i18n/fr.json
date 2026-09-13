@@ -325,7 +325,19 @@
             "delete_configuration_title": "Supprimer la configuration ?",
             "delete_configuration_message": "Supprimer « {name} » ? Seule la configuration enregistrée est supprimée, pas les données du dataset ni les relations.",
             "loading": "Chargement des feuilles…",
-            "relationship_already_added": "Déjà ajoutée"
+            "relationship_already_added": "Déjà ajoutée",
+            "view_mode_list": "Liste guidée",
+            "view_mode_graph": "Carte visuelle",
+            "graph_zoom_in": "Zoom avant",
+            "graph_zoom_out": "Zoom arrière",
+            "graph_reset": "Ajuster à la vue",
+            "graph_base_table": "Feuille de base",
+            "graph_explanation_title": "Détails de la connexion",
+            "graph_explanation_match": "Relie chaque ligne de {fromTable} à {toTable} où {fromCol} = {toCol}.",
+            "graph_rule_left": "Conserve toutes les lignes de {baseTable}, même sans correspondance dans {otherTable}.",
+            "graph_rule_inner": "Conserve uniquement les lignes avec correspondance dans les deux feuilles.",
+            "graph_tap_to_edit": "Appuyez sur la connexion pour modifier",
+            "graph_add_suggestion": "Connecter les champs suggérés"
         }
     },
     "settings": {

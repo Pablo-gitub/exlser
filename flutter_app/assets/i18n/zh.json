@@ -325,7 +325,19 @@
             "delete_configuration_title": "删除配置？",
             "delete_configuration_message": "删除\"{name}\"？仅删除已保存的配置，不会删除数据集数据或关系。",
             "loading": "正在加载工作表…",
-            "relationship_already_added": "已添加"
+            "relationship_already_added": "已添加",
+            "view_mode_list": "引导列表",
+            "view_mode_graph": "关系图谱",
+            "graph_zoom_in": "放大",
+            "graph_zoom_out": "缩小",
+            "graph_reset": "适应画布",
+            "graph_base_table": "基础表",
+            "graph_explanation_title": "关联详情",
+            "graph_explanation_match": "当 {fromCol} = {toCol} 时，将 {fromTable} 的行与 {toTable} 关联。",
+            "graph_rule_left": "保留 {baseTable} 的所有行，即使在 {otherTable} 中没有匹配。",
+            "graph_rule_inner": "仅保留两个表中均匹配的行。",
+            "graph_tap_to_edit": "点击连接进行编辑",
+            "graph_add_suggestion": "连接推荐字段"
         }
     },
     "settings": {

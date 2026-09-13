@@ -325,7 +325,19 @@
             "delete_configuration_title": "Konfiguration löschen?",
             "delete_configuration_message": "„{name}\" löschen? Nur die gespeicherte Konfiguration wird gelöscht, nicht die Datensatzdaten oder Beziehungen.",
             "loading": "Blätter werden geladen…",
-            "relationship_already_added": "Bereits hinzugefügt"
+            "relationship_already_added": "Bereits hinzugefügt",
+            "view_mode_list": "Geführte Liste",
+            "view_mode_graph": "Visuelle Übersicht",
+            "graph_zoom_in": "Vergrößern",
+            "graph_zoom_out": "Verkleinern",
+            "graph_reset": "Ansicht anpassen",
+            "graph_base_table": "Basis-Tabelle",
+            "graph_explanation_title": "Verbindungsdetails",
+            "graph_explanation_match": "Verbindet jede Zeile von {fromTable} mit {toTable}, wenn {fromCol} = {toCol} ist.",
+            "graph_rule_left": "Behält alle Zeilen aus {baseTable}, auch ohne Übereinstimmung in {otherTable}.",
+            "graph_rule_inner": "Behält nur Zeilen mit Übereinstimmung in beiden Blättern.",
+            "graph_tap_to_edit": "Tippen zum Bearbeiten der Verbindung",
+            "graph_add_suggestion": "Vorgeschlagene Felder verbinden"
         }
     },
     "settings": {

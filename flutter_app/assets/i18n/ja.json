@@ -324,8 +324,20 @@
             "discard_configuration_message": "現在の設定は失われます。",
             "delete_configuration_title": "設定を削除しますか？",
             "delete_configuration_message": "「{name}」を削除しますか？保存済みの設定のみ削除されます。データセットのデータや関係は削除されません。",
-            "loading": "シートを読み込んでいます…",
-            "relationship_already_added": "追加済み"
+            "loading": "シートを読み込み中…",
+            "relationship_already_added": "追加済み",
+            "view_mode_list": "ガイド付きリスト",
+            "view_mode_graph": "ビジュアルマップ",
+            "graph_zoom_in": "拡大",
+            "graph_zoom_out": "縮小",
+            "graph_reset": "画面に合わせる",
+            "graph_base_table": "ベースシート",
+            "graph_explanation_title": "結合の詳細",
+            "graph_explanation_match": "{fromCol} = {toCol} のとき、{fromTable} の各行を {toTable} と結合します。",
+            "graph_rule_left": "{otherTable} に一致がない場合でも、{baseTable} のすべての行を保持します。",
+            "graph_rule_inner": "両方のシートに一致がある行のみを保持します。",
+            "graph_tap_to_edit": "結合をタップして編集",
+            "graph_add_suggestion": "提案されたフィールドを結合"
         }
     },
     "settings": {
