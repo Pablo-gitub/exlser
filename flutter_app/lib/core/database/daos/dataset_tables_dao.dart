@@ -23,6 +23,7 @@ class DatasetTablesDao extends DatabaseAccessor<AppDatabase>
     required String sqlTableName,
     required int rowCount,
     required int colCount,
+    String? sourceSheetName,
   }) {
     return into(datasetTables).insert(
       DatasetTablesCompanion.insert(
@@ -31,6 +32,7 @@ class DatasetTablesDao extends DatabaseAccessor<AppDatabase>
         sqlTableName: sqlTableName,
         rowCount: rowCount,
         colCount: colCount,
+        sourceSheetName: Value(sourceSheetName),
       ),
     );
   }

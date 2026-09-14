@@ -51,7 +51,8 @@ class CreateDatasetService {
       throw Exception('Cannot create dataset without sheets');
     }
 
-    return transactionRunner.run(() => _createDatasetInTransaction(confirmedImport));
+    return transactionRunner
+        .run(() => _createDatasetInTransaction(confirmedImport));
   }
 
   Future<CreatedDatasetResult> _createDatasetInTransaction(
@@ -86,6 +87,7 @@ class CreateDatasetService {
         sheetName: sheet.name,
         rowCount: sheet.rows.length,
         colCount: confirmedSheet.columns.length,
+        sourceSheetName: sheet.sourceSheetName,
       );
 
       final columns = _attachTableId(

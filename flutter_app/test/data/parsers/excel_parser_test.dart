@@ -207,5 +207,53 @@ void main() {
         expect(sheet.rows[0]['Jun'], '16000');
       },
     );
+
+    test(
+      'should detect multiple sheets each with multiple tables in a real excel file',
+      () async {
+        final sheets = await parser.parsePath(
+          'test/fixtures/excel/multi_sheet_multi_table.xlsx',
+          detectMultipleTables: true,
+        );
+
+        expect(sheets.length, 4);
+
+        // Sheet 1 - Table 1
+        final orders = sheets[0];
+        expect(orders.name, 'Orders');
+        expect(orders.sourceSheetName, 'Sales');
+        expect(orders.rows.length, 3);
+        expect(orders.rows[0]['order_id'], '101');
+        expect(orders.rows[0]['customer_id'], '1');
+        expect(orders.rows[0]['amount'], '250.50');
+
+        // Sheet 1 - Table 2
+        final returns = sheets[1];
+        expect(returns.name, 'Returns');
+        expect(returns.sourceSheetName, 'Sales');
+        expect(returns.rows.length, 3);
+        expect(returns.rows[0]['return_id'], '501');
+        expect(returns.rows[0]['order_id'], '102');
+        expect(returns.rows[0]['reason'], 'Defective');
+
+        // Sheet 2 - Table 1
+        final products = sheets[2];
+        expect(products.name, 'Products');
+        expect(products.sourceSheetName, 'Inventory');
+        expect(products.rows.length, 3);
+        expect(products.rows[0]['product_id'], '1');
+        expect(products.rows[0]['name'], 'Laptop');
+        expect(products.rows[0]['stock'], '15');
+
+        // Sheet 2 - Table 2
+        final suppliers = sheets[3];
+        expect(suppliers.name, 'Suppliers');
+        expect(suppliers.sourceSheetName, 'Inventory');
+        expect(suppliers.rows.length, 3);
+        expect(suppliers.rows[0]['supplier_id'], '1');
+        expect(suppliers.rows[0]['company'], 'TechCorp');
+        expect(suppliers.rows[0]['country'], 'USA');
+      },
+    );
   });
 }

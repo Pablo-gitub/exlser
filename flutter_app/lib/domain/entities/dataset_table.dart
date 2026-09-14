@@ -10,6 +10,7 @@ class DatasetTable {
 
   final int rowCount;
   final int colCount;
+  final String? sourceSheetName;
 
   const DatasetTable({
     required this.id,
@@ -18,6 +19,7 @@ class DatasetTable {
     required this.sqlTableName,
     required this.rowCount,
     required this.colCount,
+    this.sourceSheetName,
   });
 
   DatasetTable copyWith({
@@ -27,6 +29,7 @@ class DatasetTable {
     String? sqlTableName,
     int? rowCount,
     int? colCount,
+    String? sourceSheetName,
   }) {
     return DatasetTable(
       id: id ?? this.id,
@@ -35,8 +38,11 @@ class DatasetTable {
       sqlTableName: sqlTableName ?? this.sqlTableName,
       rowCount: rowCount ?? this.rowCount,
       colCount: colCount ?? this.colCount,
+      sourceSheetName: sourceSheetName ?? this.sourceSheetName,
     );
   }
 
   String get displayName => sheetNameOriginal;
+
+  String get effectiveSourceSheetName => sourceSheetName ?? sheetNameOriginal;
 }

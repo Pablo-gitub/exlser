@@ -19,4 +19,7 @@ class DatasetTables extends Table {
 
   /// Number of columns created (denormalized for quick access)
   IntColumn get colCount => integer()();
+
+  /// Original sheet name inside Excel file (if distinct from table name)
+  TextColumn get sourceSheetName => text().nullable()();
 }

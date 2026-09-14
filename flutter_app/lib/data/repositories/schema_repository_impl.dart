@@ -25,7 +25,7 @@ class SchemaRepositoryImpl implements SchemaRepository {
 
     final rows = await datasource.query(
       '''
-      SELECT id, dataset_id, sheet_name_original, sql_table_name, row_count, col_count
+      SELECT id, dataset_id, sheet_name_original, sql_table_name, row_count, col_count, source_sheet_name
       FROM dataset_tables
       WHERE dataset_id = ?
       ORDER BY id ASC
@@ -42,7 +42,7 @@ class SchemaRepositoryImpl implements SchemaRepository {
 
     final rows = await datasource.query(
       '''
-      SELECT id, dataset_id, sheet_name_original, sql_table_name, row_count, col_count
+      SELECT id, dataset_id, sheet_name_original, sql_table_name, row_count, col_count, source_sheet_name
       FROM dataset_tables
       WHERE id = ?
       LIMIT 1
@@ -66,8 +66,9 @@ class SchemaRepositoryImpl implements SchemaRepository {
         sheet_name_original,
         sql_table_name,
         row_count,
-        col_count
-      ) VALUES (?, ?, ?, ?, ?)
+        col_count,
+        source_sheet_name
+      ) VALUES (?, ?, ?, ?, ?, ?)
       ''',
       [
         table.datasetId,
@@ -75,6 +76,7 @@ class SchemaRepositoryImpl implements SchemaRepository {
         table.sqlTableName.trim(),
         table.rowCount,
         table.colCount,
+        table.sourceSheetName?.trim(),
       ],
     );
 
@@ -84,6 +86,7 @@ class SchemaRepositoryImpl implements SchemaRepository {
       id: id,
       sheetNameOriginal: table.sheetNameOriginal.trim(),
       sqlTableName: table.sqlTableName.trim(),
+      sourceSheetName: table.sourceSheetName?.trim(),
     );
   }
 
@@ -104,7 +107,8 @@ class SchemaRepositoryImpl implements SchemaRepository {
           sheet_name_original = ?,
           sql_table_name = ?,
           row_count = ?,
-          col_count = ?
+          col_count = ?,
+          source_sheet_name = ?
       WHERE id = ?
       ''',
       [
@@ -113,6 +117,7 @@ class SchemaRepositoryImpl implements SchemaRepository {
         table.sqlTableName.trim(),
         table.rowCount,
         table.colCount,
+        table.sourceSheetName?.trim(),
         table.id,
       ],
     );
@@ -329,6 +334,7 @@ class SchemaRepositoryImpl implements SchemaRepository {
       sqlTableName: _readString(row, 'sql_table_name'),
       rowCount: _readInt(row, 'row_count'),
       colCount: _readInt(row, 'col_count'),
+      sourceSheetName: row['source_sheet_name'] as String?,
     );
   }
 

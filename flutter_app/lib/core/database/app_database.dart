@@ -37,21 +37,22 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) => m.createAll(),
         onUpgrade: (m, from, to) async {
-          // v2 introduced saved multi-sheet queries; v3 added relationships.
-          // A v1 database upgrades straight to v3 in a single launch (both
-          // blocks run); a database already at the branch's v2 gets only the
-          // relationships table.
+          // v2 introduced saved multi-sheet queries; v3 added relationships;
+          // v4 added sourceSheetName column to dataset_tables.
           if (from < 2) {
             await m.createTable(savedMultiSheetQueries);
           }
           if (from < 3) {
             await m.createTable(datasetRelationships);
+          }
+          if (from < 4) {
+            await m.addColumn(datasetTables, datasetTables.sourceSheetName);
           }
         },
       );

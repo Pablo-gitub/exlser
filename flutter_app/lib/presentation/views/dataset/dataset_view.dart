@@ -550,7 +550,7 @@ class _LoadedWorkspace extends StatelessWidget {
                     viewMode: state.viewMode,
                   ),
                   const SizedBox(height: 16),
-                  _SheetSelector(
+                  SheetSelector(
                     tables: state.tables,
                     activeTable: state.activeTable,
                   ),
@@ -1199,6 +1199,9 @@ class _DatasetHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final uniqueSheets = tables.map((t) => t.effectiveSourceSheetName).toSet();
+    final hasMultipleTablesPerSheet = uniqueSheets.length < tables.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1228,10 +1231,21 @@ class _DatasetHeader extends StatelessWidget {
           spacing: 12,
           runSpacing: 12,
           children: [
-            _MetricTile(
-              label: AppStrings.datasetWorkspaceSheets.tr(),
-              value: '${tables.length}',
-            ),
+            if (hasMultipleTablesPerSheet) ...[
+              _MetricTile(
+                label: AppStrings.datasetWorkspaceSheets.tr(),
+                value: '${uniqueSheets.length}',
+              ),
+              _MetricTile(
+                label: AppStrings.datasetWorkspaceTable.tr(),
+                value: '${tables.length}',
+              ),
+            ] else ...[
+              _MetricTile(
+                label: AppStrings.datasetWorkspaceSheets.tr(),
+                value: '${tables.length}',
+              ),
+            ],
             _MetricTile(
               label: AppStrings.datasetWorkspaceColumns.tr(),
               value: visibleColumnCount == columns.length
@@ -1597,34 +1611,143 @@ class _DatasetPaginationControlsState
   }
 }
 
-class _SheetSelector extends StatelessWidget {
+@visibleForTesting
+class SheetSelector extends StatelessWidget {
   final List<DatasetTable> tables;
   final DatasetTable activeTable;
 
-  const _SheetSelector({
+  const SheetSelector({
+    super.key,
     required this.tables,
     required this.activeTable,
   });
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<int>(
-      initialValue: activeTable.id,
-      decoration: InputDecoration(
-        labelText: AppStrings.datasetWorkspaceSelectSheet.tr(),
-        border: const OutlineInputBorder(),
-      ),
-      items: [
-        for (final table in tables)
-          DropdownMenuItem(
-            value: table.id,
-            child: Text(table.sheetNameOriginal),
-          ),
-      ],
-      onChanged: (tableId) {
-        if (tableId == null) return;
+    final uniqueSheets = <String>[];
+    final sheetToTables = <String, List<DatasetTable>>{};
+    for (final table in tables) {
+      final sheet = table.effectiveSourceSheetName;
+      if (!uniqueSheets.contains(sheet)) {
+        uniqueSheets.add(sheet);
+      }
+      sheetToTables.putIfAbsent(sheet, () => []).add(table);
+    }
 
-        context.read<DatasetBloc>().add(ChangeSheetEvent(tableId));
+    final hasDistinctSheetsAndTables = tables.any(
+          (t) =>
+              t.sourceSheetName != null && t.sourceSheetName != t.displayName,
+        ) ||
+        uniqueSheets.length < tables.length;
+
+    if (!hasDistinctSheetsAndTables) {
+      return DropdownButtonFormField<int>(
+        key: const ValueKey('sheet_selector_dropdown'),
+        initialValue: activeTable.id,
+        isExpanded: true,
+        decoration: InputDecoration(
+          prefixIcon: const Icon(Icons.table_chart_outlined),
+          labelText: AppStrings.datasetWorkspaceSelectSheet.tr(),
+          border: const OutlineInputBorder(),
+        ),
+        items: [
+          for (final table in tables)
+            DropdownMenuItem(
+              value: table.id,
+              child: Text(table.displayName),
+            ),
+        ],
+        onChanged: (tableId) {
+          if (tableId == null) return;
+          context.read<DatasetBloc>().add(ChangeSheetEvent(tableId));
+        },
+      );
+    }
+
+    final currentSheet = activeTable.effectiveSourceSheetName;
+    final currentTablesForSheet = sheetToTables[currentSheet] ?? [activeTable];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 600;
+
+        final sheetDropdown = DropdownButtonFormField<String>(
+          key: const ValueKey('sheet_selector_dropdown'),
+          initialValue: uniqueSheets.contains(currentSheet)
+              ? currentSheet
+              : uniqueSheets.first,
+          isExpanded: true,
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.folder_outlined),
+            labelText: AppStrings.datasetWorkspaceSheet.tr(),
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            for (final sheet in uniqueSheets)
+              DropdownMenuItem(
+                value: sheet,
+                child: Text(
+                  sheetToTables[sheet]!.length > 1
+                      ? '$sheet (${sheetToTables[sheet]!.length})'
+                      : sheet,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
+          onChanged: (selectedSheet) {
+            if (selectedSheet == null || selectedSheet == currentSheet) return;
+            final targetTables = sheetToTables[selectedSheet];
+            if (targetTables != null && targetTables.isNotEmpty) {
+              context
+                  .read<DatasetBloc>()
+                  .add(ChangeSheetEvent(targetTables.first.id));
+            }
+          },
+        );
+
+        final tableDropdown = DropdownButtonFormField<int>(
+          key: const ValueKey('table_selector_dropdown'),
+          initialValue: activeTable.id,
+          isExpanded: true,
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.table_chart_outlined),
+            labelText: AppStrings.datasetWorkspaceTable.tr(),
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            for (final table in currentTablesForSheet)
+              DropdownMenuItem(
+                value: table.id,
+                child: Text(
+                  table.displayName,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
+          onChanged: (tableId) {
+            if (tableId == null) return;
+            context.read<DatasetBloc>().add(ChangeSheetEvent(tableId));
+          },
+        );
+
+        if (isNarrow) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              sheetDropdown,
+              const SizedBox(height: 12),
+              tableDropdown,
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: sheetDropdown),
+            const SizedBox(width: 12),
+            Expanded(child: tableDropdown),
+          ],
+        );
       },
     );
   }

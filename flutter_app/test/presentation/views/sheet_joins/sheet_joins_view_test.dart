@@ -1481,4 +1481,42 @@ void main() {
     expect(find.byKey(const ValueKey('join_suggestions_close_button')),
         findsNothing);
   });
+
+  testWidgets(
+      'error banner displays actionable solution tip when validation fails',
+      (tester) async {
+    when(() => service.loadSheets(any())).thenAnswer((_) async => [
+          sheet(1, 'Sales', ['Product ID', 'Qty']),
+          sheet(2, 'Products', ['Product', 'Price']),
+        ]);
+    when(() => service.buildQuery(
+          datasetId: any(named: 'datasetId'),
+          spec: any(named: 'spec'),
+          sheets: any(named: 'sheets'),
+          relationshipsById: any(named: 'relationshipsById'),
+        )).thenThrow(const MultiSheetGraphException(
+      MultiSheetGraphValidator.cycleDetectedCode,
+    ));
+
+    final container = containerWith(service);
+    addTearDown(container.dispose);
+    await pumpView(tester, container);
+
+    await tester.tap(find.byKey(const ValueKey('join_sheet_1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('join_sheet_2')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('join_run_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('join_error_banner')), findsOneWidget);
+    expect(
+        find.byKey(const ValueKey('join_error_solution_text')), findsOneWidget);
+    expect(
+      find.text(
+        'Remove one redundant relationship. N tables only require N - 1 connections to link together without loops.',
+      ),
+      findsOneWidget,
+    );
+  });
 }

@@ -700,24 +700,67 @@ class _ErrorBanner extends StatelessWidget {
 
     final isStale = state.status == MultiSheetJoinStatus.staleSpec;
     final scheme = Theme.of(context).colorScheme;
+    final solution = isStale ? null : _errorSolution(code);
 
     return Card(
       key: const ValueKey('join_error_banner'),
       color: scheme.errorContainer,
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, color: scheme.onErrorContainer),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                isStale
-                    ? AppStrings.datasetJoinsStaleSpec.tr()
-                    : _errorMessage(code),
-                style: TextStyle(color: scheme.onErrorContainer),
-              ),
+            Row(
+              children: [
+                Icon(Icons.error_outline, color: scheme.onErrorContainer),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    isStale
+                        ? AppStrings.datasetJoinsStaleSpec.tr()
+                        : _errorMessage(code),
+                    style: TextStyle(
+                      color: scheme.onErrorContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
+            if (solution != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: scheme.surface.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.lightbulb_outline,
+                      size: 18,
+                      color: scheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        solution,
+                        key: const ValueKey('join_error_solution_text'),
+                        style: TextStyle(
+                          color: scheme.onSurface,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -981,5 +1024,27 @@ String _errorMessage(String code) {
     'load_saved_failed' => AppStrings.datasetJoinsLoadSavedFailed.tr(),
     'delete_saved_failed' => AppStrings.datasetJoinsDeleteSavedFailed.tr(),
     _ => AppStrings.datasetJoinsErrorGeneric.tr(),
+  };
+}
+
+String? _errorSolution(String code) {
+  return switch (code) {
+    MultiSheetGraphValidator.cycleDetectedCode =>
+      AppStrings.datasetJoinsErrorSolutionCycleDetected.tr(),
+    MultiSheetGraphValidator.disconnectedGraphCode =>
+      AppStrings.datasetJoinsErrorSolutionDisconnectedGraph.tr(),
+    MultiSheetGraphValidator.notEnoughTablesCode =>
+      AppStrings.datasetJoinsErrorSolutionNotEnoughTables.tr(),
+    MultiSheetGraphValidator.incompleteRelationshipCode =>
+      AppStrings.datasetJoinsErrorSolutionIncompleteRelationship.tr(),
+    MultiSheetGraphValidator.duplicateRelationshipCode =>
+      AppStrings.datasetJoinsErrorSolutionDuplicateRelationship.tr(),
+    'invalid_left_join_direction' =>
+      AppStrings.datasetJoinsErrorSolutionInvalidLeftJoinDirection.tr(),
+    MultiSheetSqlBuilder.noOutputColumnsCode =>
+      AppStrings.datasetJoinsErrorSolutionNoOutputColumns.tr(),
+    MultiSheetGraphValidator.unavailableTableOrColumnCode =>
+      AppStrings.datasetJoinsErrorSolutionUnavailableTableOrColumn.tr(),
+    _ => null,
   };
 }

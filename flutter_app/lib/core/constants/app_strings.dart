@@ -77,6 +77,14 @@ class AppStrings {
       'dataset.workspace.pagination.invalid_limit';
   static const String datasetWorkspaceSelectSheet =
       'dataset.workspace.select_sheet';
+  static const String datasetWorkspaceSheet = 'dataset.workspace.sheet';
+  static const String datasetWorkspaceTable = 'dataset.workspace.table';
+  static const String datasetWorkspaceSelectTable =
+      'dataset.workspace.select_table';
+  static const String datasetWorkspaceFromSheet =
+      'dataset.workspace.from_sheet';
+  static const String datasetWorkspaceTablesCount =
+      'dataset.workspace.tables_count';
   static const String datasetWorkspaceTableView =
       'dataset.workspace.table_view';
   static const String datasetWorkspaceCardView = 'dataset.workspace.card_view';
@@ -539,6 +547,22 @@ class AppStrings {
       'dataset.joins.error_invalid_left_join_direction';
   static const String datasetJoinsErrorNoOutputColumns =
       'dataset.joins.error_no_output_columns';
+  static const String datasetJoinsErrorSolutionCycleDetected =
+      'dataset.joins.error_solution_cycle_detected';
+  static const String datasetJoinsErrorSolutionDisconnectedGraph =
+      'dataset.joins.error_solution_disconnected_graph';
+  static const String datasetJoinsErrorSolutionNotEnoughTables =
+      'dataset.joins.error_solution_not_enough_tables';
+  static const String datasetJoinsErrorSolutionIncompleteRelationship =
+      'dataset.joins.error_solution_incomplete_relationship';
+  static const String datasetJoinsErrorSolutionDuplicateRelationship =
+      'dataset.joins.error_solution_duplicate_relationship';
+  static const String datasetJoinsErrorSolutionInvalidLeftJoinDirection =
+      'dataset.joins.error_solution_invalid_left_join_direction';
+  static const String datasetJoinsErrorSolutionNoOutputColumns =
+      'dataset.joins.error_solution_no_output_columns';
+  static const String datasetJoinsErrorSolutionUnavailableTableOrColumn =
+      'dataset.joins.error_solution_unavailable_table_or_column';
   static const String datasetJoinsErrorGeneric = 'dataset.joins.error_generic';
   static const String datasetJoinsNewConfiguration =
       'dataset.joins.new_configuration';

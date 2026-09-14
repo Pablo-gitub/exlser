@@ -463,9 +463,22 @@ class $DatasetTablesTable extends DatasetTables
   late final GeneratedColumn<int> colCount = GeneratedColumn<int>(
       'col_count', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _sourceSheetNameMeta =
+      const VerificationMeta('sourceSheetName');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, datasetId, sheetNameOriginal, sqlTableName, rowCount, colCount];
+  late final GeneratedColumn<String> sourceSheetName = GeneratedColumn<String>(
+      'source_sheet_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        datasetId,
+        sheetNameOriginal,
+        sqlTableName,
+        rowCount,
+        colCount,
+        sourceSheetName
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -513,6 +526,12 @@ class $DatasetTablesTable extends DatasetTables
     } else if (isInserting) {
       context.missing(_colCountMeta);
     }
+    if (data.containsKey('source_sheet_name')) {
+      context.handle(
+          _sourceSheetNameMeta,
+          sourceSheetName.isAcceptableOrUnknown(
+              data['source_sheet_name']!, _sourceSheetNameMeta));
+    }
     return context;
   }
 
@@ -534,6 +553,8 @@ class $DatasetTablesTable extends DatasetTables
           .read(DriftSqlType.int, data['${effectivePrefix}row_count'])!,
       colCount: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}col_count'])!,
+      sourceSheetName: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}source_sheet_name']),
     );
   }
 
@@ -560,13 +581,17 @@ class DatasetTable extends DataClass implements Insertable<DatasetTable> {
 
   /// Number of columns created (denormalized for quick access)
   final int colCount;
+
+  /// Original sheet name inside Excel file (if distinct from table name)
+  final String? sourceSheetName;
   const DatasetTable(
       {required this.id,
       required this.datasetId,
       required this.sheetNameOriginal,
       required this.sqlTableName,
       required this.rowCount,
-      required this.colCount});
+      required this.colCount,
+      this.sourceSheetName});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -576,6 +601,9 @@ class DatasetTable extends DataClass implements Insertable<DatasetTable> {
     map['sql_table_name'] = Variable<String>(sqlTableName);
     map['row_count'] = Variable<int>(rowCount);
     map['col_count'] = Variable<int>(colCount);
+    if (!nullToAbsent || sourceSheetName != null) {
+      map['source_sheet_name'] = Variable<String>(sourceSheetName);
+    }
     return map;
   }
 
@@ -587,6 +615,9 @@ class DatasetTable extends DataClass implements Insertable<DatasetTable> {
       sqlTableName: Value(sqlTableName),
       rowCount: Value(rowCount),
       colCount: Value(colCount),
+      sourceSheetName: sourceSheetName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceSheetName),
     );
   }
 
@@ -600,6 +631,7 @@ class DatasetTable extends DataClass implements Insertable<DatasetTable> {
       sqlTableName: serializer.fromJson<String>(json['sqlTableName']),
       rowCount: serializer.fromJson<int>(json['rowCount']),
       colCount: serializer.fromJson<int>(json['colCount']),
+      sourceSheetName: serializer.fromJson<String?>(json['sourceSheetName']),
     );
   }
   @override
@@ -612,6 +644,7 @@ class DatasetTable extends DataClass implements Insertable<DatasetTable> {
       'sqlTableName': serializer.toJson<String>(sqlTableName),
       'rowCount': serializer.toJson<int>(rowCount),
       'colCount': serializer.toJson<int>(colCount),
+      'sourceSheetName': serializer.toJson<String?>(sourceSheetName),
     };
   }
 
@@ -621,7 +654,8 @@ class DatasetTable extends DataClass implements Insertable<DatasetTable> {
           String? sheetNameOriginal,
           String? sqlTableName,
           int? rowCount,
-          int? colCount}) =>
+          int? colCount,
+          Value<String?> sourceSheetName = const Value.absent()}) =>
       DatasetTable(
         id: id ?? this.id,
         datasetId: datasetId ?? this.datasetId,
@@ -629,6 +663,9 @@ class DatasetTable extends DataClass implements Insertable<DatasetTable> {
         sqlTableName: sqlTableName ?? this.sqlTableName,
         rowCount: rowCount ?? this.rowCount,
         colCount: colCount ?? this.colCount,
+        sourceSheetName: sourceSheetName.present
+            ? sourceSheetName.value
+            : this.sourceSheetName,
       );
   DatasetTable copyWithCompanion(DatasetTablesCompanion data) {
     return DatasetTable(
@@ -642,6 +679,9 @@ class DatasetTable extends DataClass implements Insertable<DatasetTable> {
           : this.sqlTableName,
       rowCount: data.rowCount.present ? data.rowCount.value : this.rowCount,
       colCount: data.colCount.present ? data.colCount.value : this.colCount,
+      sourceSheetName: data.sourceSheetName.present
+          ? data.sourceSheetName.value
+          : this.sourceSheetName,
     );
   }
 
@@ -653,14 +693,15 @@ class DatasetTable extends DataClass implements Insertable<DatasetTable> {
           ..write('sheetNameOriginal: $sheetNameOriginal, ')
           ..write('sqlTableName: $sqlTableName, ')
           ..write('rowCount: $rowCount, ')
-          ..write('colCount: $colCount')
+          ..write('colCount: $colCount, ')
+          ..write('sourceSheetName: $sourceSheetName')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, datasetId, sheetNameOriginal, sqlTableName, rowCount, colCount);
+  int get hashCode => Object.hash(id, datasetId, sheetNameOriginal,
+      sqlTableName, rowCount, colCount, sourceSheetName);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -670,7 +711,8 @@ class DatasetTable extends DataClass implements Insertable<DatasetTable> {
           other.sheetNameOriginal == this.sheetNameOriginal &&
           other.sqlTableName == this.sqlTableName &&
           other.rowCount == this.rowCount &&
-          other.colCount == this.colCount);
+          other.colCount == this.colCount &&
+          other.sourceSheetName == this.sourceSheetName);
 }
 
 class DatasetTablesCompanion extends UpdateCompanion<DatasetTable> {
@@ -680,6 +722,7 @@ class DatasetTablesCompanion extends UpdateCompanion<DatasetTable> {
   final Value<String> sqlTableName;
   final Value<int> rowCount;
   final Value<int> colCount;
+  final Value<String?> sourceSheetName;
   const DatasetTablesCompanion({
     this.id = const Value.absent(),
     this.datasetId = const Value.absent(),
@@ -687,6 +730,7 @@ class DatasetTablesCompanion extends UpdateCompanion<DatasetTable> {
     this.sqlTableName = const Value.absent(),
     this.rowCount = const Value.absent(),
     this.colCount = const Value.absent(),
+    this.sourceSheetName = const Value.absent(),
   });
   DatasetTablesCompanion.insert({
     this.id = const Value.absent(),
@@ -695,6 +739,7 @@ class DatasetTablesCompanion extends UpdateCompanion<DatasetTable> {
     required String sqlTableName,
     required int rowCount,
     required int colCount,
+    this.sourceSheetName = const Value.absent(),
   })  : datasetId = Value(datasetId),
         sheetNameOriginal = Value(sheetNameOriginal),
         sqlTableName = Value(sqlTableName),
@@ -707,6 +752,7 @@ class DatasetTablesCompanion extends UpdateCompanion<DatasetTable> {
     Expression<String>? sqlTableName,
     Expression<int>? rowCount,
     Expression<int>? colCount,
+    Expression<String>? sourceSheetName,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -715,6 +761,7 @@ class DatasetTablesCompanion extends UpdateCompanion<DatasetTable> {
       if (sqlTableName != null) 'sql_table_name': sqlTableName,
       if (rowCount != null) 'row_count': rowCount,
       if (colCount != null) 'col_count': colCount,
+      if (sourceSheetName != null) 'source_sheet_name': sourceSheetName,
     });
   }
 
@@ -724,7 +771,8 @@ class DatasetTablesCompanion extends UpdateCompanion<DatasetTable> {
       Value<String>? sheetNameOriginal,
       Value<String>? sqlTableName,
       Value<int>? rowCount,
-      Value<int>? colCount}) {
+      Value<int>? colCount,
+      Value<String?>? sourceSheetName}) {
     return DatasetTablesCompanion(
       id: id ?? this.id,
       datasetId: datasetId ?? this.datasetId,
@@ -732,6 +780,7 @@ class DatasetTablesCompanion extends UpdateCompanion<DatasetTable> {
       sqlTableName: sqlTableName ?? this.sqlTableName,
       rowCount: rowCount ?? this.rowCount,
       colCount: colCount ?? this.colCount,
+      sourceSheetName: sourceSheetName ?? this.sourceSheetName,
     );
   }
 
@@ -756,6 +805,9 @@ class DatasetTablesCompanion extends UpdateCompanion<DatasetTable> {
     if (colCount.present) {
       map['col_count'] = Variable<int>(colCount.value);
     }
+    if (sourceSheetName.present) {
+      map['source_sheet_name'] = Variable<String>(sourceSheetName.value);
+    }
     return map;
   }
 
@@ -767,7 +819,8 @@ class DatasetTablesCompanion extends UpdateCompanion<DatasetTable> {
           ..write('sheetNameOriginal: $sheetNameOriginal, ')
           ..write('sqlTableName: $sqlTableName, ')
           ..write('rowCount: $rowCount, ')
-          ..write('colCount: $colCount')
+          ..write('colCount: $colCount, ')
+          ..write('sourceSheetName: $sourceSheetName')
           ..write(')'))
         .toString();
   }
@@ -3391,6 +3444,7 @@ typedef $$DatasetTablesTableCreateCompanionBuilder = DatasetTablesCompanion
   required String sqlTableName,
   required int rowCount,
   required int colCount,
+  Value<String?> sourceSheetName,
 });
 typedef $$DatasetTablesTableUpdateCompanionBuilder = DatasetTablesCompanion
     Function({
@@ -3400,6 +3454,7 @@ typedef $$DatasetTablesTableUpdateCompanionBuilder = DatasetTablesCompanion
   Value<String> sqlTableName,
   Value<int> rowCount,
   Value<int> colCount,
+  Value<String?> sourceSheetName,
 });
 
 final class $$DatasetTablesTableReferences
@@ -3462,6 +3517,10 @@ class $$DatasetTablesTableFilterComposer
 
   ColumnFilters<int> get colCount => $composableBuilder(
       column: $table.colCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceSheetName => $composableBuilder(
+      column: $table.sourceSheetName,
+      builder: (column) => ColumnFilters(column));
 
   $$DatasetsTableFilterComposer get datasetId {
     final $$DatasetsTableFilterComposer composer = $composerBuilder(
@@ -3531,6 +3590,10 @@ class $$DatasetTablesTableOrderingComposer
   ColumnOrderings<int> get colCount => $composableBuilder(
       column: $table.colCount, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get sourceSheetName => $composableBuilder(
+      column: $table.sourceSheetName,
+      builder: (column) => ColumnOrderings(column));
+
   $$DatasetsTableOrderingComposer get datasetId {
     final $$DatasetsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -3575,6 +3638,9 @@ class $$DatasetTablesTableAnnotationComposer
 
   GeneratedColumn<int> get colCount =>
       $composableBuilder(column: $table.colCount, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceSheetName => $composableBuilder(
+      column: $table.sourceSheetName, builder: (column) => column);
 
   $$DatasetsTableAnnotationComposer get datasetId {
     final $$DatasetsTableAnnotationComposer composer = $composerBuilder(
@@ -3647,6 +3713,7 @@ class $$DatasetTablesTableTableManager extends RootTableManager<
             Value<String> sqlTableName = const Value.absent(),
             Value<int> rowCount = const Value.absent(),
             Value<int> colCount = const Value.absent(),
+            Value<String?> sourceSheetName = const Value.absent(),
           }) =>
               DatasetTablesCompanion(
             id: id,
@@ -3655,6 +3722,7 @@ class $$DatasetTablesTableTableManager extends RootTableManager<
             sqlTableName: sqlTableName,
             rowCount: rowCount,
             colCount: colCount,
+            sourceSheetName: sourceSheetName,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -3663,6 +3731,7 @@ class $$DatasetTablesTableTableManager extends RootTableManager<
             required String sqlTableName,
             required int rowCount,
             required int colCount,
+            Value<String?> sourceSheetName = const Value.absent(),
           }) =>
               DatasetTablesCompanion.insert(
             id: id,
@@ -3671,6 +3740,7 @@ class $$DatasetTablesTableTableManager extends RootTableManager<
             sqlTableName: sqlTableName,
             rowCount: rowCount,
             colCount: colCount,
+            sourceSheetName: sourceSheetName,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

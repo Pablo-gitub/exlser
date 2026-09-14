@@ -33,6 +33,7 @@ class CreateDatasetTableUseCase {
     required String sheetName,
     required int rowCount,
     required int colCount,
+    String? sourceSheetName,
   }) async {
     final trimmedSheetName = sheetName.trim();
 
@@ -53,6 +54,9 @@ class CreateDatasetTableUseCase {
       sqlTableName: sqlTableName,
       rowCount: rowCount,
       colCount: colCount,
+      sourceSheetName: sourceSheetName?.trim().isNotEmpty == true
+          ? sourceSheetName!.trim()
+          : null,
     );
 
     return repository.createDatasetTable(table);
