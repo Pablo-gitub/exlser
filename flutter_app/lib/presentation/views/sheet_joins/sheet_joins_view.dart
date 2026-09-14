@@ -137,12 +137,14 @@ class _SectionCard extends StatelessWidget {
   final String? hint;
   final Widget child;
   final Widget? trailing;
+  final bool isCollapsed;
 
   const _SectionCard({
     required this.title,
     required this.child,
     this.hint,
     this.trailing,
+    this.isCollapsed = false,
   });
 
   Widget _buildHeader(BuildContext context) {
@@ -192,8 +194,10 @@ class _SectionCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
-            const SizedBox(height: 12),
-            child,
+            if (!isCollapsed) ...[
+              const SizedBox(height: 12),
+              child,
+            ],
           ],
         ),
       ),
@@ -293,23 +297,71 @@ class _BaseSheetPicker extends StatelessWidget {
   }
 }
 
-class _SuggestionsSection extends StatelessWidget {
+class _SuggestionsSection extends StatefulWidget {
   final MultiSheetJoinState state;
   final MultiSheetJoinController controller;
 
   const _SuggestionsSection({required this.state, required this.controller});
 
   @override
+  State<_SuggestionsSection> createState() => _SuggestionsSectionState();
+}
+
+class _SuggestionsSectionState extends State<_SuggestionsSection> {
+  bool _isCollapsed = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.state.suggestions.isNotEmpty) {
+      _isCollapsed = false;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _SuggestionsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.state.status == MultiSheetJoinStatus.generatingSuggestions ||
+        (widget.state.suggestions.isNotEmpty &&
+            oldWidget.state.suggestions.isEmpty)) {
+      _isCollapsed = false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final state = widget.state;
+    final controller = widget.controller;
     final busy = state.status == MultiSheetJoinStatus.generatingSuggestions;
 
     return _SectionCard(
       title: AppStrings.datasetJoinsSuggestions.tr(),
-      trailing: TextButton.icon(
-        key: const ValueKey('join_suggest_button'),
-        onPressed: busy ? null : controller.generateSuggestions,
-        icon: const Icon(Icons.auto_awesome_outlined),
-        label: Text(AppStrings.datasetJoinsSuggest.tr()),
+      isCollapsed: _isCollapsed && !busy,
+      trailing: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 4,
+        children: [
+          TextButton.icon(
+            key: const ValueKey('join_suggest_button'),
+            onPressed: busy
+                ? null
+                : () {
+                    setState(() => _isCollapsed = false);
+                    controller.generateSuggestions();
+                  },
+            icon: const Icon(Icons.auto_awesome_outlined),
+            label: Text(AppStrings.datasetJoinsSuggest.tr()),
+          ),
+          if (!_isCollapsed || busy)
+            IconButton(
+              key: const ValueKey('join_suggestions_close_button'),
+              icon: const Icon(Icons.close, size: 20),
+              tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+              onPressed: () {
+                setState(() => _isCollapsed = true);
+              },
+            ),
+        ],
       ),
       child: busy
           ? const Padding(

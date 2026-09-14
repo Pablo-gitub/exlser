@@ -1442,4 +1442,43 @@ void main() {
 
     expect(find.byType(JoinGraphCanvas), findsNothing);
   });
+
+  testWidgets(
+      'clicking suggestions close button collapses the suggestions section',
+      (tester) async {
+    when(() => service.loadSheets(any())).thenAnswer((_) async => [
+          sheet(1, 'Sales', ['Product ID']),
+          sheet(2, 'Products', ['Product']),
+        ]);
+
+    final container = containerWith(service);
+    addTearDown(container.dispose);
+    await pumpView(tester, container);
+
+    await tester.tap(find.byKey(const ValueKey('join_sheet_1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('join_sheet_2')));
+    await tester.pumpAndSettle();
+
+    // Initially collapsed: close button is not visible
+    expect(find.byKey(const ValueKey('join_suggestions_close_button')),
+        findsNothing);
+
+    // Tap find relationships to expand
+    await tester.tap(find.byKey(const ValueKey('join_suggest_button')));
+    await tester.pumpAndSettle();
+
+    // Now close button is visible
+    expect(find.byKey(const ValueKey('join_suggestions_close_button')),
+        findsOneWidget);
+
+    // Tap close button to collapse
+    await tester
+        .tap(find.byKey(const ValueKey('join_suggestions_close_button')));
+    await tester.pumpAndSettle();
+
+    // Close button disappears and section collapses
+    expect(find.byKey(const ValueKey('join_suggestions_close_button')),
+        findsNothing);
+  });
 }
