@@ -313,4 +313,64 @@ void main() {
     await tester.tap(zoomReset);
     await tester.pumpAndSettle();
   });
+
+  testWidgets(
+      'when sheets have only one table each, scope toggle is omitted and all tables are shown',
+      (tester) async {
+    final oneToOneTables = [
+      _table(id: 1, name: 'Products', sourceSheetName: 'Products'),
+      _table(id: 2, name: 'Regions', sourceSheetName: 'Regions'),
+      _table(id: 3, name: 'Sales', sourceSheetName: 'Sales'),
+    ];
+
+    final container = ProviderContainer(
+      overrides: [
+        multiSheetAnalysisServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    tester.view.physicalSize = const Size(1200, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        EasyLocalization(
+          supportedLocales: const [Locale('en')],
+          path: 'assets/i18n',
+          fallbackLocale: const Locale('en'),
+          startLocale: const Locale('en'),
+          child: UncontrolledProviderScope(
+            container: container,
+            child: Builder(
+              builder: (context) => MaterialApp(
+                locale: context.locale,
+                supportedLocales: context.supportedLocales,
+                localizationsDelegates: context.localizationDelegates,
+                home: Scaffold(
+                  body: SingleChildScrollView(
+                    child: DatasetTablesGraphOverview(
+                      dataset: dataset,
+                      tables: oneToOneTables,
+                      activeTable: oneToOneTables.first,
+                      columnsByTableId: columnsByTableId,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 150));
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('graph_scope_segmented_button')),
+        findsNothing);
+    expect(find.text('Products'), findsOneWidget);
+    expect(find.text('Regions'), findsOneWidget);
+    expect(find.text('Sales'), findsOneWidget);
+  });
 }

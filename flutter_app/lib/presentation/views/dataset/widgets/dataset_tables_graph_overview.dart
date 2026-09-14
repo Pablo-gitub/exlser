@@ -69,7 +69,17 @@ class _DatasetTablesGraphOverviewState
     _transformationController.value = Matrix4.identity();
   }
 
+  bool get _hasMultipleSheetsWithSubTables {
+    final uniqueSheets =
+        widget.tables.map((t) => t.effectiveSourceSheetName).toSet();
+    return uniqueSheets.length > 1 &&
+        uniqueSheets.length < widget.tables.length;
+  }
+
   List<DatasetTable> get _displayedTables {
+    if (!_hasMultipleSheetsWithSubTables) {
+      return widget.tables;
+    }
     if (_scope == GraphScope.singleSheet) {
       final activeSheet = widget.activeTable.effectiveSourceSheetName;
       return widget.tables
@@ -245,34 +255,35 @@ class _DatasetTablesGraphOverviewState
                         ),
                       ],
                     ),
-                    SegmentedButton<GraphScope>(
-                      key: const ValueKey('graph_scope_segmented_button'),
-                      showSelectedIcon: false,
-                      segments: [
-                        ButtonSegment(
-                          value: GraphScope.singleSheet,
-                          label: Text(
-                            AppStrings.datasetWorkspaceGraphSingleSheet.tr(),
+                    if (_hasMultipleSheetsWithSubTables)
+                      SegmentedButton<GraphScope>(
+                        key: const ValueKey('graph_scope_segmented_button'),
+                        showSelectedIcon: false,
+                        segments: [
+                          ButtonSegment(
+                            value: GraphScope.singleSheet,
+                            label: Text(
+                              AppStrings.datasetWorkspaceGraphSingleSheet.tr(),
+                            ),
+                            icon: const Icon(Icons.description_outlined,
+                                size: 16),
                           ),
-                          icon:
-                              const Icon(Icons.description_outlined, size: 16),
-                        ),
-                        ButtonSegment(
-                          value: GraphScope.allSheets,
-                          label: Text(
-                              AppStrings.datasetWorkspaceGraphAllSheets.tr()),
-                          icon: const Icon(Icons.folder_outlined, size: 16),
-                        ),
-                      ],
-                      selected: {_scope},
-                      onSelectionChanged: (newSelection) {
-                        setState(() {
-                          _scope = newSelection.first;
-                          _suggestions = null;
-                          _saved = false;
-                        });
-                      },
-                    ),
+                          ButtonSegment(
+                            value: GraphScope.allSheets,
+                            label: Text(
+                                AppStrings.datasetWorkspaceGraphAllSheets.tr()),
+                            icon: const Icon(Icons.folder_outlined, size: 16),
+                          ),
+                        ],
+                        selected: {_scope},
+                        onSelectionChanged: (newSelection) {
+                          setState(() {
+                            _scope = newSelection.first;
+                            _suggestions = null;
+                            _saved = false;
+                          });
+                        },
+                      ),
                   ],
                 ),
 
