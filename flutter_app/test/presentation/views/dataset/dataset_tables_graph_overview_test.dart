@@ -373,4 +373,137 @@ void main() {
     expect(find.text('Regions'), findsOneWidget);
     expect(find.text('Sales'), findsOneWidget);
   });
+
+  testWidgets(
+      'when all tables belong to a single sheet, scope toggle is omitted and all tables are shown',
+      (tester) async {
+    final singleSheetTables = [
+      _table(id: 1, name: 'Customers', sourceSheetName: 'Dashboard'),
+      _table(id: 2, name: 'Orders', sourceSheetName: 'Dashboard'),
+    ];
+
+    final container = ProviderContainer(
+      overrides: [
+        multiSheetAnalysisServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    tester.view.physicalSize = const Size(1200, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        EasyLocalization(
+          supportedLocales: const [Locale('en')],
+          path: 'assets/i18n',
+          fallbackLocale: const Locale('en'),
+          startLocale: const Locale('en'),
+          child: UncontrolledProviderScope(
+            container: container,
+            child: Builder(
+              builder: (context) => MaterialApp(
+                locale: context.locale,
+                supportedLocales: context.supportedLocales,
+                localizationsDelegates: context.localizationDelegates,
+                home: Scaffold(
+                  body: SingleChildScrollView(
+                    child: DatasetTablesGraphOverview(
+                      dataset: dataset,
+                      tables: singleSheetTables,
+                      activeTable: singleSheetTables.first,
+                      columnsByTableId: columnsByTableId,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 150));
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('graph_scope_segmented_button')),
+        findsNothing);
+    expect(find.text('Customers'), findsOneWidget);
+    expect(find.text('Orders'), findsOneWidget);
+  });
+
+  testWidgets(
+      'when multiple sheets each have multiple tables, scope toggle is shown and filters by active sheet',
+      (tester) async {
+    final multiSheetTables = [
+      _table(id: 1, name: 'Orders', sourceSheetName: 'Sales'),
+      _table(id: 2, name: 'Returns', sourceSheetName: 'Sales'),
+      _table(id: 3, name: 'Products', sourceSheetName: 'Inventory'),
+      _table(id: 4, name: 'Suppliers', sourceSheetName: 'Inventory'),
+    ];
+
+    final container = ProviderContainer(
+      overrides: [
+        multiSheetAnalysisServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    tester.view.physicalSize = const Size(1200, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        EasyLocalization(
+          supportedLocales: const [Locale('en')],
+          path: 'assets/i18n',
+          fallbackLocale: const Locale('en'),
+          startLocale: const Locale('en'),
+          child: UncontrolledProviderScope(
+            container: container,
+            child: Builder(
+              builder: (context) => MaterialApp(
+                locale: context.locale,
+                supportedLocales: context.supportedLocales,
+                localizationsDelegates: context.localizationDelegates,
+                home: Scaffold(
+                  body: SingleChildScrollView(
+                    child: DatasetTablesGraphOverview(
+                      dataset: dataset,
+                      tables: multiSheetTables,
+                      activeTable: multiSheetTables.first, // Orders on Sales
+                      columnsByTableId: columnsByTableId,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 150));
+    });
+    await tester.pumpAndSettle();
+
+    // Toggle must be present
+    expect(find.byKey(const ValueKey('graph_scope_segmented_button')),
+        findsOneWidget);
+
+    // Initially with allSheets: all 4 tables are present
+    expect(find.text('Orders'), findsOneWidget);
+    expect(find.text('Returns'), findsOneWidget);
+    expect(find.text('Products'), findsOneWidget);
+    expect(find.text('Suppliers'), findsOneWidget);
+
+    // Switch to singleSheet
+    await tester.tap(find.text('Current sheet'));
+    await tester.pumpAndSettle();
+
+    // Now only Sales tables (Orders, Returns) are displayed
+    expect(find.text('Orders'), findsOneWidget);
+    expect(find.text('Returns'), findsOneWidget);
+    expect(find.text('Products'), findsNothing);
+    expect(find.text('Suppliers'), findsNothing);
+  });
 }

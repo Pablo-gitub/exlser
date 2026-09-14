@@ -70,6 +70,7 @@ scripts/
 # Excel temporary files
 ~$*.xlsx
 ~$*.xls
+.~lock.*#
 
 # Key files
 **/android/key.properties
