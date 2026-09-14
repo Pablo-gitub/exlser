@@ -253,6 +253,19 @@
                     "min": "Menor valor encontrado em cada grupo.",
                     "max": "Maior valor encontrado em cada grupo."
                 }
+            },
+            "graph": {
+                "title": "Visão geral das tabelas",
+                "single_sheet": "Folha atual",
+                "all_sheets": "Todas as folhas",
+                "generate": "Localizar ligações",
+                "generating": "A procurar ligações...",
+                "save": "Guardar",
+                "edit": "Editar em Combinar folhas",
+                "saved_success": "Ligações guardadas com sucesso",
+                "no_connections_found": "Nenhuma ligação automática encontrada",
+                "collapse": "Recolher visão geral",
+                "expand": "Expandir visão geral"
             }
         },
         "joins": {
@@ -350,7 +363,8 @@
             "graph_rule_left": "Mantém todas as linhas de {baseTable}, mesmo sem correspondência em {otherTable}.",
             "graph_rule_inner": "Mantém apenas as linhas com correspondência em ambas as folhas.",
             "graph_tap_to_edit": "Toque na ligação para editar",
-            "graph_add_suggestion": "Ligar campos sugeridos"
+            "graph_add_suggestion": "Ligar campos sugeridos",
+            "back": "Voltar ao conjunto de dados"
         }
     },
     "settings": {

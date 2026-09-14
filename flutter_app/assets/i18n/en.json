@@ -253,6 +253,19 @@
                     "min": "Lowest value found in each group.",
                     "max": "Highest value found in each group."
                 }
+            },
+            "graph": {
+                "title": "Tables overview",
+                "single_sheet": "Current sheet",
+                "all_sheets": "All sheets",
+                "generate": "Find connections",
+                "generating": "Finding connections...",
+                "save": "Save",
+                "edit": "Edit in Combine Sheets",
+                "saved_success": "Connections saved successfully",
+                "no_connections_found": "No automatic connections found",
+                "collapse": "Collapse overview",
+                "expand": "Expand overview"
             }
         },
         "joins": {
@@ -350,7 +363,8 @@
             "graph_rule_left": "Keeps all rows from {baseTable}, even if there is no match in {otherTable}.",
             "graph_rule_inner": "Keeps only rows that have a match in both sheets.",
             "graph_tap_to_edit": "Tap connection to edit",
-            "graph_add_suggestion": "Connect suggested fields"
+            "graph_add_suggestion": "Connect suggested fields",
+            "back": "Back to dataset"
         }
     },
     "settings": {

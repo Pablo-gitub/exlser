@@ -253,6 +253,19 @@
                     "min": "Valore più basso trovato in ogni gruppo.",
                     "max": "Valore più alto trovato in ogni gruppo."
                 }
+            },
+            "graph": {
+                "title": "Panoramica tabelle",
+                "single_sheet": "Foglio corrente",
+                "all_sheets": "Tutti i fogli",
+                "generate": "Genera collegamenti",
+                "generating": "Ricerca collegamenti...",
+                "save": "Salva",
+                "edit": "Modifica in Unisci fogli",
+                "saved_success": "Collegamenti salvati con successo",
+                "no_connections_found": "Nessun collegamento trovato automaticamente",
+                "collapse": "Comprimi panoramica",
+                "expand": "Espandi panoramica"
             }
         },
         "joins": {
@@ -350,7 +363,8 @@
             "graph_rule_left": "Conserva tutte le righe di {baseTable}, anche se non c'è corrispondenza in {otherTable}.",
             "graph_rule_inner": "Mostra solo le righe con corrispondenza in entrambi i fogli.",
             "graph_tap_to_edit": "Tocca il collegamento per modificare",
-            "graph_add_suggestion": "Collega campi suggeriti"
+            "graph_add_suggestion": "Collega campi suggeriti",
+            "back": "Torna al dataset"
         }
     },
     "settings": {

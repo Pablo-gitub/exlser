@@ -85,6 +85,28 @@ class AppStrings {
       'dataset.workspace.from_sheet';
   static const String datasetWorkspaceTablesCount =
       'dataset.workspace.tables_count';
+  static const String datasetWorkspaceGraphTitle =
+      'dataset.workspace.graph.title';
+  static const String datasetWorkspaceGraphSingleSheet =
+      'dataset.workspace.graph.single_sheet';
+  static const String datasetWorkspaceGraphAllSheets =
+      'dataset.workspace.graph.all_sheets';
+  static const String datasetWorkspaceGraphGenerate =
+      'dataset.workspace.graph.generate';
+  static const String datasetWorkspaceGraphGenerating =
+      'dataset.workspace.graph.generating';
+  static const String datasetWorkspaceGraphSave =
+      'dataset.workspace.graph.save';
+  static const String datasetWorkspaceGraphEdit =
+      'dataset.workspace.graph.edit';
+  static const String datasetWorkspaceGraphSavedSuccess =
+      'dataset.workspace.graph.saved_success';
+  static const String datasetWorkspaceGraphNoConnectionsFound =
+      'dataset.workspace.graph.no_connections_found';
+  static const String datasetWorkspaceGraphCollapse =
+      'dataset.workspace.graph.collapse';
+  static const String datasetWorkspaceGraphExpand =
+      'dataset.workspace.graph.expand';
   static const String datasetWorkspaceTableView =
       'dataset.workspace.table_view';
   static const String datasetWorkspaceCardView = 'dataset.workspace.card_view';
@@ -461,6 +483,7 @@ class AppStrings {
   static const String datasetJoinsAction = 'dataset.joins.action';
   static const String datasetJoinsTitle = 'dataset.joins.title';
   static const String datasetJoinsSubtitle = 'dataset.joins.subtitle';
+  static const String datasetJoinsBack = 'dataset.joins.back';
   static const String datasetJoinsSelectSheets = 'dataset.joins.select_sheets';
   static const String datasetJoinsBaseSheet = 'dataset.joins.base_sheet';
   static const String datasetJoinsBaseSheetHint =

@@ -253,6 +253,19 @@
                     "min": "Valeur la plus basse trouvée dans chaque groupe.",
                     "max": "Valeur la plus élevée trouvée dans chaque groupe."
                 }
+            },
+            "graph": {
+                "title": "Aperçu des tableaux",
+                "single_sheet": "Feuille actuelle",
+                "all_sheets": "Toutes les feuilles",
+                "generate": "Rechercher des liaisons",
+                "generating": "Recherche de liaisons...",
+                "save": "Enregistrer",
+                "edit": "Modifier dans Combiner les feuilles",
+                "saved_success": "Liaisons enregistrées avec succès",
+                "no_connections_found": "Aucune liaison automatique trouvée",
+                "collapse": "Réduire l'aperçu",
+                "expand": "Développer l'aperçu"
             }
         },
         "joins": {
@@ -350,7 +363,8 @@
             "graph_rule_left": "Conserve toutes les lignes de {baseTable}, même sans correspondance dans {otherTable}.",
             "graph_rule_inner": "Conserve uniquement les lignes avec correspondance dans les deux feuilles.",
             "graph_tap_to_edit": "Appuyez sur la connexion pour modifier",
-            "graph_add_suggestion": "Connecter les champs suggérés"
+            "graph_add_suggestion": "Connecter les champs suggérés",
+            "back": "Retour au jeu de données"
         }
     },
     "settings": {

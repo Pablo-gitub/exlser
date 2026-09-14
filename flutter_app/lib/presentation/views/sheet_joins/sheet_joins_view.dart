@@ -18,6 +18,8 @@ import 'package:exlser/presentation/views/sheet_joins/multi_sheet_join_controlle
 import 'package:exlser/presentation/views/sheet_joins/saved_join_configurations_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:exlser/presentation/router/routes.dart';
 
 enum JoinViewMode { list, graph }
 
@@ -71,9 +73,36 @@ class _SheetJoinsViewState extends ConsumerState<SheetJoinsView> {
     }
 
     if (!state.canConfigure) {
-      return _Message(
-        icon: Icons.grid_view_outlined,
-        text: AppStrings.datasetJoinsErrorNotEnoughTables.tr(),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: IconButton(
+              key: const ValueKey('sheet_joins_back_button'),
+              icon: const Icon(Icons.arrow_back),
+              tooltip: AppStrings.datasetJoinsBack.tr(),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.goNamed(
+                    AppRoutes.datasetName,
+                    pathParameters: {
+                      AppRoutes.datasetIdParam: '${widget.datasetId}',
+                    },
+                  );
+                }
+              },
+            ),
+          ),
+          Expanded(
+            child: _Message(
+              icon: Icons.grid_view_outlined,
+              text: AppStrings.datasetJoinsErrorNotEnoughTables.tr(),
+            ),
+          ),
+        ],
       );
     }
 
@@ -89,9 +118,34 @@ class _SheetJoinsViewState extends ConsumerState<SheetJoinsView> {
                 vertical: 16,
               ),
               children: [
-                Text(
-                  AppStrings.datasetJoinsSubtitle.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      key: const ValueKey('sheet_joins_back_button'),
+                      icon: const Icon(Icons.arrow_back),
+                      tooltip: AppStrings.datasetJoinsBack.tr(),
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.goNamed(
+                            AppRoutes.datasetName,
+                            pathParameters: {
+                              AppRoutes.datasetIdParam: '${widget.datasetId}',
+                            },
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        AppStrings.datasetJoinsSubtitle.tr(),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 SavedJoinConfigurationsPanel(

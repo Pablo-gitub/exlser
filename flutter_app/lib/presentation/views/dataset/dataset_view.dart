@@ -18,6 +18,7 @@ import 'package:exlser/presentation/state/dataset_bloc.dart';
 import 'package:exlser/presentation/state/dataset_event.dart';
 import 'package:exlser/presentation/state/dataset_state.dart';
 import 'package:exlser/presentation/state/dataset_workspace_ui_state.dart';
+import 'package:exlser/presentation/views/dataset/widgets/dataset_tables_graph_overview.dart';
 import 'package:exlser/presentation/widgets/dataset_sections/analytics_section.dart';
 import 'package:exlser/presentation/widgets/dataset_views/dataset_card_view.dart';
 import 'package:exlser/presentation/widgets/dataset_views/dataset_filter_panel.dart';
@@ -547,7 +548,13 @@ class _LoadedWorkspace extends StatelessWidget {
                     loadedRowCount: state.rows.length,
                     rowLimit: state.rowLimit,
                     totalRowCount: state.totalRowCount,
-                    viewMode: state.viewMode,
+                  ),
+                  const SizedBox(height: 16),
+                  DatasetTablesGraphOverview(
+                    dataset: state.dataset,
+                    tables: state.tables,
+                    activeTable: state.activeTable,
+                    columnsByTableId: state.columnsByTableId,
                   ),
                   const SizedBox(height: 16),
                   SheetSelector(
@@ -571,6 +578,8 @@ class _LoadedWorkspace extends StatelessWidget {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  _ViewModeSelector(viewMode: state.viewMode),
                   const SizedBox(height: 16),
                   _DatasetQueryModePanel(state: state),
                   const SizedBox(height: 16),
@@ -1183,7 +1192,6 @@ class _DatasetHeader extends StatelessWidget {
   final int loadedRowCount;
   final int rowLimit;
   final int totalRowCount;
-  final DatasetViewMode viewMode;
 
   const _DatasetHeader({
     required this.dataset,
@@ -1194,7 +1202,6 @@ class _DatasetHeader extends StatelessWidget {
     required this.loadedRowCount,
     required this.rowLimit,
     required this.totalRowCount,
-    required this.viewMode,
   });
 
   @override
@@ -1262,8 +1269,6 @@ class _DatasetHeader extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        _ViewModeSelector(viewMode: viewMode),
       ],
     );
   }

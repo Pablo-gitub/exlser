@@ -253,6 +253,19 @@
                     "min": "每个组中的最低值。",
                     "max": "每个组中的最高值。"
                 }
+            },
+            "graph": {
+                "title": "表格概览",
+                "single_sheet": "当前工作表",
+                "all_sheets": "所有工作表",
+                "generate": "查找关联",
+                "generating": "正在查找关联...",
+                "save": "保存",
+                "edit": "在合并工作表中编辑",
+                "saved_success": "关联保存成功",
+                "no_connections_found": "未自动找到关联",
+                "collapse": "折叠概览",
+                "expand": "展开概览"
             }
         },
         "joins": {
@@ -350,7 +363,8 @@
             "graph_rule_left": "保留 {baseTable} 的所有行，即使在 {otherTable} 中没有匹配。",
             "graph_rule_inner": "仅保留两个表中均匹配的行。",
             "graph_tap_to_edit": "点击连接进行编辑",
-            "graph_add_suggestion": "连接推荐字段"
+            "graph_add_suggestion": "连接推荐字段",
+            "back": "返回数据集"
         }
     },
     "settings": {

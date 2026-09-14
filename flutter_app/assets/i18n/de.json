@@ -253,6 +253,19 @@
                     "min": "Niedrigster Wert in jeder Gruppe.",
                     "max": "Höchster Wert in jeder Gruppe."
                 }
+            },
+            "graph": {
+                "title": "Tabellenübersicht",
+                "single_sheet": "Aktuelles Tabellenblatt",
+                "all_sheets": "Alle Tabellenblätter",
+                "generate": "Verbindungen finden",
+                "generating": "Verbindungen suchen...",
+                "save": "Speichern",
+                "edit": "In Blätter verknüpfen bearbeiten",
+                "saved_success": "Verbindungen erfolgreich gespeichert",
+                "no_connections_found": "Keine automatischen Verbindungen gefunden",
+                "collapse": "Übersicht einklappen",
+                "expand": "Übersicht ausklappen"
             }
         },
         "joins": {
@@ -350,7 +363,8 @@
             "graph_rule_left": "Behält alle Zeilen aus {baseTable}, auch ohne Übereinstimmung in {otherTable}.",
             "graph_rule_inner": "Behält nur Zeilen mit Übereinstimmung in beiden Blättern.",
             "graph_tap_to_edit": "Tippen zum Bearbeiten der Verbindung",
-            "graph_add_suggestion": "Vorgeschlagene Felder verbinden"
+            "graph_add_suggestion": "Vorgeschlagene Felder verbinden",
+            "back": "Zurück zum Datensatz"
         }
     },
     "settings": {

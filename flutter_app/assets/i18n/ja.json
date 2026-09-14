@@ -253,6 +253,19 @@
                     "min": "各グループで見つかった最小値。",
                     "max": "各グループで見つかった最大値。"
                 }
+            },
+            "graph": {
+                "title": "テーブル概要",
+                "single_sheet": "現在のシート",
+                "all_sheets": "すべてのシート",
+                "generate": "接続を検出",
+                "generating": "接続を検索中...",
+                "save": "保存",
+                "edit": "シート結合で編集",
+                "saved_success": "接続が正常に保存されました",
+                "no_connections_found": "自動接続は見つかりませんでした",
+                "collapse": "概要を折りたたむ",
+                "expand": "概要を展開"
             }
         },
         "joins": {
@@ -350,7 +363,8 @@
             "graph_rule_left": "{otherTable} に一致がない場合でも、{baseTable} のすべての行を保持します。",
             "graph_rule_inner": "両方のシートに一致がある行のみを保持します。",
             "graph_tap_to_edit": "結合をタップして編集",
-            "graph_add_suggestion": "提案されたフィールドを結合"
+            "graph_add_suggestion": "提案されたフィールドを結合",
+            "back": "データセットに戻る"
         }
     },
     "settings": {

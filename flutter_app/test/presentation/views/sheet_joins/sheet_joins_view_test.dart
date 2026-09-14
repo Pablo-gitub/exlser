@@ -161,6 +161,21 @@ void main() {
     expect(find.byKey(const ValueKey('join_run_button')), findsNothing);
   });
 
+  testWidgets('renders back button in header', (tester) async {
+    when(() => service.loadSheets(any())).thenAnswer((_) async => [
+          sheet(1, 'Only', ['a'])
+        ]);
+
+    final container = containerWith(service);
+    addTearDown(container.dispose);
+    await pumpView(tester, container);
+
+    expect(
+      find.byKey(const ValueKey('sheet_joins_back_button')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('shows the sheet picker and run bar with two sheets',
       (tester) async {
     when(() => service.loadSheets(any())).thenAnswer((_) async => [

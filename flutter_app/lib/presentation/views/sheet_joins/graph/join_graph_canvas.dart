@@ -97,7 +97,7 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
         children: [
           // Background grid pattern / dots
           Positioned.fill(
-            child: _GridBackground(colorScheme: colorScheme),
+            child: JoinGridBackground(colorScheme: colorScheme),
           ),
 
           // Interactive Zoom / Pan Canvas
@@ -349,25 +349,25 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
   }
 }
 
-class _GridBackground extends StatelessWidget {
+class JoinGridBackground extends StatelessWidget {
   final ColorScheme colorScheme;
 
-  const _GridBackground({required this.colorScheme});
+  const JoinGridBackground({super.key, required this.colorScheme});
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _DotGridPainter(
+      painter: JoinDotGridPainter(
         color: colorScheme.outlineVariant.withValues(alpha: 0.25),
       ),
     );
   }
 }
 
-class _DotGridPainter extends CustomPainter {
+class JoinDotGridPainter extends CustomPainter {
   final Color color;
 
-  const _DotGridPainter({required this.color});
+  const JoinDotGridPainter({required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -386,7 +386,7 @@ class _DotGridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _DotGridPainter oldDelegate) {
+  bool shouldRepaint(covariant JoinDotGridPainter oldDelegate) {
     return oldDelegate.color != color;
   }
 }
