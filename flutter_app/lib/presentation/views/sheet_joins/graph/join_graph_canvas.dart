@@ -29,7 +29,6 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
   int? _selectedRelationshipId;
   final Map<int, Offset> _customPositions = {};
   int? _draggingTableId;
-  Offset? _dragStartPosition;
 
   @override
   void initState() {
@@ -57,7 +56,6 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
     setState(() {
       _customPositions.clear();
       _draggingTableId = null;
-      _dragStartPosition = null;
     });
   }
 
@@ -118,6 +116,7 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
           Positioned.fill(
             child: InteractiveViewer(
               transformationController: _transformationController,
+              panEnabled: _draggingTableId == null,
               minScale: 0.4,
               maxScale: 2.2,
               boundaryMargin: const EdgeInsets.all(300),
@@ -153,37 +152,40 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
                         left: table.position.dx,
                         top: table.position.dy,
                         child: GestureDetector(
-                          onLongPressStart: (details) {
+                          onPanStart: (details) {
                             HapticFeedback.selectionClick();
                             setState(() {
                               _draggingTableId = table.tableId;
-                              _dragStartPosition = table.position;
                             });
                           },
-                          onLongPressMoveUpdate: (details) {
-                            if (_dragStartPosition == null) return;
+                          onPanUpdate: (details) {
                             final scale = _transformationController.value
                                 .getMaxScaleOnAxis();
                             final safeScale = scale <= 0 ? 1.0 : scale;
+                            final currentPos =
+                                _customPositions[table.tableId] ??
+                                    table.position;
                             final newX = math.max(
                               10.0,
-                              _dragStartPosition!.dx +
-                                  (details.offsetFromOrigin.dx / safeScale),
+                              currentPos.dx + (details.delta.dx / safeScale),
                             );
                             final newY = math.max(
                               10.0,
-                              _dragStartPosition!.dy +
-                                  (details.offsetFromOrigin.dy / safeScale),
+                              currentPos.dy + (details.delta.dy / safeScale),
                             );
                             setState(() {
                               _customPositions[table.tableId] =
                                   Offset(newX, newY);
                             });
                           },
-                          onLongPressEnd: (_) {
+                          onPanEnd: (_) {
                             setState(() {
                               _draggingTableId = null;
-                              _dragStartPosition = null;
+                            });
+                          },
+                          onPanCancel: () {
+                            setState(() {
+                              _draggingTableId = null;
                             });
                           },
                           child: JoinTableNodeCard(

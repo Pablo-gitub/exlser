@@ -9,6 +9,7 @@ class JoinTableNodeCard extends StatelessWidget {
   final VoidCallback? onHeaderTap;
   final VoidCallback? onTap;
   final bool isDragging;
+  final MouseCursor? mouseCursor;
 
   const JoinTableNodeCard({
     super.key,
@@ -16,6 +17,7 @@ class JoinTableNodeCard extends StatelessWidget {
     this.onHeaderTap,
     this.onTap,
     this.isDragging = false,
+    this.mouseCursor,
   });
 
   @override
@@ -23,6 +25,8 @@ class JoinTableNodeCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final effectiveTap = onTap ?? onHeaderTap;
+    final effectiveCursor = mouseCursor ??
+        (isDragging ? SystemMouseCursors.grabbing : SystemMouseCursors.grab);
 
     final borderColor = isDragging
         ? colorScheme.primary
@@ -49,7 +53,7 @@ class JoinTableNodeCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: effectiveTap,
-          mouseCursor: SystemMouseCursors.click,
+          mouseCursor: effectiveCursor,
           child: SizedBox(
             width: table.size.width,
             height: table.size.height,

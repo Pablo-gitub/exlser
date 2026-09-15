@@ -574,7 +574,7 @@ void main() {
   });
 
   testWidgets(
-      'long-press drag moves table node and displays reset layout button',
+      'dragging table node moves it without panning canvas and displays reset layout button',
       (tester) async {
     final container = ProviderContainer(
       overrides: [
@@ -589,18 +589,23 @@ void main() {
     expect(find.byKey(const ValueKey('graph_overview_reset_layout_btn')),
         findsNothing);
 
-    // Long press and drag the Details node card
-    final cardFinder = find.text('Details');
-    final gesture = await tester.startGesture(tester.getCenter(cardFinder));
-    await tester.pump(const Duration(milliseconds: 600)); // Trigger long-press
-    await gesture.moveBy(const Offset(100, 60));
-    await tester.pump();
-    await gesture.up();
+    // InteractiveViewer initial translation is identity
+    final viewerFinder = find.byType(InteractiveViewer);
+    final initialViewer = tester.widget<InteractiveViewer>(viewerFinder);
+    final initialMatrix = initialViewer.transformationController!.value.clone();
+
+    // Drag the Details node card
+    await tester.drag(find.text('Details'), const Offset(100, 60));
     await tester.pumpAndSettle();
 
     // Reset layout button is now visible in the zoom controls
     expect(find.byKey(const ValueKey('graph_overview_reset_layout_btn')),
         findsOneWidget);
+
+    // InteractiveViewer did NOT pan when dragging table card
+    final matrixAfterTableDrag = initialViewer.transformationController!.value;
+    expect(matrixAfterTableDrag.getTranslation(),
+        equals(initialMatrix.getTranslation()));
 
     // Tapping the reset layout button restores positions and hides the button
     await tester

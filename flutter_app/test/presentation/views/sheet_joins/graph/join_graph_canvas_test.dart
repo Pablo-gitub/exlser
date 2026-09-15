@@ -261,5 +261,41 @@ void main() {
       expect(find.text(AppStrings.datasetJoinsGraphRuleInner.tr()),
           findsOneWidget);
     });
+
+    testWidgets(
+        'dragging a table card moves node and displays reset layout button',
+        (tester) async {
+      final s1 = _sheet(1, 'Customers', ['id', 'name']);
+      final s2 = _sheet(2, 'Orders', ['order_id', 'cust_id', 'total']);
+
+      final state = MultiSheetJoinState(
+        sheets: [s1, s2],
+        spec: const MultiSheetQuerySpec(
+          selectedTableIds: [1, 2],
+          baseTableId: 1,
+        ),
+      );
+
+      await pumpCanvas(tester, state);
+
+      // Reset layout button is initially not visible
+      expect(
+          find.byKey(const ValueKey('graph_reset_layout_btn')), findsNothing);
+
+      // Drag the Orders node card
+      await tester.drag(find.text('Orders'), const Offset(80, 50));
+      await tester.pumpAndSettle();
+
+      // Reset layout button is now visible
+      expect(
+          find.byKey(const ValueKey('graph_reset_layout_btn')), findsOneWidget);
+
+      // Tap reset layout button to restore
+      await tester.tap(find.byKey(const ValueKey('graph_reset_layout_btn')));
+      await tester.pumpAndSettle();
+
+      expect(
+          find.byKey(const ValueKey('graph_reset_layout_btn')), findsNothing);
+    });
   });
 }
