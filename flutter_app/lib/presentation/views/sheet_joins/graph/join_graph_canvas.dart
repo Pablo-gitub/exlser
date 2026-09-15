@@ -1,5 +1,7 @@
+import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/domain/value_objects/sheet_join_type.dart';
 import 'package:exlser/presentation/views/sheet_joins/graph/join_connection_details_sheet.dart';
@@ -25,6 +27,9 @@ class JoinGraphCanvas extends StatefulWidget {
 class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
   late final TransformationController _transformationController;
   int? _selectedRelationshipId;
+  final Map<int, Offset> _customPositions = {};
+  int? _draggingTableId;
+  Offset? _dragStartPosition;
 
   @override
   void initState() {
@@ -46,6 +51,14 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
 
   void _resetZoom() {
     _transformationController.value = Matrix4.identity();
+  }
+
+  void _resetPositions() {
+    setState(() {
+      _customPositions.clear();
+      _draggingTableId = null;
+      _dragStartPosition = null;
+    });
   }
 
   @override
@@ -76,6 +89,7 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
       joins: widget.state.spec.joins,
       relationships: widget.state.relationshipsById,
       suggestions: widget.state.suggestions,
+      customPositions: _customPositions,
     );
 
     final baseTable = selectedSheets.firstWhere(
@@ -138,13 +152,49 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
                       Positioned(
                         left: table.position.dx,
                         top: table.position.dy,
-                        child: JoinTableNodeCard(
-                          table: table,
-                          onHeaderTap: () {
-                            if (!table.isBase) {
-                              widget.controller.setBaseTable(table.tableId);
-                            }
+                        child: GestureDetector(
+                          onLongPressStart: (details) {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              _draggingTableId = table.tableId;
+                              _dragStartPosition = table.position;
+                            });
                           },
+                          onLongPressMoveUpdate: (details) {
+                            if (_dragStartPosition == null) return;
+                            final scale = _transformationController.value
+                                .getMaxScaleOnAxis();
+                            final safeScale = scale <= 0 ? 1.0 : scale;
+                            final newX = math.max(
+                              10.0,
+                              _dragStartPosition!.dx +
+                                  (details.offsetFromOrigin.dx / safeScale),
+                            );
+                            final newY = math.max(
+                              10.0,
+                              _dragStartPosition!.dy +
+                                  (details.offsetFromOrigin.dy / safeScale),
+                            );
+                            setState(() {
+                              _customPositions[table.tableId] =
+                                  Offset(newX, newY);
+                            });
+                          },
+                          onLongPressEnd: (_) {
+                            setState(() {
+                              _draggingTableId = null;
+                              _dragStartPosition = null;
+                            });
+                          },
+                          child: JoinTableNodeCard(
+                            table: table,
+                            isDragging: _draggingTableId == table.tableId,
+                            onHeaderTap: () {
+                              if (!table.isBase) {
+                                widget.controller.setBaseTable(table.tableId);
+                              }
+                            },
+                          ),
                         ),
                       ),
                   ],
@@ -190,6 +240,15 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
                     tooltip: AppStrings.datasetJoinsGraphReset.tr(),
                     onPressed: _resetZoom,
                   ),
+                  if (_customPositions.isNotEmpty) ...[
+                    const Divider(height: 1),
+                    IconButton(
+                      key: const ValueKey('graph_reset_layout_btn'),
+                      icon: const Icon(Icons.auto_fix_high_outlined, size: 18),
+                      tooltip: AppStrings.datasetWorkspaceGraphResetLayout.tr(),
+                      onPressed: _resetPositions,
+                    ),
+                  ],
                 ],
               ),
             ),

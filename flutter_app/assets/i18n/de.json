@@ -265,7 +265,8 @@
                 "saved_success": "Verbindungen erfolgreich gespeichert",
                 "no_connections_found": "Keine automatischen Verbindungen gefunden",
                 "collapse": "Übersicht einklappen",
-                "expand": "Übersicht ausklappen"
+                "expand": "Übersicht ausklappen",
+                "reset_layout": "Layout zurücksetzen"
             }
         },
         "joins": {

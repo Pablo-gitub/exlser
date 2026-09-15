@@ -265,7 +265,8 @@
                 "saved_success": "Liaisons enregistrées avec succès",
                 "no_connections_found": "Aucune liaison automatique trouvée",
                 "collapse": "Réduire l'aperçu",
-                "expand": "Développer l'aperçu"
+                "expand": "Développer l'aperçu",
+                "reset_layout": "Réinitialiser la disposition"
             }
         },
         "joins": {

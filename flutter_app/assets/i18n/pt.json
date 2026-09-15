@@ -265,7 +265,8 @@
                 "saved_success": "Ligações guardadas com sucesso",
                 "no_connections_found": "Nenhuma ligação automática encontrada",
                 "collapse": "Recolher visão geral",
-                "expand": "Expandir visão geral"
+                "expand": "Expandir visão geral",
+                "reset_layout": "Redefinir layout"
             }
         },
         "joins": {

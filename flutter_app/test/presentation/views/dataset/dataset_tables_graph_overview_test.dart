@@ -8,15 +8,39 @@ import 'package:exlser/domain/entities/dataset_table.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:exlser/domain/value_objects/sheet_join_relationship.dart';
 import 'package:exlser/domain/value_objects/sheet_relationship_suggestion.dart';
+import 'dart:async';
 import 'package:exlser/presentation/providers/service_providers.dart';
+import 'package:exlser/presentation/state/dataset_bloc.dart';
+import 'package:exlser/presentation/state/dataset_event.dart';
+import 'package:exlser/presentation/state/dataset_state.dart';
 import 'package:exlser/presentation/views/dataset/widgets/dataset_tables_graph_overview.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MockService extends Mock implements MultiSheetAnalysisService {}
+
+class _FakeDatasetBloc extends Fake implements DatasetBloc {
+  final List<DatasetEvent> events = [];
+  final _controller = StreamController<DatasetState>.broadcast();
+
+  @override
+  Stream<DatasetState> get stream => _controller.stream;
+
+  @override
+  DatasetState get state => const DatasetInitialState();
+
+  @override
+  void add(DatasetEvent event) {
+    events.add(event);
+  }
+
+  @override
+  Future<void> close() => _controller.close();
+}
 
 DatasetColumn _col(String name, int tableId) => DatasetColumn(
       id: '$tableId$name'.hashCode,
@@ -89,6 +113,7 @@ void main() {
   Future<void> pumpOverview(
     WidgetTester tester, {
     required ProviderContainer container,
+    DatasetBloc? bloc,
   }) async {
     tester.view.physicalSize = const Size(1200, 1000);
     tester.view.devicePixelRatio = 1.0;
@@ -109,12 +134,15 @@ void main() {
                 supportedLocales: context.supportedLocales,
                 localizationsDelegates: context.localizationDelegates,
                 home: Scaffold(
-                  body: SingleChildScrollView(
-                    child: DatasetTablesGraphOverview(
-                      dataset: dataset,
-                      tables: tables,
-                      activeTable: activeTable,
-                      columnsByTableId: columnsByTableId,
+                  body: BlocProvider<DatasetBloc>.value(
+                    value: bloc ?? _FakeDatasetBloc(),
+                    child: SingleChildScrollView(
+                      child: DatasetTablesGraphOverview(
+                        dataset: dataset,
+                        tables: tables,
+                        activeTable: activeTable,
+                        columnsByTableId: columnsByTableId,
+                      ),
                     ),
                   ),
                 ),
@@ -468,12 +496,15 @@ void main() {
                 supportedLocales: context.supportedLocales,
                 localizationsDelegates: context.localizationDelegates,
                 home: Scaffold(
-                  body: SingleChildScrollView(
-                    child: DatasetTablesGraphOverview(
-                      dataset: dataset,
-                      tables: multiSheetTables,
-                      activeTable: multiSheetTables.first, // Orders on Sales
-                      columnsByTableId: columnsByTableId,
+                  body: BlocProvider<DatasetBloc>.value(
+                    value: _FakeDatasetBloc(),
+                    child: SingleChildScrollView(
+                      child: DatasetTablesGraphOverview(
+                        dataset: dataset,
+                        tables: multiSheetTables,
+                        activeTable: multiSheetTables.first, // Orders on Sales
+                        columnsByTableId: columnsByTableId,
+                      ),
                     ),
                   ),
                 ),
@@ -505,5 +536,78 @@ void main() {
     expect(find.text('Returns'), findsOneWidget);
     expect(find.text('Products'), findsNothing);
     expect(find.text('Suppliers'), findsNothing);
+  });
+
+  testWidgets('tapping a table card dispatches ChangeSheetEvent',
+      (tester) async {
+    final container = ProviderContainer(
+      overrides: [
+        multiSheetAnalysisServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final bloc = _FakeDatasetBloc();
+    await pumpOverview(tester, container: container, bloc: bloc);
+
+    // Initial state: activeTable is t1 (Orders, id: 1)
+    // Tapping on 'Details' (table id: 2)
+    await tester.tap(find.text('Details'));
+    await tester.pumpAndSettle();
+
+    expect(bloc.events, hasLength(1));
+    expect((bloc.events.first as ChangeSheetEvent).tableId, 2);
+
+    // Tapping on 'Customers' (table id: 3)
+    await tester.tap(find.text('Customers'));
+    await tester.pumpAndSettle();
+
+    expect(bloc.events, hasLength(2));
+    expect((bloc.events.last as ChangeSheetEvent).tableId, 3);
+
+    // Tapping on 'Orders' (which is already active table id: 1) does not dispatch an event
+    final eventsCount = bloc.events.length;
+    await tester.tap(find.text('Orders'));
+    await tester.pumpAndSettle();
+
+    expect(bloc.events.length, eventsCount);
+  });
+
+  testWidgets(
+      'long-press drag moves table node and displays reset layout button',
+      (tester) async {
+    final container = ProviderContainer(
+      overrides: [
+        multiSheetAnalysisServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await pumpOverview(tester, container: container);
+
+    // Reset layout button is initially not visible
+    expect(find.byKey(const ValueKey('graph_overview_reset_layout_btn')),
+        findsNothing);
+
+    // Long press and drag the Details node card
+    final cardFinder = find.text('Details');
+    final gesture = await tester.startGesture(tester.getCenter(cardFinder));
+    await tester.pump(const Duration(milliseconds: 600)); // Trigger long-press
+    await gesture.moveBy(const Offset(100, 60));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    // Reset layout button is now visible in the zoom controls
+    expect(find.byKey(const ValueKey('graph_overview_reset_layout_btn')),
+        findsOneWidget);
+
+    // Tapping the reset layout button restores positions and hides the button
+    await tester
+        .tap(find.byKey(const ValueKey('graph_overview_reset_layout_btn')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('graph_overview_reset_layout_btn')),
+        findsNothing);
   });
 }

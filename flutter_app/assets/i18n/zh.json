@@ -265,7 +265,8 @@
                 "saved_success": "关联保存成功",
                 "no_connections_found": "未自动找到关联",
                 "collapse": "折叠概览",
-                "expand": "展开概览"
+                "expand": "展开概览",
+                "reset_layout": "重置布局"
             }
         },
         "joins": {

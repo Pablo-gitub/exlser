@@ -265,7 +265,8 @@
                 "saved_success": "接続が正常に保存されました",
                 "no_connections_found": "自動接続は見つかりませんでした",
                 "collapse": "概要を折りたたむ",
-                "expand": "概要を展開"
+                "expand": "概要を展開",
+                "reset_layout": "レイアウトをリセット"
             }
         },
         "joins": {

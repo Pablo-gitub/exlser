@@ -99,9 +99,9 @@ class JoinGraphLayoutBuilder {
   static const double headerHeight = 56.0;
   static const double columnItemHeight = 34.0;
   static const double cardFooterPadding = 8.0;
-  static const double columnHorizontalSpacing = 160.0;
-  static const double rowVerticalSpacing = 40.0;
-  static const double canvasPadding = 50.0;
+  static const double columnHorizontalSpacing = 220.0;
+  static const double rowVerticalSpacing = 80.0;
+  static const double canvasPadding = 60.0;
 
   static JoinGraphData build({
     required List<MultiSheetSheetInfo> selectedSheets,
@@ -109,6 +109,7 @@ class JoinGraphLayoutBuilder {
     required List<MultiSheetJoin> joins,
     required Map<int, DatasetRelationship> relationships,
     required List<SheetRelationshipSuggestion> suggestions,
+    Map<int, Offset>? customPositions,
   }) {
     if (selectedSheets.isEmpty) {
       return const JoinGraphData(
@@ -148,8 +149,11 @@ class JoinGraphLayoutBuilder {
       // Side-by-side layout
       for (var i = 0; i < sortedSheets.length; i++) {
         final info = sortedSheets[i];
-        final posX = canvasPadding + i * (cardWidth + columnHorizontalSpacing);
-        final posY = canvasPadding;
+        final autoPosX =
+            canvasPadding + i * (cardWidth + columnHorizontalSpacing);
+        final autoPosY = canvasPadding;
+        final posX = customPositions?[info.tableId]?.dx ?? autoPosX;
+        final posY = customPositions?[info.tableId]?.dy ?? autoPosY;
         final cardH = headerHeight +
             (info.columns.length * columnItemHeight) +
             cardFooterPadding;
@@ -185,24 +189,26 @@ class JoinGraphLayoutBuilder {
       final baseH = headerHeight +
           (baseSheet.columns.length * columnItemHeight) +
           cardFooterPadding;
+      final basePosX = customPositions?[baseSheet.tableId]?.dx ?? col0X;
+      final basePosY = customPositions?[baseSheet.tableId]?.dy ?? canvasPadding;
       tableLayouts[baseSheet.tableId] = GraphTableLayout(
         tableId: baseSheet.tableId,
         tableName: baseSheet.label,
         isBase: true,
         rowCount: baseSheet.table.rowCount,
-        position: Offset(col0X, canvasPadding),
+        position: Offset(basePosX, basePosY),
         size: Size(cardWidth, baseH),
         columns: _buildColumnsLayout(
           tableId: baseSheet.tableId,
           columns: baseSheet.columns,
           connectedKeys: connectedColKeys,
-          tablePos: Offset(col0X, canvasPadding),
+          tablePos: Offset(basePosX, basePosY),
         ),
       );
-      maxCanvasX = math.max(maxCanvasX, col0X + cardWidth);
-      maxCanvasY = math.max(maxCanvasY, canvasPadding + baseH);
+      maxCanvasX = math.max(maxCanvasX, basePosX + cardWidth);
+      maxCanvasY = math.max(maxCanvasY, basePosY + baseH);
 
-      // Other sheets stacked
+      // Other sheets stacked across column 1 and column 2 if >= 3 extra sheets
       final otherSheets = sortedSheets.skip(1).toList();
       double currentYCol1 = canvasPadding;
       double currentYCol2 = canvasPadding;
@@ -213,9 +219,12 @@ class JoinGraphLayoutBuilder {
             (sheet.columns.length * columnItemHeight) +
             cardFooterPadding;
 
-        final useCol2 = otherSheets.length > 3 && i >= (otherSheets.length / 2);
-        final posX = useCol2 ? col2X : col1X;
-        final posY = useCol2 ? currentYCol2 : currentYCol1;
+        final useCol2 =
+            otherSheets.length >= 3 && i >= (otherSheets.length / 2).ceil();
+        final autoPosX = useCol2 ? col2X : col1X;
+        final autoPosY = useCol2 ? currentYCol2 : currentYCol1;
+        final posX = customPositions?[sheet.tableId]?.dx ?? autoPosX;
+        final posY = customPositions?[sheet.tableId]?.dy ?? autoPosY;
 
         tableLayouts[sheet.tableId] = GraphTableLayout(
           tableId: sheet.tableId,

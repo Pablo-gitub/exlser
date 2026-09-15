@@ -107,6 +107,8 @@ class AppStrings {
       'dataset.workspace.graph.collapse';
   static const String datasetWorkspaceGraphExpand =
       'dataset.workspace.graph.expand';
+  static const String datasetWorkspaceGraphResetLayout =
+      'dataset.workspace.graph.reset_layout';
   static const String datasetWorkspaceTableView =
       'dataset.workspace.table_view';
   static const String datasetWorkspaceCardView = 'dataset.workspace.card_view';

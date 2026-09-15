@@ -7,182 +7,201 @@ import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_models.da
 class JoinTableNodeCard extends StatelessWidget {
   final GraphTableLayout table;
   final VoidCallback? onHeaderTap;
+  final VoidCallback? onTap;
+  final bool isDragging;
 
   const JoinTableNodeCard({
     super.key,
     required this.table,
     this.onHeaderTap,
+    this.onTap,
+    this.isDragging = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final effectiveTap = onTap ?? onHeaderTap;
 
-    return Material(
-      color: colorScheme.surface,
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(
-          color: table.isBase
-              ? colorScheme.primary
-              : colorScheme.outlineVariant.withValues(alpha: 0.6),
-          width: table.isBase ? 2 : 1,
+    final borderColor = isDragging
+        ? colorScheme.primary
+        : (table.isBase
+            ? colorScheme.primary
+            : colorScheme.outlineVariant.withValues(alpha: 0.6));
+    final borderWidth = isDragging ? 2.5 : (table.isBase ? 2.0 : 1.0);
+
+    return AnimatedScale(
+      scale: isDragging ? 1.04 : 1.0,
+      duration: const Duration(milliseconds: 150),
+      child: Material(
+        color: colorScheme.surface,
+        elevation: isDragging ? 8 : 2,
+        shadowColor:
+            colorScheme.shadow.withValues(alpha: isDragging ? 0.4 : 0.2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: borderColor,
+            width: borderWidth,
+          ),
         ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        width: table.size.width,
-        height: table.size.height,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header
-            InkWell(
-              onTap: onHeaderTap,
-              child: Container(
-                height: JoinGraphLayoutBuilder.headerHeight,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: table.isBase
-                      ? colorScheme.primaryContainer.withValues(alpha: 0.7)
-                      : colorScheme.surfaceContainerHighest
-                          .withValues(alpha: 0.5),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: effectiveTap,
+          mouseCursor: SystemMouseCursors.click,
+          child: SizedBox(
+            width: table.size.width,
+            height: table.size.height,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header
+                Container(
+                  height: JoinGraphLayoutBuilder.headerHeight,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: table.isBase
+                        ? colorScheme.primaryContainer.withValues(alpha: 0.7)
+                        : colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.5),
+                    border: Border(
+                      bottom: BorderSide(
+                        color:
+                            colorScheme.outlineVariant.withValues(alpha: 0.4),
+                      ),
                     ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      table.isBase
-                          ? Icons.stars_rounded
-                          : Icons.table_chart_outlined,
-                      size: 18,
-                      color: table.isBase
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            table.tableName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                  child: Row(
+                    children: [
+                      Icon(
+                        table.isBase
+                            ? Icons.stars_rounded
+                            : Icons.table_chart_outlined,
+                        size: 18,
+                        color: table.isBase
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              table.tableName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '${table.rowCount} rows',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: colorScheme.outline,
-                              fontSize: 11,
+                            Text(
+                              '${table.rowCount} rows',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.outline,
+                                fontSize: 11,
+                              ),
                             ),
+                          ],
+                        ),
+                      ),
+                      if (table.isBase) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                        ],
-                      ),
-                    ),
-                    if (table.isBase) ...[
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          AppStrings.datasetJoinsGraphBaseTable.tr(),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-
-            // Columns List
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: table.columns.length,
-                itemBuilder: (context, index) {
-                  final col = table.columns[index];
-                  final isConnected = col.isConnected;
-
-                  return Container(
-                    height: JoinGraphLayoutBuilder.columnItemHeight,
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    decoration: BoxDecoration(
-                      color: isConnected
-                          ? colorScheme.primaryContainer.withValues(alpha: 0.25)
-                          : null,
-                      border: Border(
-                        bottom: BorderSide(
-                          color: colorScheme.outlineVariant
-                              .withValues(alpha: 0.15),
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        // Left pin dot
-                        _PinDot(
-                          isConnected: isConnected,
-                          colorScheme: colorScheme,
-                        ),
-                        const SizedBox(width: 6),
-                        // Column Type Icon
-                        _buildTypeIcon(col.columnType, colorScheme),
-                        const SizedBox(width: 6),
-                        // Column Name
-                        Expanded(
                           child: Text(
-                            col.columnName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: isConnected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isConnected
-                                  ? colorScheme.onSurface
-                                  : colorScheme.onSurfaceVariant,
+                            AppStrings.datasetJoinsGraphBaseTable.tr(),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        // Right pin dot
-                        _PinDot(
-                          isConnected: isConnected,
-                          colorScheme: colorScheme,
                         ),
                       ],
-                    ),
-                  );
-                },
-              ),
+                    ],
+                  ),
+                ),
+
+                // Columns List
+                Expanded(
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: table.columns.length,
+                    itemBuilder: (context, index) {
+                      final col = table.columns[index];
+                      final isConnected = col.isConnected;
+
+                      return Container(
+                        height: JoinGraphLayoutBuilder.columnItemHeight,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        decoration: BoxDecoration(
+                          color: isConnected
+                              ? colorScheme.primaryContainer
+                                  .withValues(alpha: 0.25)
+                              : null,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: colorScheme.outlineVariant
+                                  .withValues(alpha: 0.15),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            // Left pin dot
+                            _PinDot(
+                              isConnected: isConnected,
+                              colorScheme: colorScheme,
+                            ),
+                            const SizedBox(width: 6),
+                            // Column Type Icon
+                            _buildTypeIcon(col.columnType, colorScheme),
+                            const SizedBox(width: 6),
+                            // Column Name
+                            Expanded(
+                              child: Text(
+                                col.columnName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontWeight: isConnected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: isConnected
+                                      ? colorScheme.onSurface
+                                      : colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            // Right pin dot
+                            _PinDot(
+                              isConnected: isConnected,
+                              colorScheme: colorScheme,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

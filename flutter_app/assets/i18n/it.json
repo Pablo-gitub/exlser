@@ -265,7 +265,8 @@
                 "saved_success": "Collegamenti salvati con successo",
                 "no_connections_found": "Nessun collegamento trovato automaticamente",
                 "collapse": "Comprimi panoramica",
-                "expand": "Espandi panoramica"
+                "expand": "Espandi panoramica",
+                "reset_layout": "Ripristina disposizione"
             }
         },
         "joins": {

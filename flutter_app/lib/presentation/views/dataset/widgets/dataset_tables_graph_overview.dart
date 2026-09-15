@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:exlser/application/services/multi_sheet_analysis_service.dart';
 import 'package:exlser/core/constants/app_strings.dart';
@@ -7,6 +8,8 @@ import 'package:exlser/domain/entities/dataset_relationship.dart';
 import 'package:exlser/domain/entities/dataset_table.dart';
 import 'package:exlser/domain/usecases/multisheet/manage_dataset_relationships_usecases.dart';
 import 'package:exlser/domain/value_objects/sheet_relationship_suggestion.dart';
+import 'package:exlser/presentation/state/dataset_bloc.dart';
+import 'package:exlser/presentation/state/dataset_event.dart';
 import 'package:exlser/presentation/providers/service_providers.dart';
 import 'package:exlser/presentation/router/routes.dart';
 import 'package:exlser/presentation/views/sheet_joins/graph/join_connectors_painter.dart';
@@ -14,6 +17,8 @@ import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_canvas.da
 import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_models.dart';
 import 'package:exlser/presentation/views/sheet_joins/graph/join_table_node_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -47,6 +52,10 @@ class _DatasetTablesGraphOverviewState
   bool _saved = false;
   bool _isCollapsed = false;
 
+  final Map<int, Offset> _customPositions = {};
+  int? _draggingTableId;
+  Offset? _dragStartPosition;
+
   @override
   void initState() {
     super.initState();
@@ -67,6 +76,14 @@ class _DatasetTablesGraphOverviewState
 
   void _resetZoom() {
     _transformationController.value = Matrix4.identity();
+  }
+
+  void _resetPositions() {
+    setState(() {
+      _customPositions.clear();
+      _draggingTableId = null;
+      _dragStartPosition = null;
+    });
   }
 
   bool get _hasMultipleSheetsWithSubTables {
@@ -207,6 +224,7 @@ class _DatasetTablesGraphOverviewState
       joins: const [],
       relationships: const {},
       suggestions: _suggestions ?? const [],
+      customPositions: _customPositions,
     );
 
     return Card(
@@ -281,6 +299,9 @@ class _DatasetTablesGraphOverviewState
                             _scope = newSelection.first;
                             _suggestions = null;
                             _saved = false;
+                            _customPositions.clear();
+                            _draggingTableId = null;
+                            _dragStartPosition = null;
                           });
                         },
                       ),
@@ -398,8 +419,64 @@ class _DatasetTablesGraphOverviewState
                               Positioned(
                                 left: table.position.dx,
                                 top: table.position.dy,
-                                child: JoinTableNodeCard(
-                                  table: table,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    if (table.tableId !=
+                                        widget.activeTable.id) {
+                                      context.read<DatasetBloc>().add(
+                                            ChangeSheetEvent(table.tableId),
+                                          );
+                                    }
+                                  },
+                                  onLongPressStart: (details) {
+                                    HapticFeedback.selectionClick();
+                                    setState(() {
+                                      _draggingTableId = table.tableId;
+                                      _dragStartPosition = table.position;
+                                    });
+                                  },
+                                  onLongPressMoveUpdate: (details) {
+                                    if (_dragStartPosition == null) return;
+                                    final scale = _transformationController
+                                        .value
+                                        .getMaxScaleOnAxis();
+                                    final safeScale = scale <= 0 ? 1.0 : scale;
+                                    final newX = math.max(
+                                      10.0,
+                                      _dragStartPosition!.dx +
+                                          (details.offsetFromOrigin.dx /
+                                              safeScale),
+                                    );
+                                    final newY = math.max(
+                                      10.0,
+                                      _dragStartPosition!.dy +
+                                          (details.offsetFromOrigin.dy /
+                                              safeScale),
+                                    );
+                                    setState(() {
+                                      _customPositions[table.tableId] =
+                                          Offset(newX, newY);
+                                    });
+                                  },
+                                  onLongPressEnd: (_) {
+                                    setState(() {
+                                      _draggingTableId = null;
+                                      _dragStartPosition = null;
+                                    });
+                                  },
+                                  child: JoinTableNodeCard(
+                                    table: table,
+                                    isDragging:
+                                        _draggingTableId == table.tableId,
+                                    onTap: () {
+                                      if (table.tableId !=
+                                          widget.activeTable.id) {
+                                        context.read<DatasetBloc>().add(
+                                              ChangeSheetEvent(table.tableId),
+                                            );
+                                      }
+                                    },
+                                  ),
                                 ),
                               ),
                           ],
@@ -444,6 +521,22 @@ class _DatasetTablesGraphOverviewState
                             tooltip: AppStrings.datasetJoinsGraphReset.tr(),
                             onPressed: _resetZoom,
                           ),
+                          if (_customPositions.isNotEmpty) ...[
+                            const SizedBox(
+                              height: 16,
+                              child: VerticalDivider(width: 1),
+                            ),
+                            IconButton(
+                              key: const ValueKey(
+                                  'graph_overview_reset_layout_btn'),
+                              icon: const Icon(Icons.auto_fix_high_outlined,
+                                  size: 18),
+                              tooltip: AppStrings
+                                  .datasetWorkspaceGraphResetLayout
+                                  .tr(),
+                              onPressed: _resetPositions,
+                            ),
+                          ],
                         ],
                       ),
                     ),

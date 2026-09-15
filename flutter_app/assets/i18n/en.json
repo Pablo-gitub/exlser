@@ -265,7 +265,8 @@
                 "saved_success": "Connections saved successfully",
                 "no_connections_found": "No automatic connections found",
                 "collapse": "Collapse overview",
-                "expand": "Expand overview"
+                "expand": "Expand overview",
+                "reset_layout": "Reset layout"
             }
         },
         "joins": {
