@@ -225,6 +225,7 @@ class _DatasetTablesGraphOverviewState
       relationships: const {},
       suggestions: _suggestions ?? const [],
       customPositions: _customPositions,
+      orderBaseTableFirst: false,
     );
 
     return Card(

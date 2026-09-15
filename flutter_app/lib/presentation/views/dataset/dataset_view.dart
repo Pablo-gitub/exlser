@@ -528,8 +528,7 @@ class _LoadedWorkspace extends StatelessWidget {
       },
       child: ListView(
         key: PageStorageKey(
-          'dataset_workspace_${state.dataset.id}_'
-          '${state.activeTable.id}_${state.queryMode.name}',
+          'dataset_workspace_${state.dataset.id}_${state.queryMode.name}',
         ),
         padding: const EdgeInsets.all(16),
         children: [
@@ -590,33 +589,46 @@ class _LoadedWorkspace extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  if (isQueryMode &&
-                      resultRows.isEmpty &&
-                      !state.hasReadOnlyQueryRun &&
-                      state.readOnlyQueryErrorCode == null)
-                    _QueryEmptyMessage()
-                  else if (resultRows.isEmpty)
-                    _NoRowsMessage(columns: resultColumns)
-                  else if (state.viewMode == DatasetViewMode.table)
-                    DatasetTableView(
-                      columns: resultColumns,
-                      rows: resultRows,
-                      sort: isQueryMode ? null : state.sort,
-                      onSortColumn: isQueryMode
-                          ? null
-                          : (column) {
-                              context.read<DatasetBloc>().add(
-                                    ToggleSortColumnEvent(column),
-                                  );
-                            },
-                      columnCurrencySymbols: state.columnCurrencySymbols,
-                    )
-                  else
-                    DatasetCardView(
-                      columns: resultColumns,
-                      rows: resultRows,
-                      columnCurrencySymbols: state.columnCurrencySymbols,
+                  if (state.isTableSwitching) ...[
+                    const LinearProgressIndicator(minHeight: 3),
+                    const SizedBox(height: 12),
+                  ],
+                  AnimatedOpacity(
+                    opacity: state.isTableSwitching ? 0.45 : 1.0,
+                    duration: const Duration(milliseconds: 150),
+                    child: IgnorePointer(
+                      ignoring: state.isTableSwitching,
+                      child: isQueryMode &&
+                              resultRows.isEmpty &&
+                              !state.hasReadOnlyQueryRun &&
+                              state.readOnlyQueryErrorCode == null
+                          ? _QueryEmptyMessage()
+                          : (resultRows.isEmpty
+                              ? _NoRowsMessage(columns: resultColumns)
+                              : (state.viewMode == DatasetViewMode.table
+                                  ? DatasetTableView(
+                                      columns: resultColumns,
+                                      rows: resultRows,
+                                      sort: isQueryMode ? null : state.sort,
+                                      onSortColumn: isQueryMode
+                                          ? null
+                                          : (column) {
+                                              context.read<DatasetBloc>().add(
+                                                    ToggleSortColumnEvent(
+                                                        column),
+                                                  );
+                                            },
+                                      columnCurrencySymbols:
+                                          state.columnCurrencySymbols,
+                                    )
+                                  : DatasetCardView(
+                                      columns: resultColumns,
+                                      rows: resultRows,
+                                      columnCurrencySymbols:
+                                          state.columnCurrencySymbols,
+                                    ))),
                     ),
+                  ),
                   const SizedBox(height: 12),
                   if (!isQueryMode) ...[
                     _DatasetPaginationControls(state: state),

@@ -138,7 +138,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       return;
     }
 
-    emit(const DatasetLoadingState());
+    emit(currentState.copyWith(isTableSwitching: true));
 
     try {
       final workspaceState = DatasetWorkspaceUiState.fromJsonString(

@@ -208,5 +208,44 @@ void main() {
       expect(conn.suggestion, suggestion);
       expect(conn.relationshipId, isNull);
     });
+
+    test('maintains stable table positions when orderBaseTableFirst is false',
+        () {
+      final s1 = _sheet(1, 'Customers', ['id']);
+      final s2 = _sheet(2, 'Orders', ['id', 'cust_id']);
+      final s3 = _sheet(3, 'Products', ['id']);
+
+      final graph1 = JoinGraphLayoutBuilder.build(
+        selectedSheets: [s1, s2, s3],
+        baseTableId: 1,
+        joins: [],
+        relationships: {},
+        suggestions: [],
+        orderBaseTableFirst: false,
+      );
+
+      final graph2 = JoinGraphLayoutBuilder.build(
+        selectedSheets: [s1, s2, s3],
+        baseTableId: 2,
+        joins: [],
+        relationships: {},
+        suggestions: [],
+        orderBaseTableFirst: false,
+      );
+
+      // Positions of s1, s2, s3 must be identical between graph1 and graph2
+      for (final id in [1, 2, 3]) {
+        final pos1 = graph1.tables.firstWhere((t) => t.tableId == id).position;
+        final pos2 = graph2.tables.firstWhere((t) => t.tableId == id).position;
+        expect(pos1, equals(pos2));
+      }
+
+      // But isBase changes appropriately
+      expect(graph1.tables.firstWhere((t) => t.tableId == 1).isBase, isTrue);
+      expect(graph1.tables.firstWhere((t) => t.tableId == 2).isBase, isFalse);
+
+      expect(graph2.tables.firstWhere((t) => t.tableId == 1).isBase, isFalse);
+      expect(graph2.tables.firstWhere((t) => t.tableId == 2).isBase, isTrue);
+    });
   });
 }

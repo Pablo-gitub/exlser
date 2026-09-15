@@ -110,6 +110,7 @@ class JoinGraphLayoutBuilder {
     required Map<int, DatasetRelationship> relationships,
     required List<SheetRelationshipSuggestion> suggestions,
     Map<int, Offset>? customPositions,
+    bool orderBaseTableFirst = true,
   }) {
     if (selectedSheets.isEmpty) {
       return const JoinGraphData(
@@ -131,9 +132,9 @@ class JoinGraphLayoutBuilder {
       }
     }
 
-    // Order sheets: base table first, then others
+    // Order sheets: base table first if requested, otherwise keep natural/stable order
     final sortedSheets = List<MultiSheetSheetInfo>.from(selectedSheets);
-    if (baseTableId != null) {
+    if (orderBaseTableFirst && baseTableId != null) {
       sortedSheets.sort((a, b) {
         if (a.tableId == baseTableId) return -1;
         if (b.tableId == baseTableId) return 1;
@@ -194,7 +195,7 @@ class JoinGraphLayoutBuilder {
       tableLayouts[baseSheet.tableId] = GraphTableLayout(
         tableId: baseSheet.tableId,
         tableName: baseSheet.label,
-        isBase: true,
+        isBase: baseSheet.tableId == baseTableId,
         rowCount: baseSheet.table.rowCount,
         position: Offset(basePosX, basePosY),
         size: Size(cardWidth, baseH),

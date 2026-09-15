@@ -132,6 +132,9 @@ class DatasetLoadedState extends DatasetState {
   /// Key: column dbName, Value: symbol (e.g. "$", "€").
   final Map<String, String> columnCurrencySymbols;
 
+  /// Whether a different table is currently being loaded into the workspace.
+  final bool isTableSwitching;
+
   const DatasetLoadedState({
     required this.dataset,
     required this.tables,
@@ -156,6 +159,7 @@ class DatasetLoadedState extends DatasetState {
     this.readOnlyQueryRows = const [],
     this.readOnlyQueryTotalRowCount = 0,
     this.columnCurrencySymbols = const {},
+    this.isTableSwitching = false,
   });
 
   List<DatasetColumn> get visibleColumns => [
@@ -203,6 +207,7 @@ class DatasetLoadedState extends DatasetState {
     List<Map<String, dynamic>>? readOnlyQueryRows,
     int? readOnlyQueryTotalRowCount,
     Map<String, String>? columnCurrencySymbols,
+    bool? isTableSwitching,
   }) {
     return DatasetLoadedState(
       dataset: dataset ?? this.dataset,
@@ -235,6 +240,7 @@ class DatasetLoadedState extends DatasetState {
           readOnlyQueryTotalRowCount ?? this.readOnlyQueryTotalRowCount,
       columnCurrencySymbols:
           columnCurrencySymbols ?? this.columnCurrencySymbols,
+      isTableSwitching: isTableSwitching ?? this.isTableSwitching,
     );
   }
 }

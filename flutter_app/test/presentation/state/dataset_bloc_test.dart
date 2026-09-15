@@ -300,6 +300,57 @@ void main() {
       ]);
     });
 
+    test('should emit isTableSwitching true during change sheet', () async {
+      final dataset = _dataset();
+      final firstTable = _table(id: 10, name: 'Sheet1', tableName: 'tbl_1');
+      final secondTable = _table(id: 11, name: 'Sheet2', tableName: 'tbl_2');
+      final priceColumn = _column(tableId: 11, dbName: 'price');
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [firstTable, secondTable],
+        columns: [_column(tableId: 10)],
+        rows: [
+          {'id': 1, 'product': 'book'},
+        ],
+      );
+      when(() => schemaRepository.getColumnsForTable(11)).thenAnswer(
+        (_) async => [priceColumn],
+      );
+      when(() => fetchRows.call(
+            tableName: 'tbl_2',
+            limit: DatasetBloc.defaultRowLimit,
+            offset: 0,
+          )).thenAnswer(
+        (_) async => [
+          {'id': 1, 'price': 10},
+        ],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((state) => state is DatasetLoadedState);
+
+      final states = <DatasetState>[];
+      final sub = bloc.stream.listen(states.add);
+
+      bloc.add(const ChangeSheetEvent(11));
+      await bloc.stream.firstWhere(
+        (state) => state is DatasetLoadedState && state.activeTable.id == 11,
+      );
+      await sub.cancel();
+
+      expect(
+        states.any((s) => s is DatasetLoadedState && s.isTableSwitching),
+        isTrue,
+      );
+      final finalState = states.last as DatasetLoadedState;
+      expect(finalState.isTableSwitching, isFalse);
+      expect(finalState.activeTable.id, 11);
+    });
+
     test('should restore filters stored for the selected sheet', () async {
       final dataset = _dataset(
         uiStateJson: '''
