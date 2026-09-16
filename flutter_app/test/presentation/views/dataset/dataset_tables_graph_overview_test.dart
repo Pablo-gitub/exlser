@@ -14,6 +14,7 @@ import 'package:exlser/presentation/state/dataset_bloc.dart';
 import 'package:exlser/presentation/state/dataset_event.dart';
 import 'package:exlser/presentation/state/dataset_state.dart';
 import 'package:exlser/presentation/views/dataset/widgets/dataset_tables_graph_overview.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -614,5 +615,70 @@ void main() {
 
     expect(find.byKey(const ValueKey('graph_overview_reset_layout_btn')),
         findsNothing);
+  });
+
+  testWidgets(
+      'pointer scroll event over canvas zooms in/out via transformation controller',
+      (tester) async {
+    final container = ProviderContainer(
+      overrides: [
+        multiSheetAnalysisServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await pumpOverview(tester, container: container);
+
+    final viewerFinder = find.byType(InteractiveViewer);
+    final initialViewer = tester.widget<InteractiveViewer>(viewerFinder);
+    final initialScale =
+        initialViewer.transformationController!.value.getMaxScaleOnAxis();
+
+    // Dispatch a PointerScrollEvent over the canvas (scroll up = zoom in)
+    final center = tester.getCenter(viewerFinder);
+    final pointer = TestPointer(1, PointerDeviceKind.mouse);
+    pointer.hover(center);
+    await tester.sendEventToBinding(pointer.scroll(const Offset(0, -100)));
+    await tester.pumpAndSettle();
+
+    final scaledViewer = tester.widget<InteractiveViewer>(viewerFinder);
+    final newScale =
+        scaledViewer.transformationController!.value.getMaxScaleOnAxis();
+    expect(newScale, greaterThan(initialScale));
+  });
+
+  testWidgets('hovering over a table card disables canvas panEnabled',
+      (tester) async {
+    final container = ProviderContainer(
+      overrides: [
+        multiSheetAnalysisServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await pumpOverview(tester, container: container);
+
+    final viewerFinder = find.byType(InteractiveViewer);
+    var viewer = tester.widget<InteractiveViewer>(viewerFinder);
+    expect(viewer.panEnabled, isTrue);
+
+    // Hover over table card
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await gesture.addPointer(location: Offset.zero);
+    addTearDown(gesture.removePointer);
+
+    await gesture.moveTo(tester.getCenter(find.text('Details')));
+    await tester.pumpAndSettle();
+
+    viewer = tester.widget<InteractiveViewer>(viewerFinder);
+    expect(viewer.panEnabled, isFalse);
+
+    // Move away to empty canvas area
+    await gesture
+        .moveTo(tester.getTopLeft(viewerFinder) + const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    viewer = tester.widget<InteractiveViewer>(viewerFinder);
+    expect(viewer.panEnabled, isTrue);
   });
 }

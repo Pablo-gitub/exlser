@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:exlser/core/constants/app_strings.dart';
@@ -27,8 +28,14 @@ class JoinGraphCanvas extends StatefulWidget {
 class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
   late final TransformationController _transformationController;
   int? _selectedRelationshipId;
+  final GlobalKey _viewportKey = GlobalKey();
   final Map<int, Offset> _customPositions = {};
   int? _draggingTableId;
+  int? _hoveredTableId;
+  int? _activePointerTableId;
+  bool _isBadgeHovered = false;
+  bool _isPanningCanvas = false;
+  Offset _dragOffset = Offset.zero;
 
   @override
   void initState() {
@@ -40,6 +47,59 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
   void dispose() {
     _transformationController.dispose();
     super.dispose();
+  }
+
+  bool get _isPanEnabled {
+    if (_isPanningCanvas) return true;
+    return _draggingTableId == null &&
+        _hoveredTableId == null &&
+        _activePointerTableId == null &&
+        !_isBadgeHovered;
+  }
+
+  Offset _toScene(Offset globalPosition) {
+    final renderBox =
+        _viewportKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final viewportPoint = renderBox.globalToLocal(globalPosition);
+      return _transformationController.toScene(viewportPoint);
+    }
+    return _transformationController.toScene(globalPosition);
+  }
+
+  void _handlePointerSignal(PointerSignalEvent event) {
+    if (event is PointerScrollEvent) {
+      GestureBinding.instance.pointerSignalResolver.register(event, (event) {
+        if (event is! PointerScrollEvent) return;
+        final double dy = event.scrollDelta.dy;
+        if (dy == 0) return;
+
+        final double scaleDelta = math.exp(-dy / 250.0);
+        final double currentScale =
+            _transformationController.value.getMaxScaleOnAxis();
+        final double newScale = (currentScale * scaleDelta).clamp(0.4, 2.2);
+        final double effectiveScaleChange = newScale / currentScale;
+        if ((effectiveScaleChange - 1.0).abs() < 0.001) return;
+
+        final Offset localFocalPoint = event.localPosition;
+        final Offset focalPointScene =
+            _transformationController.toScene(localFocalPoint);
+
+        final matrix = _transformationController.value.clone();
+        matrix.scaleByDouble(
+            effectiveScaleChange, effectiveScaleChange, 1.0, 1.0);
+        _transformationController.value = matrix;
+
+        final Offset focalPointSceneScaled =
+            _transformationController.toScene(localFocalPoint);
+        final Offset translationChange =
+            focalPointSceneScaled - focalPointScene;
+        final finalMatrix = _transformationController.value.clone();
+        finalMatrix.translateByDouble(
+            translationChange.dx, translationChange.dy, 0.0, 1.0);
+        _transformationController.value = finalMatrix;
+      });
+    }
   }
 
   void _zoom(double factor) {
@@ -56,6 +116,8 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
     setState(() {
       _customPositions.clear();
       _draggingTableId = null;
+      _hoveredTableId = null;
+      _activePointerTableId = null;
     });
   }
 
@@ -114,92 +176,147 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
 
           // Interactive Zoom / Pan Canvas
           Positioned.fill(
-            child: InteractiveViewer(
-              transformationController: _transformationController,
-              panEnabled: _draggingTableId == null,
-              minScale: 0.4,
-              maxScale: 2.2,
-              boundaryMargin: const EdgeInsets.all(300),
-              constrained: false,
-              child: SizedBox(
-                width: graphData.canvasSize.width,
-                height: graphData.canvasSize.height,
-                child: Stack(
-                  children: [
-                    // Connectors Layer
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: JoinConnectorsPainter(
-                          connections: graphData.connections,
-                          colorScheme: colorScheme,
-                          selectedRelationshipId: _selectedRelationshipId,
-                        ),
-                      ),
-                    ),
-
-                    // Midpoint Badges Layer
-                    for (final conn in graphData.connections)
-                      _buildConnectionBadge(
-                        context: context,
-                        conn: conn,
-                        baseTableName: baseTable.label,
-                        graphData: graphData,
-                      ),
-
-                    // Table Node Cards Layer
-                    for (final table in graphData.tables)
-                      Positioned(
-                        left: table.position.dx,
-                        top: table.position.dy,
-                        child: GestureDetector(
-                          onPanStart: (details) {
-                            HapticFeedback.selectionClick();
-                            setState(() {
-                              _draggingTableId = table.tableId;
-                            });
-                          },
-                          onPanUpdate: (details) {
-                            final scale = _transformationController.value
-                                .getMaxScaleOnAxis();
-                            final safeScale = scale <= 0 ? 1.0 : scale;
-                            final currentPos =
-                                _customPositions[table.tableId] ??
-                                    table.position;
-                            final newX = math.max(
-                              10.0,
-                              currentPos.dx + (details.delta.dx / safeScale),
-                            );
-                            final newY = math.max(
-                              10.0,
-                              currentPos.dy + (details.delta.dy / safeScale),
-                            );
-                            setState(() {
-                              _customPositions[table.tableId] =
-                                  Offset(newX, newY);
-                            });
-                          },
-                          onPanEnd: (_) {
-                            setState(() {
-                              _draggingTableId = null;
-                            });
-                          },
-                          onPanCancel: () {
-                            setState(() {
-                              _draggingTableId = null;
-                            });
-                          },
-                          child: JoinTableNodeCard(
-                            table: table,
-                            isDragging: _draggingTableId == table.tableId,
-                            onHeaderTap: () {
-                              if (!table.isBase) {
-                                widget.controller.setBaseTable(table.tableId);
-                              }
-                            },
+            child: Listener(
+              onPointerSignal: _handlePointerSignal,
+              child: InteractiveViewer(
+                key: _viewportKey,
+                transformationController: _transformationController,
+                panEnabled: _isPanEnabled,
+                trackpadScrollCausesScale: true,
+                minScale: 0.4,
+                maxScale: 2.2,
+                boundaryMargin: const EdgeInsets.all(300),
+                constrained: false,
+                onInteractionStart: (details) {
+                  if (_draggingTableId == null &&
+                      _hoveredTableId == null &&
+                      _activePointerTableId == null &&
+                      !_isBadgeHovered) {
+                    _isPanningCanvas = true;
+                  }
+                },
+                onInteractionEnd: (_) {
+                  _isPanningCanvas = false;
+                },
+                child: SizedBox(
+                  width: graphData.canvasSize.width,
+                  height: graphData.canvasSize.height,
+                  child: Stack(
+                    children: [
+                      // Connectors Layer
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: JoinConnectorsPainter(
+                            connections: graphData.connections,
+                            colorScheme: colorScheme,
+                            selectedRelationshipId: _selectedRelationshipId,
                           ),
                         ),
                       ),
-                  ],
+
+                      // Midpoint Badges Layer
+                      for (final conn in graphData.connections)
+                        _buildConnectionBadge(
+                          context: context,
+                          conn: conn,
+                          baseTableName: baseTable.label,
+                          graphData: graphData,
+                        ),
+
+                      // Table Node Cards Layer
+                      for (final table in graphData.tables)
+                        Positioned(
+                          left: table.position.dx,
+                          top: table.position.dy,
+                          child: MouseRegion(
+                            cursor: _draggingTableId == table.tableId
+                                ? SystemMouseCursors.grabbing
+                                : SystemMouseCursors.grab,
+                            onEnter: (_) {
+                              if (!_isPanningCanvas &&
+                                  _hoveredTableId != table.tableId) {
+                                setState(() => _hoveredTableId = table.tableId);
+                              }
+                            },
+                            onExit: (_) {
+                              if (_hoveredTableId == table.tableId) {
+                                setState(() => _hoveredTableId = null);
+                              }
+                            },
+                            child: Listener(
+                              onPointerDown: (_) {
+                                if (!_isPanningCanvas &&
+                                    _activePointerTableId != table.tableId) {
+                                  setState(() =>
+                                      _activePointerTableId = table.tableId);
+                                }
+                              },
+                              onPointerUp: (_) {
+                                if (_activePointerTableId == table.tableId) {
+                                  setState(() => _activePointerTableId = null);
+                                }
+                              },
+                              onPointerCancel: (_) {
+                                if (_activePointerTableId == table.tableId) {
+                                  setState(() => _activePointerTableId = null);
+                                }
+                              },
+                              child: GestureDetector(
+                                onPanStart: (details) {
+                                  HapticFeedback.selectionClick();
+                                  final scenePoint =
+                                      _toScene(details.globalPosition);
+                                  final currentPos =
+                                      _customPositions[table.tableId] ??
+                                          table.position;
+                                  _dragOffset = scenePoint - currentPos;
+                                  setState(() {
+                                    _draggingTableId = table.tableId;
+                                  });
+                                },
+                                onPanUpdate: (details) {
+                                  if (_draggingTableId != table.tableId) return;
+                                  final scenePoint =
+                                      _toScene(details.globalPosition);
+                                  final newPos = scenePoint - _dragOffset;
+                                  setState(() {
+                                    _customPositions[table.tableId] = Offset(
+                                      math.max(10.0, newPos.dx),
+                                      math.max(10.0, newPos.dy),
+                                    );
+                                  });
+                                },
+                                onPanEnd: (_) {
+                                  setState(() {
+                                    _draggingTableId = null;
+                                    _activePointerTableId = null;
+                                  });
+                                },
+                                onPanCancel: () {
+                                  setState(() {
+                                    _draggingTableId = null;
+                                    _activePointerTableId = null;
+                                  });
+                                },
+                                child: JoinTableNodeCard(
+                                  table: table,
+                                  isDragging: _draggingTableId == table.tableId,
+                                  mouseCursor: _draggingTableId == table.tableId
+                                      ? SystemMouseCursors.grabbing
+                                      : SystemMouseCursors.grab,
+                                  onHeaderTap: () {
+                                    if (!table.isBase) {
+                                      widget.controller
+                                          .setBaseTable(table.tableId);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -323,85 +440,101 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
     return Positioned(
       left: conn.midPoint.dx - 30,
       top: conn.midPoint.dy - 14,
-      child: Material(
-        color: conn.isSuggestion
-            ? colorScheme.tertiaryContainer
-            : (isSelected ? colorScheme.primary : colorScheme.primaryContainer),
-        elevation: isSelected ? 4 : 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color:
-                conn.isSuggestion ? colorScheme.tertiary : colorScheme.primary,
-            width: isSelected ? 2 : 1,
+      child: MouseRegion(
+        onEnter: (_) {
+          if (!_isPanningCanvas && !_isBadgeHovered) {
+            setState(() => _isBadgeHovered = true);
+          }
+        },
+        onExit: (_) {
+          if (_isBadgeHovered) {
+            setState(() => _isBadgeHovered = false);
+          }
+        },
+        child: Material(
+          color: conn.isSuggestion
+              ? colorScheme.tertiaryContainer
+              : (isSelected
+                  ? colorScheme.primary
+                  : colorScheme.primaryContainer),
+          elevation: isSelected ? 4 : 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: conn.isSuggestion
+                  ? colorScheme.tertiary
+                  : colorScheme.primary,
+              width: isSelected ? 2 : 1,
+            ),
           ),
-        ),
-        child: InkWell(
-          key: ValueKey('join_badge_${conn.relationshipId ?? "suggestion"}'),
-          onTap: () {
-            setState(() {
-              _selectedRelationshipId = conn.relationshipId;
-            });
+          child: InkWell(
+            key: ValueKey('join_badge_${conn.relationshipId ?? "suggestion"}'),
+            onTap: () {
+              setState(() {
+                _selectedRelationshipId = conn.relationshipId;
+              });
 
-            JoinConnectionDetailsSheet.show(
-              context: context,
-              fromTableName: fromTable.tableName,
-              toTableName: toTable.tableName,
-              fromColumnName: fromCol.columnName,
-              toColumnName: toCol.columnName,
-              baseTableName: baseTableName,
-              joinType: conn.joinType,
-              isSuggestion: conn.isSuggestion,
-              onJoinTypeChanged: (newType) {
-                if (conn.relationshipId != null) {
-                  widget.controller.setJoinType(conn.relationshipId!, newType);
-                }
-              },
-              onRemove: () {
-                if (conn.relationshipId != null) {
-                  widget.controller.removeJoin(conn.relationshipId!);
-                }
-              },
-              onConfirmSuggestion: conn.suggestion != null
-                  ? () {
-                      widget.controller.confirmSuggestion(conn.suggestion!);
-                    }
-                  : null,
-            );
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  conn.isSuggestion
-                      ? Icons.auto_awesome
-                      : (conn.joinType == SheetJoinType.left
-                          ? Icons.subdirectory_arrow_right
-                          : Icons.compare_arrows),
-                  size: 13,
-                  color: conn.isSuggestion
-                      ? colorScheme.onTertiaryContainer
-                      : (isSelected
-                          ? colorScheme.onPrimary
-                          : colorScheme.onPrimaryContainer),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+              JoinConnectionDetailsSheet.show(
+                context: context,
+                fromTableName: fromTable.tableName,
+                toTableName: toTable.tableName,
+                fromColumnName: fromCol.columnName,
+                toColumnName: toCol.columnName,
+                baseTableName: baseTableName,
+                joinType: conn.joinType,
+                isSuggestion: conn.isSuggestion,
+                onJoinTypeChanged: (newType) {
+                  if (conn.relationshipId != null) {
+                    widget.controller
+                        .setJoinType(conn.relationshipId!, newType);
+                  }
+                },
+                onRemove: () {
+                  if (conn.relationshipId != null) {
+                    widget.controller.removeJoin(conn.relationshipId!);
+                  }
+                },
+                onConfirmSuggestion: conn.suggestion != null
+                    ? () {
+                        widget.controller.confirmSuggestion(conn.suggestion!);
+                      }
+                    : null,
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    conn.isSuggestion
+                        ? Icons.auto_awesome
+                        : (conn.joinType == SheetJoinType.left
+                            ? Icons.subdirectory_arrow_right
+                            : Icons.compare_arrows),
+                    size: 13,
                     color: conn.isSuggestion
                         ? colorScheme.onTertiaryContainer
                         : (isSelected
                             ? colorScheme.onPrimary
                             : colorScheme.onPrimaryContainer),
-                    fontSize: 10,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    label,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: conn.isSuggestion
+                          ? colorScheme.onTertiaryContainer
+                          : (isSelected
+                              ? colorScheme.onPrimary
+                              : colorScheme.onPrimaryContainer),
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

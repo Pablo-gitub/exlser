@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -296,6 +297,102 @@ void main() {
 
       expect(
           find.byKey(const ValueKey('graph_reset_layout_btn')), findsNothing);
+    });
+
+    testWidgets('pointer scroll event over canvas zooms in/out via controller',
+        (tester) async {
+      final s1 = _sheet(1, 'Customers', ['id', 'name']);
+      final s2 = _sheet(2, 'Orders', ['order_id', 'cust_id', 'total']);
+
+      final state = MultiSheetJoinState(
+        sheets: [s1, s2],
+        spec: const MultiSheetQuerySpec(
+          selectedTableIds: [1, 2],
+          baseTableId: 1,
+        ),
+      );
+
+      await pumpCanvas(tester, state);
+
+      final viewerFinder = find.byType(InteractiveViewer);
+      final initialViewer = tester.widget<InteractiveViewer>(viewerFinder);
+      final initialScale =
+          initialViewer.transformationController!.value.getMaxScaleOnAxis();
+
+      // Dispatch a PointerScrollEvent over the canvas (scroll up = zoom in)
+      final center = tester.getCenter(viewerFinder);
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      pointer.hover(center);
+      await tester.sendEventToBinding(pointer.scroll(const Offset(0, -100)));
+      await tester.pumpAndSettle();
+
+      final scaledViewer = tester.widget<InteractiveViewer>(viewerFinder);
+      final newScale =
+          scaledViewer.transformationController!.value.getMaxScaleOnAxis();
+      expect(newScale, greaterThan(initialScale));
+    });
+
+    testWidgets('hovering over a table card or badge disables panEnabled',
+        (tester) async {
+      final s1 = _sheet(1, 'Customers', ['id', 'name']);
+      final s2 = _sheet(2, 'Orders', ['order_id', 'cust_id', 'total']);
+
+      final state = MultiSheetJoinState(
+        sheets: [s1, s2],
+        spec: MultiSheetQuerySpec(
+          selectedTableIds: [1, 2],
+          baseTableId: 1,
+          joins: [
+            MultiSheetJoin(
+              relationshipId: 42,
+              joinType: SheetJoinType.inner,
+            ),
+          ],
+        ),
+        relationshipsById: {
+          42: const DatasetRelationship(
+            id: 42,
+            datasetId: 1,
+            endpointATableId: 1,
+            endpointAColumnDbName: 'id',
+            endpointBTableId: 2,
+            endpointBColumnDbName: 'cust_id',
+          ),
+        },
+      );
+
+      await pumpCanvas(tester, state);
+
+      final viewerFinder = find.byType(InteractiveViewer);
+      var viewer = tester.widget<InteractiveViewer>(viewerFinder);
+      expect(viewer.panEnabled, isTrue);
+
+      // Hover over Orders table card
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await gesture.addPointer(location: Offset.zero);
+      addTearDown(gesture.removePointer);
+
+      await gesture.moveTo(tester.getCenter(find.text('Orders')));
+      await tester.pumpAndSettle();
+
+      viewer = tester.widget<InteractiveViewer>(viewerFinder);
+      expect(viewer.panEnabled, isFalse);
+
+      // Hover over connection badge
+      await gesture.moveTo(
+          tester.getCenter(find.byKey(const ValueKey('join_badge_42'))));
+      await tester.pumpAndSettle();
+
+      viewer = tester.widget<InteractiveViewer>(viewerFinder);
+      expect(viewer.panEnabled, isFalse);
+
+      // Move to empty canvas background
+      await gesture
+          .moveTo(tester.getTopLeft(viewerFinder) + const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      viewer = tester.widget<InteractiveViewer>(viewerFinder);
+      expect(viewer.panEnabled, isTrue);
     });
   });
 }

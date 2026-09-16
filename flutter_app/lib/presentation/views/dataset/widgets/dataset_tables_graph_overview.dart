@@ -16,6 +16,7 @@ import 'package:exlser/presentation/views/sheet_joins/graph/join_connectors_pain
 import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_canvas.dart';
 import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_models.dart';
 import 'package:exlser/presentation/views/sheet_joins/graph/join_table_node_card.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -52,8 +53,13 @@ class _DatasetTablesGraphOverviewState
   bool _saved = false;
   bool _isCollapsed = false;
 
+  final GlobalKey _viewportKey = GlobalKey();
   final Map<int, Offset> _customPositions = {};
   int? _draggingTableId;
+  int? _hoveredTableId;
+  int? _activePointerTableId;
+  bool _isPanningCanvas = false;
+  Offset _dragOffset = Offset.zero;
 
   @override
   void initState() {
@@ -65,6 +71,58 @@ class _DatasetTablesGraphOverviewState
   void dispose() {
     _transformationController.dispose();
     super.dispose();
+  }
+
+  bool get _isPanEnabled {
+    if (_isPanningCanvas) return true;
+    return _draggingTableId == null &&
+        _hoveredTableId == null &&
+        _activePointerTableId == null;
+  }
+
+  Offset _toScene(Offset globalPosition) {
+    final renderBox =
+        _viewportKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final viewportPoint = renderBox.globalToLocal(globalPosition);
+      return _transformationController.toScene(viewportPoint);
+    }
+    return _transformationController.toScene(globalPosition);
+  }
+
+  void _handlePointerSignal(PointerSignalEvent event) {
+    if (event is PointerScrollEvent) {
+      GestureBinding.instance.pointerSignalResolver.register(event, (event) {
+        if (event is! PointerScrollEvent) return;
+        final double dy = event.scrollDelta.dy;
+        if (dy == 0) return;
+
+        final double scaleDelta = math.exp(-dy / 250.0);
+        final double currentScale =
+            _transformationController.value.getMaxScaleOnAxis();
+        final double newScale = (currentScale * scaleDelta).clamp(0.3, 2.2);
+        final double effectiveScaleChange = newScale / currentScale;
+        if ((effectiveScaleChange - 1.0).abs() < 0.001) return;
+
+        final Offset localFocalPoint = event.localPosition;
+        final Offset focalPointScene =
+            _transformationController.toScene(localFocalPoint);
+
+        final matrix = _transformationController.value.clone();
+        matrix.scaleByDouble(
+            effectiveScaleChange, effectiveScaleChange, 1.0, 1.0);
+        _transformationController.value = matrix;
+
+        final Offset focalPointSceneScaled =
+            _transformationController.toScene(localFocalPoint);
+        final Offset translationChange =
+            focalPointSceneScaled - focalPointScene;
+        final finalMatrix = _transformationController.value.clone();
+        finalMatrix.translateByDouble(
+            translationChange.dx, translationChange.dy, 0.0, 1.0);
+        _transformationController.value = finalMatrix;
+      });
+    }
   }
 
   void _zoom(double factor) {
@@ -81,6 +139,8 @@ class _DatasetTablesGraphOverviewState
     setState(() {
       _customPositions.clear();
       _draggingTableId = null;
+      _hoveredTableId = null;
+      _activePointerTableId = null;
     });
   }
 
@@ -300,6 +360,8 @@ class _DatasetTablesGraphOverviewState
                             _saved = false;
                             _customPositions.clear();
                             _draggingTableId = null;
+                            _hoveredTableId = null;
+                            _activePointerTableId = null;
                           });
                         },
                       ),
@@ -391,97 +453,152 @@ class _DatasetTablesGraphOverviewState
 
                   // Interactive Zoom/Pan Canvas
                   Positioned.fill(
-                    child: InteractiveViewer(
-                      transformationController: _transformationController,
-                      panEnabled: _draggingTableId == null,
-                      minScale: 0.3,
-                      maxScale: 2.2,
-                      boundaryMargin: const EdgeInsets.all(250),
-                      constrained: false,
-                      child: SizedBox(
-                        width: graphData.canvasSize.width,
-                        height: graphData.canvasSize.height,
-                        child: Stack(
-                          children: [
-                            // Connectors Painter
-                            Positioned.fill(
-                              child: CustomPaint(
-                                painter: JoinConnectorsPainter(
-                                  connections: graphData.connections,
-                                  colorScheme: colorScheme,
-                                ),
-                              ),
-                            ),
-
-                            // Table Node Cards
-                            for (final table in graphData.tables)
-                              Positioned(
-                                left: table.position.dx,
-                                top: table.position.dy,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    if (table.tableId !=
-                                        widget.activeTable.id) {
-                                      context.read<DatasetBloc>().add(
-                                            ChangeSheetEvent(table.tableId),
-                                          );
-                                    }
-                                  },
-                                  onPanStart: (details) {
-                                    HapticFeedback.selectionClick();
-                                    setState(() {
-                                      _draggingTableId = table.tableId;
-                                    });
-                                  },
-                                  onPanUpdate: (details) {
-                                    final scale = _transformationController
-                                        .value
-                                        .getMaxScaleOnAxis();
-                                    final safeScale = scale <= 0 ? 1.0 : scale;
-                                    final currentPos =
-                                        _customPositions[table.tableId] ??
-                                            table.position;
-                                    final newX = math.max(
-                                      10.0,
-                                      currentPos.dx +
-                                          (details.delta.dx / safeScale),
-                                    );
-                                    final newY = math.max(
-                                      10.0,
-                                      currentPos.dy +
-                                          (details.delta.dy / safeScale),
-                                    );
-                                    setState(() {
-                                      _customPositions[table.tableId] =
-                                          Offset(newX, newY);
-                                    });
-                                  },
-                                  onPanEnd: (_) {
-                                    setState(() {
-                                      _draggingTableId = null;
-                                    });
-                                  },
-                                  onPanCancel: () {
-                                    setState(() {
-                                      _draggingTableId = null;
-                                    });
-                                  },
-                                  child: JoinTableNodeCard(
-                                    table: table,
-                                    isDragging:
-                                        _draggingTableId == table.tableId,
-                                    onTap: () {
-                                      if (table.tableId !=
-                                          widget.activeTable.id) {
-                                        context.read<DatasetBloc>().add(
-                                              ChangeSheetEvent(table.tableId),
-                                            );
-                                      }
-                                    },
+                    child: Listener(
+                      onPointerSignal: _handlePointerSignal,
+                      child: InteractiveViewer(
+                        key: _viewportKey,
+                        transformationController: _transformationController,
+                        panEnabled: _isPanEnabled,
+                        trackpadScrollCausesScale: true,
+                        minScale: 0.3,
+                        maxScale: 2.2,
+                        boundaryMargin: const EdgeInsets.all(250),
+                        constrained: false,
+                        onInteractionStart: (details) {
+                          if (_draggingTableId == null &&
+                              _hoveredTableId == null &&
+                              _activePointerTableId == null) {
+                            _isPanningCanvas = true;
+                          }
+                        },
+                        onInteractionEnd: (_) {
+                          _isPanningCanvas = false;
+                        },
+                        child: SizedBox(
+                          width: graphData.canvasSize.width,
+                          height: graphData.canvasSize.height,
+                          child: Stack(
+                            children: [
+                              // Connectors Painter
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: JoinConnectorsPainter(
+                                    connections: graphData.connections,
+                                    colorScheme: colorScheme,
                                   ),
                                 ),
                               ),
-                          ],
+
+                              // Table Node Cards
+                              for (final table in graphData.tables)
+                                Positioned(
+                                  left: table.position.dx,
+                                  top: table.position.dy,
+                                  child: MouseRegion(
+                                    cursor: _draggingTableId == table.tableId
+                                        ? SystemMouseCursors.grabbing
+                                        : SystemMouseCursors.grab,
+                                    onEnter: (_) {
+                                      if (!_isPanningCanvas &&
+                                          _hoveredTableId != table.tableId) {
+                                        setState(() =>
+                                            _hoveredTableId = table.tableId);
+                                      }
+                                    },
+                                    onExit: (_) {
+                                      if (_hoveredTableId == table.tableId) {
+                                        setState(() => _hoveredTableId = null);
+                                      }
+                                    },
+                                    child: Listener(
+                                      onPointerDown: (_) {
+                                        if (!_isPanningCanvas &&
+                                            _activePointerTableId !=
+                                                table.tableId) {
+                                          setState(() => _activePointerTableId =
+                                              table.tableId);
+                                        }
+                                      },
+                                      onPointerUp: (_) {
+                                        if (_activePointerTableId ==
+                                            table.tableId) {
+                                          setState(() =>
+                                              _activePointerTableId = null);
+                                        }
+                                      },
+                                      onPointerCancel: (_) {
+                                        if (_activePointerTableId ==
+                                            table.tableId) {
+                                          setState(() =>
+                                              _activePointerTableId = null);
+                                        }
+                                      },
+                                      child: GestureDetector(
+                                        onPanStart: (details) {
+                                          HapticFeedback.selectionClick();
+                                          final scenePoint =
+                                              _toScene(details.globalPosition);
+                                          final currentPos =
+                                              _customPositions[table.tableId] ??
+                                                  table.position;
+                                          _dragOffset = scenePoint - currentPos;
+                                          setState(() {
+                                            _draggingTableId = table.tableId;
+                                          });
+                                        },
+                                        onPanUpdate: (details) {
+                                          if (_draggingTableId !=
+                                              table.tableId) {
+                                            return;
+                                          }
+                                          final scenePoint =
+                                              _toScene(details.globalPosition);
+                                          final newPos =
+                                              scenePoint - _dragOffset;
+                                          setState(() {
+                                            _customPositions[table.tableId] =
+                                                Offset(
+                                              math.max(10.0, newPos.dx),
+                                              math.max(10.0, newPos.dy),
+                                            );
+                                          });
+                                        },
+                                        onPanEnd: (_) {
+                                          setState(() {
+                                            _draggingTableId = null;
+                                            _activePointerTableId = null;
+                                          });
+                                        },
+                                        onPanCancel: () {
+                                          setState(() {
+                                            _draggingTableId = null;
+                                            _activePointerTableId = null;
+                                          });
+                                        },
+                                        child: JoinTableNodeCard(
+                                          table: table,
+                                          isDragging:
+                                              _draggingTableId == table.tableId,
+                                          mouseCursor:
+                                              _draggingTableId == table.tableId
+                                                  ? SystemMouseCursors.grabbing
+                                                  : SystemMouseCursors.grab,
+                                          onTap: () {
+                                            if (table.tableId !=
+                                                widget.activeTable.id) {
+                                              context.read<DatasetBloc>().add(
+                                                    ChangeSheetEvent(
+                                                        table.tableId),
+                                                  );
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
