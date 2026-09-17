@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:exlser/application/dto/import_file.dart';
+import 'package:exlser/application/services/import_data_service.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -160,7 +161,14 @@ class ImportDialog extends ConsumerWidget {
           Text(
             ImportErrorMessages.translationKeyForCode(
               viewModel.importErrorCode!,
-            ).tr(),
+            ).tr(
+              // Only the size-limit message uses it; easy_localization ignores
+              // an argument the message does not reference.
+              namedArgs: {
+                'limit':
+                    '${ImportDataService.maxFileSizeInBytes ~/ (1024 * 1024)} MB',
+              },
+            ),
             style: TextStyle(
               color: Theme.of(context).colorScheme.onErrorContainer,
             ),

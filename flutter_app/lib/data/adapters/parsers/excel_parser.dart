@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:flutter/foundation.dart';
 import 'package:excel_community/excel_community.dart';
 import 'package:exlser/data/adapters/mappers/table_row_mapper.dart';
 import 'package:exlser/data/adapters/parsers/spreadsheet_parser.dart';
@@ -40,7 +40,25 @@ class ExcelParser implements SpreadsheetParser {
   Future<List<ParsedSheet>> parseBytes(
     List<int> bytes, {
     bool detectMultipleTables = true,
-  }) async {
+  }) {
+    // Unzipping the workbook, parsing its XML and segmenting every sheet is
+    // CPU-bound and used to run on the UI isolate, freezing the app on a large
+    // file. `compute` moves it to a worker isolate (inline on the web).
+    return compute(
+      _parseExcelBytes,
+      ExcelParseRequest(
+        bytes: Uint8List.fromList(bytes),
+        detectMultipleTables: detectMultipleTables,
+      ),
+    );
+  }
+
+  /// Synchronous core, reachable from the isolate entry point below.
+  @visibleForTesting
+  List<ParsedSheet> parseBytesForIsolate(
+    List<int> bytes, {
+    bool detectMultipleTables = true,
+  }) {
     final excel = Excel.decodeBytes(_normalizePackageForDecoder(bytes));
 
     final sheets = <ParsedSheet>[];
@@ -207,4 +225,24 @@ class ExcelParser implements SpreadsheetParser {
 
     return value.toString();
   }
+}
+
+/// Isolate payload for [ExcelParser].
+@immutable
+class ExcelParseRequest {
+  final Uint8List bytes;
+  final bool detectMultipleTables;
+
+  const ExcelParseRequest({
+    required this.bytes,
+    required this.detectMultipleTables,
+  });
+}
+
+/// Top-level entry point required by `compute`.
+List<ParsedSheet> _parseExcelBytes(ExcelParseRequest request) {
+  return ExcelParser().parseBytesForIsolate(
+    request.bytes,
+    detectMultipleTables: request.detectMultipleTables,
+  );
 }

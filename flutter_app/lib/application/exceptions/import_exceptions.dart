@@ -50,6 +50,24 @@ class InvalidImportFileException extends ImportException {
   });
 }
 
+/// Thrown when the file is larger than the import pipeline is willing to load.
+///
+/// Parsing reads the whole file into memory before anything else, so an
+/// unbounded file freezes the app or runs it out of memory. The cap keeps the
+/// failure a clear message instead of a crash.
+class FileTooLargeException extends ImportException {
+  final int sizeInBytes;
+  final int maxSizeInBytes;
+
+  const FileTooLargeException({
+    required this.sizeInBytes,
+    required this.maxSizeInBytes,
+  }) : super(
+          code: 'file_too_large',
+          message: 'File is $sizeInBytes bytes, the limit is $maxSizeInBytes',
+        );
+}
+
 /// Thrown when parser cannot be resolved.
 class ParserNotFoundException extends ImportException {
   const ParserNotFoundException(String extension)

@@ -442,6 +442,72 @@ void main() {
       throwsA(isA<InvalidFileExtensionException>()),
     );
   });
+  group('file size limit', () {
+    test('refuses a file larger than the limit before parsing it', () async {
+      final smallLimitService = ImportDataService(
+        parserFactory: parserFactory,
+        inferSchemaUseCase: inferSchemaUseCase,
+        maxFileSize: 10,
+      );
+
+      await expectLater(
+        smallLimitService.prepareImport(
+          file: ImportFile.fromBytes(
+            fileName: 'big.csv',
+            bytes: List<int>.filled(64, 65),
+          ),
+        ),
+        throwsA(isA<FileTooLargeException>()
+            .having((e) => e.code, 'code', 'file_too_large')
+            .having((e) => e.sizeInBytes, 'sizeInBytes', 64)
+            .having((e) => e.maxSizeInBytes, 'maxSizeInBytes', 10)),
+      );
+
+      // The parser is never even resolved.
+      verifyNever(() => parserFactory.createParser(any()));
+    });
+
+    test('accepts a file at the limit', () async {
+      when(() => parserFactory.createParser('csv')).thenReturn(parser);
+      when(() => parser.parseBytes(any(),
+              detectMultipleTables: any(named: 'detectMultipleTables')))
+          .thenAnswer((_) async => [
+                const ParsedSheet(name: 'Sheet1', rows: [
+                  {'id': '1'},
+                ]),
+              ]);
+      when(() => inferSchemaUseCase.call(any(), any())).thenReturn(const [
+        DatasetColumn(
+          id: 0,
+          datasetTableId: 0,
+          originalName: 'id',
+          dbName: 'id',
+          declaredType: ColumnType.integer,
+          inferredType: ColumnType.integer,
+          nullable: false,
+        ),
+      ]);
+
+      final service = ImportDataService(
+        parserFactory: parserFactory,
+        inferSchemaUseCase: inferSchemaUseCase,
+        maxFileSize: 8,
+      );
+
+      final result = await service.prepareImport(
+        file: ImportFile.fromBytes(
+          fileName: 'small.csv',
+          bytes: List<int>.filled(8, 65),
+        ),
+      );
+
+      expect(result.sheets, hasLength(1));
+    });
+
+    test('defaults to a 256 MiB limit', () {
+      expect(ImportDataService.maxFileSizeInBytes, 256 * 1024 * 1024);
+    });
+  });
 }
 
 DatasetColumn _realColumn(String name) => DatasetColumn(

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:csv/csv.dart';
+import 'package:flutter/foundation.dart';
 import 'package:exlser/data/adapters/mappers/table_row_mapper.dart';
 import 'package:exlser/data/adapters/parsers/spreadsheet_parser.dart';
 import 'package:exlser/data/adapters/table_normalizers/header_detector.dart';
@@ -39,7 +40,7 @@ class CsvParser implements SpreadsheetParser {
 
     final content = await file.readAsString();
 
-    return _parseContent(content, detectMultipleTables: detectMultipleTables);
+    return _parseOffThread(content, detectMultipleTables);
   }
 
   @override
@@ -49,8 +50,32 @@ class CsvParser implements SpreadsheetParser {
   }) async {
     final content = utf8.decode(bytes);
 
-    return _parseContent(content, detectMultipleTables: detectMultipleTables);
+    return _parseOffThread(content, detectMultipleTables);
   }
+
+  /// Decoding a whole CSV and segmenting it into tables is CPU-bound and used to
+  /// run on the UI isolate, freezing the app on a large file. `compute` moves it
+  /// to a worker isolate (and runs inline on the web, which has none).
+  Future<List<ParsedSheet>> _parseOffThread(
+    String content,
+    bool detectMultipleTables,
+  ) {
+    return compute(
+      _parseCsvContent,
+      CsvParseRequest(
+        content: content,
+        detectMultipleTables: detectMultipleTables,
+      ),
+    );
+  }
+
+  /// Synchronous core, reachable from the isolate entry point below.
+  @visibleForTesting
+  List<ParsedSheet> parseContentForIsolate(
+    String content, {
+    bool detectMultipleTables = true,
+  }) =>
+      _parseContent(content, detectMultipleTables: detectMultipleTables);
 
   List<ParsedSheet> _parseContent(
     String content, {
@@ -182,4 +207,24 @@ class CsvParser implements SpreadsheetParser {
 
     return buffer.toString();
   }
+}
+
+/// Isolate payload for [CsvParser].
+@immutable
+class CsvParseRequest {
+  final String content;
+  final bool detectMultipleTables;
+
+  const CsvParseRequest({
+    required this.content,
+    required this.detectMultipleTables,
+  });
+}
+
+/// Top-level entry point required by `compute`.
+List<ParsedSheet> _parseCsvContent(CsvParseRequest request) {
+  return CsvParser().parseContentForIsolate(
+    request.content,
+    detectMultipleTables: request.detectMultipleTables,
+  );
 }

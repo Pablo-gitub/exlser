@@ -15,6 +15,8 @@ class ImportErrorMessages {
         return AppStrings.importNoExtension;
       case 'unsupported_format':
         return AppStrings.importUnsupportedFormat;
+      case 'file_too_large':
+        return AppStrings.importFileTooLarge;
       case 'parser_not_found':
         return AppStrings.importParserNotFound;
       case 'parsing_failed':

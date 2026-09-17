@@ -7,6 +7,7 @@ import 'package:exlser/data/adapters/parsers/spreadsheet_parser.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:path/path.dart' as p;
+import 'dart:io' show File;
 
 import 'package:exlser/data/adapters/parsers/parser_factory.dart';
 import 'package:exlser/domain/entities/parsed_sheet.dart';
@@ -19,12 +20,20 @@ import 'package:exlser/domain/usecases/schema/infer_schema_usecase.dart';
 /// - schema inference
 /// - structured error propagation
 class ImportDataService {
+  /// Largest file the import pipeline accepts, in bytes (256 MiB).
+  ///
+  /// Parsing loads the whole file in memory, so this is the point where a file
+  /// is refused with a message rather than taking the app down with it.
+  static const int maxFileSizeInBytes = 256 * 1024 * 1024;
+
   final ParserFactory parserFactory;
   final InferSchemaUseCase inferSchemaUseCase;
+  final int maxFileSize;
 
   const ImportDataService({
     required this.parserFactory,
     required this.inferSchemaUseCase,
+    this.maxFileSize = maxFileSizeInBytes,
   });
 
   Future<PreparedImportResult> prepareImport({
@@ -33,6 +42,8 @@ class ImportDataService {
   }) async {
     try {
       final extension = _getFileExtension(file.fileName);
+
+      await _assertSizeWithinLimit(file);
 
       final parser = _resolveParser(extension);
 
@@ -67,6 +78,29 @@ class ImportDataService {
   }
 
   /// ---------------- INTERNAL STEPS ----------------
+
+  Future<void> _assertSizeWithinLimit(ImportFile file) async {
+    final int size;
+    if (file.hasBytes) {
+      size = file.bytes!.length;
+    } else if (file.hasPath) {
+      try {
+        size = await File(file.path!).length();
+      } catch (_) {
+        // An unreadable file is reported by the parser with a clearer code.
+        return;
+      }
+    } else {
+      return;
+    }
+
+    if (size > maxFileSize) {
+      throw FileTooLargeException(
+        sizeInBytes: size,
+        maxSizeInBytes: maxFileSize,
+      );
+    }
+  }
 
   String _getFileExtension(String filePath) {
     final extension = p.extension(filePath).replaceFirst('.', '').toLowerCase();
