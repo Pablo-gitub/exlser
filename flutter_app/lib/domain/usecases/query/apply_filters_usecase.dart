@@ -1,3 +1,4 @@
+import 'package:exlser/core/normalizers/sql_name_sanitizer.dart';
 import 'package:exlser/domain/repositories/query_repository.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
 import 'package:exlser/domain/value_objects/dataset_filter.dart';
@@ -104,7 +105,8 @@ class ApplyFiltersUseCase {
     }
 
     final rows = await repository.executeRawQuery(
-      'SELECT COUNT(*) AS count FROM $trimmedTable WHERE ${where.sql}',
+      'SELECT COUNT(*) AS count FROM ${SqlNameSanitizer.quote(trimmedTable)} '
+      'WHERE ${where.sql}',
       where.arguments,
     );
     if (rows.isEmpty) {
@@ -128,7 +130,7 @@ class ApplyFiltersUseCase {
     for (final filter in filters) {
       _validateFilter(filter);
 
-      final column = filter.column.dbName.trim();
+      final column = SqlNameSanitizer.quote(filter.column.dbName.trim());
       final operator = filter.operator;
 
       switch (operator) {
@@ -223,7 +225,7 @@ class ApplyFiltersUseCase {
       throw ArgumentError('Sort column dbName cannot be empty');
     }
 
-    return '$columnName ${sort.direction.sqlKeyword}';
+    return '${SqlNameSanitizer.quote(columnName)} ${sort.direction.sqlKeyword}';
   }
 
   String _buildOrderedQuery({
@@ -232,7 +234,9 @@ class ApplyFiltersUseCase {
     int? limit,
     int? offset,
   }) {
-    final buffer = StringBuffer('SELECT * FROM $tableName ORDER BY $orderBy');
+    final buffer = StringBuffer(
+      'SELECT * FROM ${SqlNameSanitizer.quote(tableName)} ORDER BY $orderBy',
+    );
 
     if (limit != null) {
       buffer.write(' LIMIT $limit');

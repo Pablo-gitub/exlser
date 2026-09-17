@@ -46,9 +46,9 @@ void main() {
         );
 
         /// Assert
-        expect(sql, contains('CREATE TABLE products'));
-        expect(sql, contains('product TEXT NOT NULL'));
-        expect(sql, contains('price REAL NOT NULL'));
+        expect(sql, contains('CREATE TABLE "products"'));
+        expect(sql, contains('"product" TEXT NOT NULL'));
+        expect(sql, contains('"price" REAL NOT NULL'));
         expect(sql, contains('id INTEGER PRIMARY KEY AUTOINCREMENT'));
       },
     );
@@ -117,11 +117,11 @@ void main() {
         );
 
         /// Assert
-        expect(sql, contains('text_col TEXT'));
-        expect(sql, contains('int_col INTEGER'));
-        expect(sql, contains('real_col REAL'));
-        expect(sql, contains('bool_col INTEGER'));
-        expect(sql, contains('date_col TEXT'));
+        expect(sql, contains('"text_col" TEXT'));
+        expect(sql, contains('"int_col" INTEGER'));
+        expect(sql, contains('"real_col" REAL'));
+        expect(sql, contains('"bool_col" INTEGER'));
+        expect(sql, contains('"date_col" TEXT'));
       },
     );
 
@@ -150,12 +150,12 @@ void main() {
 
         /// Assert
         expect(
-          sql.contains('optional_field TEXT NOT NULL'),
+          sql.contains('"optional_field" TEXT NOT NULL'),
           false,
         );
 
         expect(
-          sql.contains('optional_field TEXT'),
+          sql.contains('"optional_field" TEXT'),
           true,
         );
       },

@@ -151,7 +151,7 @@ void main() {
       expect(csv, isNot(contains('Sk8-Hi')));
       verify(() => queryRepository.queryWithFilter(
             tableName: 'sales_2026',
-            whereClause: "(product LIKE ? ESCAPE '\\')",
+            whereClause: "(\"product\" LIKE ? ESCAPE '\\')",
             arguments: ['%Sk8%'],
             limit: null,
             offset: null,
@@ -224,14 +224,14 @@ void main() {
       expect(json, contains('"Product": "Dunk"'));
       verify(() => queryRepository.queryWithFilter(
             tableName: 'sales_2026',
-            whereClause: "(product LIKE ? ESCAPE '\\')",
+            whereClause: "(\"product\" LIKE ? ESCAPE '\\')",
             arguments: ['%Sk8%'],
             limit: null,
             offset: null,
           )).called(1);
       verify(() => queryRepository.queryWithFilter(
             tableName: 'sales_2026_february',
-            whereClause: "(brand LIKE ? ESCAPE '\\')",
+            whereClause: "(\"brand\" LIKE ? ESCAPE '\\')",
             arguments: ['%Nike%'],
             limit: null,
             offset: null,

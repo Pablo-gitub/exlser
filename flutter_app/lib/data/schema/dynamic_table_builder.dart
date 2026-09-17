@@ -1,3 +1,4 @@
+import 'package:exlser/core/normalizers/sql_name_sanitizer.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
 
@@ -32,11 +33,11 @@ class DynamicTableBuilder {
 
       final nullable = column.nullable ? '' : ' NOT NULL';
 
-      return '${column.dbName} $sqlType$nullable';
+      return '${SqlNameSanitizer.quote(column.dbName)} $sqlType$nullable';
     }).join(', ');
 
     return '''
-      CREATE TABLE $tableName (
+      CREATE TABLE ${SqlNameSanitizer.quote(tableName)} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         $columnDefinitions
       )

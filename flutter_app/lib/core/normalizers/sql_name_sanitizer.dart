@@ -40,6 +40,14 @@ class SqlNameSanitizer {
     'id',
   };
 
+  /// Wraps an identifier in double quotes, escaping any embedded quote.
+  ///
+  /// Sanitized names never need it, but every dynamic statement quotes anyway:
+  /// it keeps a name that slipped through unsanitized (or a future reserved
+  /// word) from changing the meaning of the SQL around it.
+  static String quote(String identifier) =>
+      '"${identifier.trim().replaceAll('"', '""')}"';
+
   /// Sanitizes a column name dynamically generated from an Excel header.
   ///
   /// [rawName] the original header string

@@ -87,7 +87,7 @@ void main() {
 
       expect(
         captured[0],
-        "(product LIKE ? ESCAPE '\\') AND (price BETWEEN ? AND ?)",
+        "(\"product\" LIKE ? ESCAPE '\\') AND (\"price\" BETWEEN ? AND ?)",
       );
       expect(captured[1], ['%book%', 10, 20]);
     });
@@ -131,8 +131,8 @@ void main() {
             offset: null,
           )).captured;
 
-      expect(captured[0], '(price > ?)');
-      expect(captured[1], 'price DESC');
+      expect(captured[0], '("price" > ?)');
+      expect(captured[1], '"price" DESC');
       expect(captured[2], [5.5]);
     });
 
@@ -155,7 +155,7 @@ void main() {
       );
 
       verify(() => repository.executeRawQuery(
-            'SELECT * FROM products ORDER BY price ASC LIMIT 10 OFFSET 5',
+            'SELECT * FROM "products" ORDER BY "price" ASC LIMIT 10 OFFSET 5',
             null,
           )).called(1);
     });
@@ -191,7 +191,7 @@ void main() {
             offset: null,
           )).captured;
 
-      expect(captured[0], '(available = ?)');
+      expect(captured[0], '("available" = ?)');
       expect(captured[1], [1]);
     });
 
@@ -264,8 +264,8 @@ void main() {
 
       expect(count, 3);
       verify(() => repository.executeRawQuery(
-            "SELECT COUNT(*) AS count FROM products WHERE "
-            "(brand LIKE ? ESCAPE '\\')",
+            'SELECT COUNT(*) AS count FROM "products" '
+            'WHERE ("brand" LIKE ? ESCAPE \'\\\')',
             ['%van%'],
           )).called(1);
     });

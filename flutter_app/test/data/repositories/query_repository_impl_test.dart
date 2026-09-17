@@ -98,7 +98,7 @@ void main() {
       expect(result, expectedRows);
 
       verify(() => datasource.query(
-            'SELECT * FROM products',
+            'SELECT * FROM "products"',
           )).called(1);
     });
 
@@ -111,7 +111,7 @@ void main() {
       );
 
       verify(() => datasource.query(
-            'SELECT * FROM products LIMIT 10',
+            'SELECT * FROM "products" LIMIT 10',
           )).called(1);
     });
 
@@ -124,7 +124,7 @@ void main() {
       );
 
       verify(() => datasource.query(
-            'SELECT * FROM products OFFSET 5',
+            'SELECT * FROM "products" OFFSET 5',
           )).called(1);
     });
 
@@ -138,7 +138,7 @@ void main() {
       );
 
       verify(() => datasource.query(
-            'SELECT * FROM products LIMIT 10 OFFSET 5',
+            'SELECT * FROM "products" LIMIT 10 OFFSET 5',
           )).called(1);
     });
 
@@ -185,7 +185,7 @@ void main() {
       expect(result, expectedRows);
 
       verify(() => datasource.query(
-            'SELECT * FROM products WHERE price > ?',
+            'SELECT * FROM "products" WHERE price > ?',
             arguments: [5],
           )).called(1);
     });
@@ -204,7 +204,7 @@ void main() {
       );
 
       verify(() => datasource.query(
-            'SELECT * FROM products WHERE price > ? LIMIT 10',
+            'SELECT * FROM "products" WHERE price > ? LIMIT 10',
             arguments: [5],
           )).called(1);
     });
@@ -223,7 +223,7 @@ void main() {
       );
 
       verify(() => datasource.query(
-            'SELECT * FROM products WHERE price > ? OFFSET 5',
+            'SELECT * FROM "products" WHERE price > ? OFFSET 5',
             arguments: [5],
           )).called(1);
     });
@@ -243,7 +243,7 @@ void main() {
       );
 
       verify(() => datasource.query(
-            'SELECT * FROM products WHERE price > ? LIMIT 10 OFFSET 5',
+            'SELECT * FROM "products" WHERE price > ? LIMIT 10 OFFSET 5',
             arguments: [5],
           )).called(1);
     });
@@ -306,7 +306,7 @@ void main() {
       expect(result, expectedRows);
 
       verify(() => datasource.query(
-            'SELECT * FROM products WHERE price > ? ORDER BY price DESC',
+            'SELECT * FROM "products" WHERE price > ? ORDER BY price DESC',
             arguments: [5],
           )).called(1);
     });
@@ -327,7 +327,7 @@ void main() {
       );
 
       verify(() => datasource.query(
-            'SELECT * FROM products WHERE price > ? ORDER BY price ASC LIMIT 10 OFFSET 5',
+            'SELECT * FROM "products" WHERE price > ? ORDER BY price ASC LIMIT 10 OFFSET 5',
             arguments: [5],
           )).called(1);
     });
@@ -366,7 +366,7 @@ void main() {
       expect(result, 5);
 
       verify(() => datasource.query(
-            'SELECT COUNT(*) as count FROM products',
+            'SELECT COUNT(*) as count FROM "products"',
             arguments: null,
           )).called(1);
     });
@@ -439,7 +439,7 @@ void main() {
       expect(result, [10, 20]);
 
       verify(() => datasource.query(
-            'SELECT DISTINCT price FROM products',
+            'SELECT DISTINCT "price" FROM "products"',
             arguments: null,
           )).called(1);
     });
@@ -573,7 +573,7 @@ void main() {
       expect(result, 30);
 
       verify(() => datasource.query(
-            'SELECT SUM(price) as result FROM products',
+            'SELECT SUM("price") as result FROM "products"',
             arguments: null,
           )).called(1);
     });

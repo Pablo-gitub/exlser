@@ -1,3 +1,4 @@
+import 'package:exlser/core/normalizers/sql_name_sanitizer.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/repositories/query_repository.dart';
 import 'package:exlser/data/datasources/drift_datasource.dart';
@@ -57,7 +58,8 @@ class QueryRepositoryImpl implements QueryRepository {
       throw Exception('Offset cannot be negative');
     }
 
-    final buffer = StringBuffer('SELECT * FROM $trimmedTable');
+    final buffer =
+        StringBuffer('SELECT * FROM ${SqlNameSanitizer.quote(trimmedTable)}');
 
     // Apply LIMIT if present
     if (limit != null) {
@@ -132,7 +134,7 @@ class QueryRepositoryImpl implements QueryRepository {
     }
 
     final buffer = StringBuffer()
-      ..write('SELECT * FROM $trimmedTable')
+      ..write('SELECT * FROM ${SqlNameSanitizer.quote(trimmedTable)}')
       ..write(' WHERE $trimmedWhere');
 
     // Apply LIMIT if present
@@ -179,7 +181,8 @@ class QueryRepositoryImpl implements QueryRepository {
       throw Exception('Table name cannot be empty');
     }
 
-    final sql = 'SELECT COUNT(*) as count FROM $trimmedTable';
+    final sql =
+        'SELECT COUNT(*) as count FROM ${SqlNameSanitizer.quote(trimmedTable)}';
 
     final result = await datasource.query(
       sql,
@@ -241,7 +244,8 @@ class QueryRepositoryImpl implements QueryRepository {
       throw Exception('Column name cannot be empty');
     }
 
-    final sql = 'SELECT DISTINCT $trimmedColumn FROM $trimmedTable';
+    final sql = 'SELECT DISTINCT ${SqlNameSanitizer.quote(trimmedColumn)} '
+        'FROM ${SqlNameSanitizer.quote(trimmedTable)}';
 
     final result = await datasource.query(
       sql,
@@ -309,7 +313,8 @@ class QueryRepositoryImpl implements QueryRepository {
     }
 
     final sql =
-        'SELECT $trimmedFunction($trimmedColumn) as result FROM $trimmedTable';
+        'SELECT $trimmedFunction(${SqlNameSanitizer.quote(trimmedColumn)}) '
+        'as result FROM ${SqlNameSanitizer.quote(trimmedTable)}';
 
     final result = await datasource.query(
       sql,
@@ -385,7 +390,7 @@ class QueryRepositoryImpl implements QueryRepository {
     }
 
     final buffer = StringBuffer()
-      ..write('SELECT * FROM $trimmedTable')
+      ..write('SELECT * FROM ${SqlNameSanitizer.quote(trimmedTable)}')
       ..write(' WHERE $trimmedWhere')
       ..write(' ORDER BY $trimmedOrder');
 
@@ -491,9 +496,11 @@ class QueryRepositoryImpl implements QueryRepository {
     //
     // Example:
     // INSERT INTO my_table (col1, col2) VALUES (?, ?)
-    final columnNames = columns.join(', ');
+    final columnNames =
+        columns.map((column) => SqlNameSanitizer.quote(column)).join(', ');
     final placeholders = List.filled(columns.length, '?').join(', ');
-    final sql = 'INSERT INTO $tableName ($columnNames) VALUES ($placeholders)';
+    final sql = 'INSERT INTO ${SqlNameSanitizer.quote(tableName)} '
+        '($columnNames) VALUES ($placeholders)';
 
     // Execute all inserts inside a single transaction
     // → improves performance significantly
