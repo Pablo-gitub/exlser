@@ -37,6 +37,9 @@ class GraphTableLayout {
   final Size size;
   final List<GraphColumnLayout> columns;
 
+  /// Columns the card does not render because of a visible-column cap.
+  final int hiddenColumnCount;
+
   const GraphTableLayout({
     required this.tableId,
     required this.tableName,
@@ -45,6 +48,7 @@ class GraphTableLayout {
     required this.position,
     required this.size,
     required this.columns,
+    this.hiddenColumnCount = 0,
   });
 
   Rect get rect => position & size;
@@ -94,11 +98,25 @@ class JoinGraphData {
   });
 }
 
+/// Columns a card renders, plus how many were left out by the cap.
+class _VisibleColumns {
+  final List<DatasetColumn> columns;
+  final int hiddenCount;
+
+  const _VisibleColumns({
+    required this.columns,
+    required this.hiddenCount,
+  });
+}
+
 class JoinGraphLayoutBuilder {
   static const double cardWidth = 230.0;
   static const double headerHeight = 56.0;
   static const double columnItemHeight = 34.0;
   static const double cardFooterPadding = 8.0;
+
+  /// Height of the "+N more columns" row shown when a card is capped.
+  static const double moreColumnsRowHeight = 26.0;
   static const double columnHorizontalSpacing = 220.0;
   static const double rowVerticalSpacing = 80.0;
   static const double canvasPadding = 60.0;
@@ -111,6 +129,7 @@ class JoinGraphLayoutBuilder {
     required List<SheetRelationshipSuggestion> suggestions,
     Map<int, Offset>? customPositions,
     bool orderBaseTableFirst = true,
+    int? maxVisibleColumns,
   }) {
     if (selectedSheets.isEmpty) {
       return const JoinGraphData(
@@ -132,6 +151,15 @@ class JoinGraphLayoutBuilder {
       }
     }
 
+    // Columns taking part in a connection must stay visible even when a card is
+    // capped, otherwise a connector would point at a row that is not rendered.
+    final priorityColKeys = <String>{...connectedColKeys};
+    for (final suggestion in suggestions) {
+      final edge = suggestion.relationship;
+      priorityColKeys.add('${edge.leftTableId}.${edge.leftColumnDbName}');
+      priorityColKeys.add('${edge.rightTableId}.${edge.rightColumnDbName}');
+    }
+
     // Order sheets: base table first if requested, otherwise keep natural/stable order
     final sortedSheets = List<MultiSheetSheetInfo>.from(selectedSheets);
     if (orderBaseTableFirst && baseTableId != null) {
@@ -141,6 +169,16 @@ class JoinGraphLayoutBuilder {
         return a.label.compareTo(b.label);
       });
     }
+
+    final visibleColumnsBySheet = <int, _VisibleColumns>{
+      for (final sheet in sortedSheets)
+        sheet.tableId: _selectVisibleColumns(
+          tableId: sheet.tableId,
+          columns: sheet.columns,
+          priorityKeys: priorityColKeys,
+          maxVisibleColumns: maxVisibleColumns,
+        ),
+    };
 
     final tableLayouts = <int, GraphTableLayout>{};
     double maxCanvasX = 0;
@@ -155,13 +193,12 @@ class JoinGraphLayoutBuilder {
         final autoPosY = canvasPadding;
         final posX = customPositions?[info.tableId]?.dx ?? autoPosX;
         final posY = customPositions?[info.tableId]?.dy ?? autoPosY;
-        final cardH = headerHeight +
-            (info.columns.length * columnItemHeight) +
-            cardFooterPadding;
+        final visible = visibleColumnsBySheet[info.tableId]!;
+        final cardH = _cardHeight(visible);
 
         final cols = _buildColumnsLayout(
           tableId: info.tableId,
-          columns: info.columns,
+          columns: visible.columns,
           connectedKeys: connectedColKeys,
           tablePos: Offset(posX, posY),
         );
@@ -174,6 +211,7 @@ class JoinGraphLayoutBuilder {
           position: Offset(posX, posY),
           size: Size(cardWidth, cardH),
           columns: cols,
+          hiddenColumnCount: visible.hiddenCount,
         );
         tableLayouts[info.tableId] = layout;
         maxCanvasX = math.max(maxCanvasX, posX + cardWidth);
@@ -187,9 +225,8 @@ class JoinGraphLayoutBuilder {
 
       // Base sheet on col0
       final baseSheet = sortedSheets.first;
-      final baseH = headerHeight +
-          (baseSheet.columns.length * columnItemHeight) +
-          cardFooterPadding;
+      final baseVisible = visibleColumnsBySheet[baseSheet.tableId]!;
+      final baseH = _cardHeight(baseVisible);
       final basePosX = customPositions?[baseSheet.tableId]?.dx ?? col0X;
       final basePosY = customPositions?[baseSheet.tableId]?.dy ?? canvasPadding;
       tableLayouts[baseSheet.tableId] = GraphTableLayout(
@@ -201,10 +238,11 @@ class JoinGraphLayoutBuilder {
         size: Size(cardWidth, baseH),
         columns: _buildColumnsLayout(
           tableId: baseSheet.tableId,
-          columns: baseSheet.columns,
+          columns: baseVisible.columns,
           connectedKeys: connectedColKeys,
           tablePos: Offset(basePosX, basePosY),
         ),
+        hiddenColumnCount: baseVisible.hiddenCount,
       );
       maxCanvasX = math.max(maxCanvasX, basePosX + cardWidth);
       maxCanvasY = math.max(maxCanvasY, basePosY + baseH);
@@ -216,9 +254,8 @@ class JoinGraphLayoutBuilder {
 
       for (var i = 0; i < otherSheets.length; i++) {
         final sheet = otherSheets[i];
-        final sheetH = headerHeight +
-            (sheet.columns.length * columnItemHeight) +
-            cardFooterPadding;
+        final sheetVisible = visibleColumnsBySheet[sheet.tableId]!;
+        final sheetH = _cardHeight(sheetVisible);
 
         final useCol2 =
             otherSheets.length >= 3 && i >= (otherSheets.length / 2).ceil();
@@ -236,10 +273,11 @@ class JoinGraphLayoutBuilder {
           size: Size(cardWidth, sheetH),
           columns: _buildColumnsLayout(
             tableId: sheet.tableId,
-            columns: sheet.columns,
+            columns: sheetVisible.columns,
             connectedKeys: connectedColKeys,
             tablePos: Offset(posX, posY),
           ),
+          hiddenColumnCount: sheetVisible.hiddenCount,
         );
 
         if (useCol2) {
@@ -264,14 +302,12 @@ class JoinGraphLayoutBuilder {
       final toTable = tableLayouts[rel.endpointBTableId];
       if (fromTable == null || toTable == null) continue;
 
-      final fromCol = fromTable.columns.firstWhere(
-        (c) => c.columnDbName == rel.endpointAColumnDbName,
-        orElse: () => fromTable.columns.first,
-      );
-      final toCol = toTable.columns.firstWhere(
-        (c) => c.columnDbName == rel.endpointBColumnDbName,
-        orElse: () => toTable.columns.first,
-      );
+      final fromCol = _columnOrNull(fromTable, rel.endpointAColumnDbName);
+      final toCol = _columnOrNull(toTable, rel.endpointBColumnDbName);
+      // A column the layout does not know about (renamed, hidden or dropped)
+      // would otherwise be anchored to the first one, drawing a connector the
+      // user never created.
+      if (fromCol == null || toCol == null) continue;
 
       final connection = _calculateConnection(
         relationshipId: join.relationshipId,
@@ -304,14 +340,9 @@ class JoinGraphLayoutBuilder {
           '${edge.leftTableId}.${edge.leftColumnDbName}=${edge.rightTableId}.${edge.rightColumnDbName}';
       if (existingPairs.contains(pairKey)) continue;
 
-      final fromCol = fromTable.columns.firstWhere(
-        (c) => c.columnDbName == edge.leftColumnDbName,
-        orElse: () => fromTable.columns.first,
-      );
-      final toCol = toTable.columns.firstWhere(
-        (c) => c.columnDbName == edge.rightColumnDbName,
-        orElse: () => toTable.columns.first,
-      );
+      final fromCol = _columnOrNull(fromTable, edge.leftColumnDbName);
+      final toCol = _columnOrNull(toTable, edge.rightColumnDbName);
+      if (fromCol == null || toCol == null) continue;
 
       final connection = _calculateConnection(
         relationshipId: null,
@@ -335,6 +366,65 @@ class JoinGraphLayoutBuilder {
       tables: tableLayouts.values.toList(),
       connections: connections,
     );
+  }
+
+  static double _cardHeight(_VisibleColumns visible) {
+    return headerHeight +
+        (visible.columns.length * columnItemHeight) +
+        (visible.hiddenCount > 0 ? moreColumnsRowHeight : 0) +
+        cardFooterPadding;
+  }
+
+  /// Keeps a card readable inside a small canvas: at most [maxVisibleColumns]
+  /// rows, always including the columns involved in a connection, in their
+  /// original order. A null cap keeps every column.
+  static _VisibleColumns _selectVisibleColumns({
+    required int tableId,
+    required List<DatasetColumn> columns,
+    required Set<String> priorityKeys,
+    required int? maxVisibleColumns,
+  }) {
+    if (maxVisibleColumns == null ||
+        maxVisibleColumns <= 0 ||
+        columns.length <= maxVisibleColumns) {
+      return _VisibleColumns(columns: columns, hiddenCount: 0);
+    }
+
+    final kept = <DatasetColumn>[];
+    final connected = <DatasetColumn>[];
+    for (final column in columns) {
+      if (priorityKeys.contains('$tableId.${column.dbName}')) {
+        connected.add(column);
+      }
+    }
+
+    // Connected columns first claim their slots, then the remaining ones fill
+    // the cap; the result is re-ordered to match the sheet's column order.
+    final keptIds = <int>{for (final column in connected) column.id};
+    for (final column in columns) {
+      if (keptIds.length >= maxVisibleColumns) break;
+      keptIds.add(column.id);
+    }
+    for (final column in columns) {
+      if (keptIds.contains(column.id)) kept.add(column);
+    }
+
+    return _VisibleColumns(
+      columns: kept,
+      hiddenCount: columns.length - kept.length,
+    );
+  }
+
+  /// Returns the column with [dbName] inside [table], or null when the layout
+  /// does not contain it.
+  static GraphColumnLayout? _columnOrNull(
+    GraphTableLayout table,
+    String dbName,
+  ) {
+    for (final column in table.columns) {
+      if (column.columnDbName == dbName) return column;
+    }
+    return null;
   }
 
   static List<GraphColumnLayout> _buildColumnsLayout({

@@ -247,5 +247,57 @@ void main() {
       expect(graph2.tables.firstWhere((t) => t.tableId == 1).isBase, isFalse);
       expect(graph2.tables.firstWhere((t) => t.tableId == 2).isBase, isTrue);
     });
+
+    test('skips a confirmed join whose column is missing from the layout', () {
+      final sheetA = _sheet(1, 'Customers', ['id', 'name']);
+      final sheetB = _sheet(2, 'Orders', ['id', 'total']);
+
+      const rel = DatasetRelationship(
+        id: 10,
+        datasetId: 1,
+        endpointATableId: 1,
+        endpointAColumnDbName: 'id',
+        endpointBTableId: 2,
+        // Renamed or dropped since the relationship was stored.
+        endpointBColumnDbName: 'cust_id',
+      );
+
+      final graph = JoinGraphLayoutBuilder.build(
+        selectedSheets: [sheetA, sheetB],
+        baseTableId: 1,
+        joins: [MultiSheetJoin(relationshipId: 10)],
+        relationships: {10: rel},
+        suggestions: [],
+      );
+
+      expect(graph.connections, isEmpty);
+    });
+
+    test('skips a suggestion whose column is missing from the layout', () {
+      final sheetA = _sheet(1, 'Customers', ['id', 'name']);
+      final sheetB = _sheet(2, 'Orders', ['id', 'total']);
+
+      const suggestion = SheetRelationshipSuggestion(
+        relationship: SheetJoinRelationship(
+          leftTableId: 1,
+          leftColumnDbName: 'id',
+          rightTableId: 2,
+          rightColumnDbName: 'ghost_column',
+        ),
+        score: 0.9,
+        confidence: SuggestionConfidence.high,
+        reasons: [RelationshipReason.nameMatch],
+      );
+
+      final graph = JoinGraphLayoutBuilder.build(
+        selectedSheets: [sheetA, sheetB],
+        baseTableId: 1,
+        joins: [],
+        relationships: {},
+        suggestions: [suggestion],
+      );
+
+      expect(graph.connections, isEmpty);
+    });
   });
 }

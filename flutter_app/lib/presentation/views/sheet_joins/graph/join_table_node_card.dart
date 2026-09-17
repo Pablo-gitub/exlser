@@ -203,6 +203,34 @@ class JoinTableNodeCard extends StatelessWidget {
                     },
                   ),
                 ),
+
+                // Columns left out by the visible-column cap
+                if (table.hiddenColumnCount > 0)
+                  Container(
+                    key: const ValueKey('graph_node_more_columns_row'),
+                    height: JoinGraphLayoutBuilder.moreColumnsRowHeight,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.4),
+                      border: Border(
+                        top: BorderSide(
+                          color:
+                              colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      AppStrings.datasetWorkspaceGraphMoreColumns.tr(
+                        namedArgs: {'count': '${table.hiddenColumnCount}'},
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
