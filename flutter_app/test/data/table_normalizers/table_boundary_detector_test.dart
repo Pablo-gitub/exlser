@@ -252,5 +252,45 @@ void main() {
       expect(table.colCount, 3);
       expect(table.rows[1], ['A', '', '']);
     });
+    test(
+        'segments a grid that splits on every other row without exhausting the '
+        'stack', () {
+      // One blank row between every pair of data rows: as a recursion this was
+      // one stack frame per blank row.
+      final grid = <List<dynamic>>[];
+      for (var i = 0; i < 2500; i++) {
+        grid.add(['row$i', i]);
+        grid.add(const <dynamic>[]);
+      }
+
+      final blocks = TableBoundaryDetector.detect(grid);
+
+      expect(blocks, isNotEmpty);
+      expect(
+        blocks.length,
+        lessThanOrEqualTo(TableBoundaryDetector.maxDetectedBlocks),
+      );
+      // Content is never dropped, only grouped more coarsely once the block
+      // budget is spent.
+      final totalRows = blocks.fold<int>(0, (sum, b) => sum + b.rows.length);
+      expect(totalRows, greaterThan(0));
+    });
+
+    test('caps the number of detected blocks on a sparse grid', () {
+      // A diagonal of isolated cells would otherwise split indefinitely.
+      final grid = <List<dynamic>>[];
+      for (var i = 0; i < 600; i++) {
+        final row = List<dynamic>.filled(600, '');
+        row[i] = 'x$i';
+        grid.add(row);
+      }
+
+      final blocks = TableBoundaryDetector.detect(grid);
+
+      expect(
+        blocks.length,
+        lessThanOrEqualTo(TableBoundaryDetector.maxDetectedBlocks),
+      );
+    });
   });
 }

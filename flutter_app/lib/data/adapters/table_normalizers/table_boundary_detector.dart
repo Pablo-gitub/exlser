@@ -87,7 +87,33 @@ class _BoundingBox {
 /// - Title extraction from isolated cells directly preceding a table.
 /// - Banner titles in the first row of a block (single cell followed by blanks).
 /// - Filtering of isolated metadata cells and noise.
+/// An empty gutter splitting a box, expressed in row or column indexes.
+class _Gutter {
+  final bool isHorizontal;
+  final int start;
+  final int end;
+
+  const _Gutter({
+    required this.isHorizontal,
+    required this.start,
+    required this.end,
+  });
+}
+
+class _Gap {
+  final int start;
+  final int end;
+
+  const _Gap({required this.start, required this.end});
+
+  int get size => end - start + 1;
+}
+
 class TableBoundaryDetector {
+  /// Upper bound on the blocks one sheet can be segmented into. Guards against a
+  /// grid engineered (or exported) to split on every other line.
+  static const int maxDetectedBlocks = 200;
+
   /// Converts a 0-indexed column integer (0 -> A, 25 -> Z, 26 -> AA) to its Excel letter.
   static String columnToLetter(int colIndex) {
     if (colIndex < 0) return 'A';
@@ -154,8 +180,8 @@ class TableBoundaryDetector {
       maxCol: globalMaxC,
     );
 
-    // 2. Recursive XY-Cut segmentation
-    final rawBoxes = _recursiveCut(initialBox, hasContent);
+    // 2. Iterative XY-Cut segmentation
+    final rawBoxes = _cutIntoBlocks(initialBox, hasContent);
 
     // 3. Classify boxes into valid tables and small/title blocks
     final tableBoxes = <_BoundingBox>[];
@@ -295,25 +321,96 @@ class TableBoundaryDetector {
   }
 
   /// Recursively cuts a region along empty rows or columns.
-  static List<_BoundingBox> _recursiveCut(
+  /// Splits [root] into contiguous blocks along empty row/column gutters.
+  ///
+  /// Uses an explicit worklist rather than recursion: a sheet whose rows
+  /// alternate content and blanks — a common export shape — produces one split
+  /// per blank row, which as a recursion was one stack frame per blank row and
+  /// overflowed the stack on a large sheet. [maxBlocks] additionally bounds the
+  /// work on a pathological grid: once the budget is spent the boxes still
+  /// pending are emitted whole instead of being split further.
+  static List<_BoundingBox> _cutIntoBlocks(
+    _BoundingBox root,
+    bool Function(int, int) hasContent, {
+    int maxBlocks = maxDetectedBlocks,
+  }) {
+    final blocks = <_BoundingBox>[];
+    final pending = <_BoundingBox>[root];
+
+    while (pending.isNotEmpty) {
+      // Budget spent: flush what is left as coarse blocks, never drop content.
+      if (blocks.length + pending.length >= maxBlocks) {
+        for (final box in pending.reversed) {
+          final trimmed = _trim(box, hasContent);
+          if (trimmed != null) blocks.add(trimmed);
+        }
+        break;
+      }
+
+      final trimmed = _trim(pending.removeLast(), hasContent);
+      if (trimmed == null) continue;
+
+      final cut = _findWidestGutter(trimmed, hasContent);
+      if (cut == null) {
+        blocks.add(trimmed);
+        continue;
+      }
+
+      // Pushed second half first, so the first half is processed first and the
+      // block order stays the sheet's reading order.
+      if (cut.isHorizontal) {
+        pending.add(_BoundingBox(
+          minRow: cut.end + 1,
+          maxRow: trimmed.maxRow,
+          minCol: trimmed.minCol,
+          maxCol: trimmed.maxCol,
+        ));
+        pending.add(_BoundingBox(
+          minRow: trimmed.minRow,
+          maxRow: cut.start - 1,
+          minCol: trimmed.minCol,
+          maxCol: trimmed.maxCol,
+        ));
+      } else {
+        pending.add(_BoundingBox(
+          minRow: trimmed.minRow,
+          maxRow: trimmed.maxRow,
+          minCol: cut.end + 1,
+          maxCol: trimmed.maxCol,
+        ));
+        pending.add(_BoundingBox(
+          minRow: trimmed.minRow,
+          maxRow: trimmed.maxRow,
+          minCol: trimmed.minCol,
+          maxCol: cut.start - 1,
+        ));
+      }
+    }
+
+    return blocks;
+  }
+
+  /// Shrinks [box] to its non-empty envelope, or null when it holds no content.
+  static _BoundingBox? _trim(
     _BoundingBox box,
-    bool Function(int r, int c) hasContent,
+    bool Function(int, int) hasContent,
   ) {
-    // Trim outer empty rows and cols
     var minR = box.minRow;
     var maxR = box.maxRow;
     var minC = box.minCol;
     var maxC = box.maxCol;
 
-    bool rowHasContent(int r, int cStart, int cEnd) {
-      for (var c = cStart; c <= cEnd; c++) {
+    if (minR > maxR || minC > maxC) return null;
+
+    bool rowHasContent(int r, int fromC, int toC) {
+      for (var c = fromC; c <= toC; c++) {
         if (hasContent(r, c)) return true;
       }
       return false;
     }
 
-    bool colHasContent(int c, int rStart, int rEnd) {
-      for (var r = rStart; r <= rEnd; r++) {
+    bool colHasContent(int c, int fromR, int toR) {
+      for (var r = fromR; r <= toR; r++) {
         if (hasContent(r, c)) return true;
       }
       return false;
@@ -332,115 +429,90 @@ class TableBoundaryDetector {
       maxC--;
     }
 
-    if (minR > maxR || minC > maxC) return const [];
+    if (minR > maxR || minC > maxC) return null;
 
-    final trimmed = _BoundingBox(
+    return _BoundingBox(
       minRow: minR,
       maxRow: maxR,
       minCol: minC,
       maxCol: maxC,
     );
+  }
 
-    // Search for horizontal cuts (contiguous empty rows within the box)
-    int? bestHStart;
-    int? bestHEnd;
-    var maxHGap = 0;
+  /// Finds the widest empty gutter inside [box], preferring a horizontal one on
+  /// a tie, or null when the box is a single contiguous block.
+  static _Gutter? _findWidestGutter(
+    _BoundingBox box,
+    bool Function(int, int) hasContent,
+  ) {
+    bool rowHasContent(int r) {
+      for (var c = box.minCol; c <= box.maxCol; c++) {
+        if (hasContent(r, c)) return true;
+      }
+      return false;
+    }
 
-    var currentHStart = -1;
-    for (var r = minR + 1; r < maxR; r++) {
-      if (!rowHasContent(r, minC, maxC)) {
-        if (currentHStart == -1) currentHStart = r;
-      } else {
-        if (currentHStart != -1) {
-          final gap = r - currentHStart;
-          if (gap > maxHGap) {
-            maxHGap = gap;
-            bestHStart = currentHStart;
-            bestHEnd = r - 1;
-          }
-          currentHStart = -1;
-        }
+    bool colHasContent(int c) {
+      for (var r = box.minRow; r <= box.maxRow; r++) {
+        if (hasContent(r, c)) return true;
+      }
+      return false;
+    }
+
+    final horizontal = _widestGap(
+      from: box.minRow + 1,
+      to: box.maxRow,
+      hasContentAt: rowHasContent,
+    );
+    final vertical = _widestGap(
+      from: box.minCol + 1,
+      to: box.maxCol,
+      hasContentAt: colHasContent,
+    );
+
+    if (horizontal != null &&
+        (vertical == null || horizontal.size >= vertical.size)) {
+      return _Gutter(
+        isHorizontal: true,
+        start: horizontal.start,
+        end: horizontal.end,
+      );
+    }
+    if (vertical != null) {
+      return _Gutter(
+        isHorizontal: false,
+        start: vertical.start,
+        end: vertical.end,
+      );
+    }
+    return null;
+  }
+
+  /// Widest run of empty lines in `[from, to)`, exclusive of the box edges.
+  static _Gap? _widestGap({
+    required int from,
+    required int to,
+    required bool Function(int) hasContentAt,
+  }) {
+    _Gap? best;
+    var runStart = -1;
+
+    for (var i = from; i < to; i++) {
+      if (!hasContentAt(i)) {
+        if (runStart == -1) runStart = i;
+        continue;
+      }
+      if (runStart != -1) {
+        final gap = _Gap(start: runStart, end: i - 1);
+        if (best == null || gap.size > best.size) best = gap;
+        runStart = -1;
       }
     }
-    if (currentHStart != -1) {
-      final gap = maxR - currentHStart;
-      if (gap > maxHGap) {
-        maxHGap = gap;
-        bestHStart = currentHStart;
-        bestHEnd = maxR - 1;
-      }
+    if (runStart != -1) {
+      final gap = _Gap(start: runStart, end: to - 1);
+      if (best == null || gap.size > best.size) best = gap;
     }
 
-    // Search for vertical cuts (contiguous empty columns within the box)
-    int? bestVStart;
-    int? bestVEnd;
-    var maxVGap = 0;
-
-    var currentVStart = -1;
-    for (var c = minC + 1; c < maxC; c++) {
-      if (!colHasContent(c, minR, maxR)) {
-        if (currentVStart == -1) currentVStart = c;
-      } else {
-        if (currentVStart != -1) {
-          final gap = c - currentVStart;
-          if (gap > maxVGap) {
-            maxVGap = gap;
-            bestVStart = currentVStart;
-            bestVEnd = c - 1;
-          }
-          currentVStart = -1;
-        }
-      }
-    }
-    if (currentVStart != -1) {
-      final gap = maxC - currentVStart;
-      if (gap > maxVGap) {
-        maxVGap = gap;
-        bestVStart = currentVStart;
-        bestVEnd = maxC - 1;
-      }
-    }
-
-    // Decide which cut to make
-    if (maxHGap > 0 && maxHGap >= maxVGap) {
-      // Split horizontally
-      final topBox = _BoundingBox(
-        minRow: minR,
-        maxRow: bestHStart! - 1,
-        minCol: minC,
-        maxCol: maxC,
-      );
-      final bottomBox = _BoundingBox(
-        minRow: bestHEnd! + 1,
-        maxRow: maxR,
-        minCol: minC,
-        maxCol: maxC,
-      );
-      return [
-        ..._recursiveCut(topBox, hasContent),
-        ..._recursiveCut(bottomBox, hasContent),
-      ];
-    } else if (maxVGap > 0) {
-      // Split vertically
-      final leftBox = _BoundingBox(
-        minRow: minR,
-        maxRow: maxR,
-        minCol: minC,
-        maxCol: bestVStart! - 1,
-      );
-      final rightBox = _BoundingBox(
-        minRow: minR,
-        maxRow: maxR,
-        minCol: bestVEnd! + 1,
-        maxCol: maxC,
-      );
-      return [
-        ..._recursiveCut(leftBox, hasContent),
-        ..._recursiveCut(rightBox, hasContent),
-      ];
-    }
-
-    // No cuts possible; this box is a contiguous block
-    return [trimmed];
+    return best;
   }
 }
