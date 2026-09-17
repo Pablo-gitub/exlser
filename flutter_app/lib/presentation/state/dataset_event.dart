@@ -1,3 +1,5 @@
+import 'dart:ui' show Offset;
+
 import 'package:exlser/domain/entities/chart_suggestion.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/value_objects/chart_type.dart';
@@ -137,4 +139,12 @@ class UpdateChartConfigEvent extends DatasetEvent {
     required this.chartId,
     required this.suggestion,
   });
+}
+
+/// Stores the node positions of the tables graph overview so a dragged layout
+/// survives a refresh. An empty map means "back to the automatic layout".
+class UpdateGraphNodePositionsEvent extends DatasetEvent {
+  final Map<int, Offset> positions;
+
+  const UpdateGraphNodePositionsEvent(this.positions);
 }

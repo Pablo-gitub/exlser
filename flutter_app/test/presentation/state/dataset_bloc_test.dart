@@ -1486,6 +1486,63 @@ void main() {
           afterRemove.analyticsState as DatasetAnalyticsLoadedState;
       expect(analytics.charts, isEmpty);
     });
+
+    test('UpdateGraphNodePositionsEvent stores and persists the layout',
+        () async {
+      final dataset = _dataset();
+
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: dataset,
+        tables: [_table(id: 10)],
+        columns: [_column()],
+        rows: const [],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
+
+      bloc.add(const UpdateGraphNodePositionsEvent({10: Offset(120, 44)}));
+
+      final moved = await bloc.stream.firstWhere(
+        (s) => s is DatasetLoadedState && s.graphNodePositions.isNotEmpty,
+      ) as DatasetLoadedState;
+
+      expect(moved.graphNodePositions, {10: const Offset(120, 44)});
+      expect(moved.dataset.uiStateJson, contains('graphNodePositions'));
+      verify(() => updateDatasetUiState.call(
+            datasetId: 1,
+            uiStateJson: any(named: 'uiStateJson', that: contains('"10"')),
+          )).called(1);
+    });
+
+    test('UpdateGraphNodePositionsEvent drops non-finite positions', () async {
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: _dataset(),
+        tables: [_table(id: 10)],
+        columns: [_column()],
+        rows: const [],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
+
+      bloc.add(const UpdateGraphNodePositionsEvent({
+        10: Offset(double.nan, 12),
+        11: Offset(10, 20),
+      }));
+
+      final moved = await bloc.stream.firstWhere(
+        (s) => s is DatasetLoadedState && s.graphNodePositions.isNotEmpty,
+      ) as DatasetLoadedState;
+
+      expect(moved.graphNodePositions, {11: const Offset(10, 20)});
+    });
   });
 }
 

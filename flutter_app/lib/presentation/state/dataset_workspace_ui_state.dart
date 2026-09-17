@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' show Offset;
 
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/entities/chart_suggestion.dart';
@@ -23,6 +24,10 @@ class DatasetWorkspaceUiState {
   final List<StoredDatasetFilter> filters;
   final StoredDatasetSort? sort;
   final Map<int, StoredTableWorkspaceState> tableStates;
+
+  /// Node positions of the tables graph overview, by table id. Dataset-wide:
+  /// the graph shows every table, not only the active one.
+  final Map<int, Offset> graphNodePositions;
   @Deprecated(
       'Charts are now stored per-table in StoredTableWorkspaceState. This field is kept only for backward compatibility with old datasets.')
   final List<StoredAnalyticsChart> charts;
@@ -36,6 +41,7 @@ class DatasetWorkspaceUiState {
     this.filters = const [],
     this.sort,
     this.tableStates = const {},
+    this.graphNodePositions = const {},
     this.charts = const [],
   });
 
@@ -63,6 +69,9 @@ class DatasetWorkspaceUiState {
       filters: activeTableState.filters,
       sort: activeTableState.sort,
       tableStates: tableStates,
+      graphNodePositions: state.graphNodePositions.isNotEmpty
+          ? state.graphNodePositions
+          : previousState.graphNodePositions,
     );
   }
 
@@ -88,6 +97,7 @@ class DatasetWorkspaceUiState {
     final chartsJson = json['charts'];
     final hiddenColumnsJson = json['hiddenColumnDbNames'];
     final tableStatesJson = json['tableStates'];
+    final graphPositionsJson = json['graphNodePositions'];
 
     return DatasetWorkspaceUiState(
       activeTableId:
@@ -124,6 +134,14 @@ class DatasetWorkspaceUiState {
                   ),
             }
           : const {},
+      graphNodePositions: graphPositionsJson is Map
+          ? {
+              for (final entry in graphPositionsJson.entries)
+                if (_intFromJson(entry.key) != null &&
+                    _offsetFromJson(entry.value) != null)
+                  _intFromJson(entry.key)!: _offsetFromJson(entry.value)!,
+            }
+          : const {},
       charts: chartsJson is List
           ? [
               for (final chartJson in chartsJson)
@@ -153,6 +171,14 @@ class DatasetWorkspaceUiState {
         'tableStates': {
           for (final entry in tableStates.entries)
             entry.key.toString(): entry.value.toJson(),
+        },
+      if (graphNodePositions.isNotEmpty)
+        'graphNodePositions': {
+          for (final entry in graphNodePositions.entries)
+            entry.key.toString(): {
+              'dx': entry.value.dx,
+              'dy': entry.value.dy,
+            },
         },
       // Note: global 'charts' field is deprecated. Charts are now stored per-table.
       // This line handles backward compatibility: if there are global charts,
@@ -279,6 +305,7 @@ class DatasetWorkspaceUiState {
       filters: filters,
       sort: sort,
       tableStates: newTableStates,
+      graphNodePositions: graphNodePositions,
       charts: const [], // Clear deprecated global charts
     );
   }
@@ -339,8 +366,7 @@ class StoredTableWorkspaceState {
           : previousState?.queryCharts ?? const [],
       // Preserve currency symbols — they are written once at import time
       // and never overwritten by normal workspace state changes.
-      columnCurrencySymbols:
-          previousState?.columnCurrencySymbols ?? const {},
+      columnCurrencySymbols: previousState?.columnCurrencySymbols ?? const {},
     );
   }
 
@@ -707,6 +733,22 @@ int? _intFromJson(Object? value) {
   }
 
   return int.tryParse(value?.toString() ?? '');
+}
+
+/// Reads a `{"dx": num, "dy": num}` pair, dropping anything non-finite so a
+/// corrupt stored layout cannot produce a NaN position the canvas cannot lay out.
+Offset? _offsetFromJson(Object? value) {
+  if (value is! Map) return null;
+
+  final dx = value['dx'];
+  final dy = value['dy'];
+  if (dx is! num || dy is! num) return null;
+
+  final x = dx.toDouble();
+  final y = dy.toDouble();
+  if (!x.isFinite || !y.isFinite) return null;
+
+  return Offset(x, y);
 }
 
 Object? _jsonSafeValue(Object? value) {

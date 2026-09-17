@@ -1,3 +1,5 @@
+import 'dart:ui' show Offset;
+
 import 'package:exlser/application/dto/chart_data.dart';
 import 'package:exlser/domain/entities/chart_suggestion.dart';
 import 'package:exlser/domain/entities/dataset.dart';
@@ -135,6 +137,10 @@ class DatasetLoadedState extends DatasetState {
   /// Whether a different table is currently being loaded into the workspace.
   final bool isTableSwitching;
 
+  /// Positions the user dragged the tables graph nodes to, by table id.
+  /// Empty means "use the automatic layout".
+  final Map<int, Offset> graphNodePositions;
+
   const DatasetLoadedState({
     required this.dataset,
     required this.tables,
@@ -160,6 +166,7 @@ class DatasetLoadedState extends DatasetState {
     this.readOnlyQueryTotalRowCount = 0,
     this.columnCurrencySymbols = const {},
     this.isTableSwitching = false,
+    this.graphNodePositions = const {},
   });
 
   List<DatasetColumn> get visibleColumns => [
@@ -208,6 +215,7 @@ class DatasetLoadedState extends DatasetState {
     int? readOnlyQueryTotalRowCount,
     Map<String, String>? columnCurrencySymbols,
     bool? isTableSwitching,
+    Map<int, Offset>? graphNodePositions,
   }) {
     return DatasetLoadedState(
       dataset: dataset ?? this.dataset,
@@ -241,6 +249,7 @@ class DatasetLoadedState extends DatasetState {
       columnCurrencySymbols:
           columnCurrencySymbols ?? this.columnCurrencySymbols,
       isTableSwitching: isTableSwitching ?? this.isTableSwitching,
+      graphNodePositions: graphNodePositions ?? this.graphNodePositions,
     );
   }
 }

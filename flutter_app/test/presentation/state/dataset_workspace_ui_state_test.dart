@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
+import 'dart:convert';
 import 'package:exlser/domain/entities/chart_suggestion.dart';
 import 'package:exlser/domain/entities/dataset.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
@@ -530,8 +531,7 @@ void main() {
       expect(uiState.restoreColumnCurrencySymbols(tableId: 99), isEmpty);
     });
 
-    test(
-        'fromLoadedState preserves columnCurrencySymbols from previous state',
+    test('fromLoadedState preserves columnCurrencySymbols from previous state',
         () {
       final previous = const StoredTableWorkspaceState(
         columnCurrencySymbols: {'revenue': '¥'},
@@ -546,6 +546,81 @@ void main() {
       );
 
       expect(restoredFromPrevious.columnCurrencySymbols, {'revenue': '¥'});
+    });
+  });
+
+  group('DatasetWorkspaceUiState.graphNodePositions', () {
+    test('round-trips through JSON', () {
+      const state = DatasetWorkspaceUiState(
+        graphNodePositions: {
+          3: Offset(120.5, 40.25),
+          7: Offset(0, 0),
+        },
+      );
+
+      final restored = DatasetWorkspaceUiState.fromJsonString(
+        state.toJsonString(),
+      );
+
+      expect(restored.graphNodePositions, {
+        3: const Offset(120.5, 40.25),
+        7: Offset.zero,
+      });
+    });
+
+    test('omits the key when no node was moved', () {
+      const state = DatasetWorkspaceUiState();
+
+      expect(state.toJson().containsKey('graphNodePositions'), isFalse);
+      expect(
+        DatasetWorkspaceUiState.fromJsonString(state.toJsonString())
+            .graphNodePositions,
+        isEmpty,
+      );
+    });
+
+    test('drops entries that are not a finite dx/dy pair', () {
+      final restored = DatasetWorkspaceUiState.fromJsonString(jsonEncode({
+        'graphNodePositions': {
+          '1': {'dx': 10, 'dy': 20},
+          '2': {'dx': 'nope', 'dy': 5},
+          '3': {'dy': 5},
+          'four': {'dx': 1, 'dy': 2},
+        },
+      }));
+
+      expect(restored.graphNodePositions, {1: const Offset(10, 20)});
+    });
+
+    test(
+        'fromLoadedState keeps a previously stored layout when the state '
+        'carries none', () {
+      const stored = DatasetWorkspaceUiState(
+        graphNodePositions: {5: Offset(11, 22)},
+      );
+      final state = _minimalLoadedState().copyWith(
+        dataset: _dataset().copyWith(uiStateJson: stored.toJsonString()),
+      );
+
+      expect(
+        DatasetWorkspaceUiState.fromLoadedState(state).graphNodePositions,
+        {5: const Offset(11, 22)},
+      );
+    });
+
+    test('fromLoadedState prefers the layout carried by the state', () {
+      const stored = DatasetWorkspaceUiState(
+        graphNodePositions: {5: Offset(11, 22)},
+      );
+      final state = _minimalLoadedState().copyWith(
+        dataset: _dataset().copyWith(uiStateJson: stored.toJsonString()),
+        graphNodePositions: {5: const Offset(99, 98)},
+      );
+
+      expect(
+        DatasetWorkspaceUiState.fromLoadedState(state).graphNodePositions,
+        {5: const Offset(99, 98)},
+      );
     });
   });
 }

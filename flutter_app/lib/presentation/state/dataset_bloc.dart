@@ -1,3 +1,5 @@
+import 'dart:ui' show Offset;
+
 import 'package:exlser/application/dto/chart_load_result.dart';
 import 'package:exlser/application/services/analysis_service.dart';
 import 'package:exlser/domain/entities/dataset.dart';
@@ -72,6 +74,7 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     on<AddChartEvent>(_onAddChart);
     on<RemoveChartEvent>(_onRemoveChart);
     on<UpdateChartConfigEvent>(_onUpdateChartConfig);
+    on<UpdateGraphNodePositionsEvent>(_onUpdateGraphNodePositions);
   }
 
   Future<void> _onLoadDataset(
@@ -716,6 +719,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       activeTable: activeTable,
       columns: columns,
       columnsByTableId: allColumnsByTableId,
+      graphNodePositions:
+          workspaceState?.graphNodePositions ?? const <int, Offset>{},
       rows: _stripInternalColumns(rows),
       viewMode: viewMode,
       rowLimit: rowLimit,
@@ -906,6 +911,40 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
     }
 
     return tables.first;
+  }
+
+  Future<void> _onUpdateGraphNodePositions(
+    UpdateGraphNodePositionsEvent event,
+    Emitter<DatasetState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! DatasetLoadedState) return;
+
+    final sanitized = <int, Offset>{
+      for (final entry in event.positions.entries)
+        if (entry.value.dx.isFinite && entry.value.dy.isFinite)
+          entry.key: entry.value,
+    };
+    if (_sameGraphNodePositions(currentState.graphNodePositions, sanitized)) {
+      return;
+    }
+
+    final nextState = _attachWorkspaceStateJson(
+      currentState.copyWith(graphNodePositions: sanitized),
+    );
+    emit(nextState);
+    await _persistWorkspaceState(nextState);
+  }
+
+  bool _sameGraphNodePositions(
+    Map<int, Offset> a,
+    Map<int, Offset> b,
+  ) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (b[entry.key] != entry.value) return false;
+    }
+    return true;
   }
 
   DatasetLoadedState _attachWorkspaceStateJson(DatasetLoadedState state) {
