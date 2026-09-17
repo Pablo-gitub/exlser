@@ -10,7 +10,6 @@ import 'package:exlser/domain/value_objects/dataset_query_mode.dart';
 import 'package:exlser/domain/value_objects/dataset_sort.dart';
 import 'package:exlser/domain/value_objects/export_format.dart';
 import 'package:exlser/domain/value_objects/pdf_export_layout.dart';
-import 'package:exlser/presentation/router/routes.dart';
 import 'package:exlser/presentation/providers/repository_providers.dart';
 import 'package:exlser/presentation/providers/service_providers.dart';
 import 'package:exlser/presentation/providers/usecase_providers.dart';
@@ -28,7 +27,6 @@ import 'package:exlser/presentation/widgets/layout/scroll_bottom_spacer.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -548,35 +546,23 @@ class _LoadedWorkspace extends StatelessWidget {
                     rowLimit: state.rowLimit,
                     totalRowCount: state.totalRowCount,
                   ),
-                  const SizedBox(height: 16),
-                  DatasetTablesGraphOverview(
-                    dataset: state.dataset,
-                    tables: state.tables,
-                    activeTable: state.activeTable,
-                    columnsByTableId: state.columnsByTableId,
-                  ),
+                  // A graph of one node says nothing: the overview only earns
+                  // its canvas when there are at least two tables to relate.
+                  if (state.tables.length >= 2) ...[
+                    const SizedBox(height: 16),
+                    DatasetTablesGraphOverview(
+                      dataset: state.dataset,
+                      tables: state.tables,
+                      activeTable: state.activeTable,
+                      columnsByTableId: state.columnsByTableId,
+                      savedNodePositions: state.graphNodePositions,
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   SheetSelector(
                     tables: state.tables,
                     activeTable: state.activeTable,
                   ),
-                  if (state.tables.length >= 2) ...[
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: OutlinedButton.icon(
-                        key: const ValueKey('combine_sheets_button'),
-                        onPressed: () => context.pushNamed(
-                          AppRoutes.sheetJoinsName,
-                          pathParameters: {
-                            AppRoutes.datasetIdParam: '${state.dataset.id}',
-                          },
-                        ),
-                        icon: const Icon(Icons.account_tree_outlined),
-                        label: Text(AppStrings.datasetJoinsAction.tr()),
-                      ),
-                    ),
-                  ],
                   const SizedBox(height: 16),
                   _ViewModeSelector(viewMode: state.viewMode),
                   const SizedBox(height: 16),

@@ -266,7 +266,12 @@
                 "no_connections_found": "No automatic connections found",
                 "collapse": "Collapse overview",
                 "expand": "Expand overview",
-                "reset_layout": "Reset layout"
+                "reset_layout": "Reset layout",
+                "generate_failed": "Could not find connections.",
+                "save_failed": "Could not save the connections.",
+                "save_partial": "Saved {saved} of {total} connections.",
+                "fit_to_view": "Fit to view",
+                "more_columns": "+{count} more columns"
             }
         },
         "joins": {

@@ -266,7 +266,12 @@
                 "no_connections_found": "自動接続は見つかりませんでした",
                 "collapse": "概要を折りたたむ",
                 "expand": "概要を展開",
-                "reset_layout": "レイアウトをリセット"
+                "reset_layout": "レイアウトをリセット",
+                "generate_failed": "接続を検索できませんでした。",
+                "save_failed": "接続を保存できませんでした。",
+                "save_partial": "{total} 件のうち {saved} 件の接続を保存しました。",
+                "fit_to_view": "画面に合わせる",
+                "more_columns": "他 {count} 列"
             }
         },
         "joins": {

@@ -6,6 +6,7 @@ import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/entities/dataset_relationship.dart';
 import 'package:exlser/domain/entities/dataset_table.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
+import 'package:exlser/domain/usecases/multisheet/manage_dataset_relationships_usecases.dart';
 import 'package:exlser/domain/value_objects/sheet_join_relationship.dart';
 import 'package:exlser/domain/value_objects/sheet_relationship_suggestion.dart';
 import 'dart:async';
@@ -14,6 +15,8 @@ import 'package:exlser/presentation/state/dataset_bloc.dart';
 import 'package:exlser/presentation/state/dataset_event.dart';
 import 'package:exlser/presentation/state/dataset_state.dart';
 import 'package:exlser/presentation/views/dataset/widgets/dataset_tables_graph_overview.dart';
+import 'package:exlser/presentation/views/sheet_joins/graph/join_connectors_painter.dart';
+import 'package:exlser/presentation/views/sheet_joins/graph/join_table_node_card.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -82,6 +85,7 @@ void main() {
       endpointBTableId: 0,
       endpointBColumnDbName: '',
     ));
+    registerFallbackValue(<DatasetRelationship>[]);
   });
 
   late MockService service;
@@ -92,6 +96,8 @@ void main() {
 
   setUp(() {
     service = MockService();
+    // Every mount reads the dataset's stored relationships to draw them.
+    when(() => service.loadRelationships(any())).thenAnswer((_) async => []);
     dataset = const Dataset(
       id: 1,
       name: 'Test Dataset',
@@ -115,6 +121,7 @@ void main() {
     WidgetTester tester, {
     required ProviderContainer container,
     DatasetBloc? bloc,
+    Map<int, Offset> savedNodePositions = const {},
   }) async {
     tester.view.physicalSize = const Size(1200, 1000);
     tester.view.devicePixelRatio = 1.0;
@@ -143,6 +150,7 @@ void main() {
                         tables: tables,
                         activeTable: activeTable,
                         columnsByTableId: columnsByTableId,
+                        savedNodePositions: savedNodePositions,
                       ),
                     ),
                   ),
@@ -253,9 +261,18 @@ void main() {
           selectedTableIds: any(named: 'selectedTableIds'),
         )).thenAnswer((_) async => [suggestion]);
 
-    when(() => service.createRelationship(any())).thenAnswer((inv) async {
-      final r = inv.positionalArguments.first as DatasetRelationship;
-      return r.copyWith(id: 42);
+    when(() => service.createRelationships(
+          datasetId: any(named: 'datasetId'),
+          relationships: any(named: 'relationships'),
+        )).thenAnswer((inv) async {
+      final requested = inv.namedArguments[const Symbol('relationships')]
+          as List<DatasetRelationship>;
+      return CreateDatasetRelationshipsResult(
+        created: [
+          for (var i = 0; i < requested.length; i++)
+            requested[i].copyWith(id: 42 + i),
+        ],
+      );
     });
 
     final container = ProviderContainer(
@@ -288,7 +305,15 @@ void main() {
     await tester.tap(saveBtn);
     await tester.pumpAndSettle();
 
-    verify(() => service.createRelationship(any())).called(1);
+    // One batch call for the whole set, not one call per suggestion.
+    verify(() => service.createRelationships(
+          datasetId: 1,
+          relationships: any(named: 'relationships'),
+        )).called(1);
+    // The saved suggestions are re-read so they render as confirmed edges.
+    verify(() => service.loadRelationships(1)).called(2);
+    expect(find.text('Connections saved successfully'), findsOneWidget);
+    expect(saveBtn, findsNothing);
   });
 
   testWidgets('shows snackbar when no connections are found', (tester) async {
@@ -647,7 +672,8 @@ void main() {
     expect(newScale, greaterThan(initialScale));
   });
 
-  testWidgets('hovering over a table card disables canvas panEnabled',
+  testWidgets(
+      'hovering a card leaves the canvas pannable, a pointer down on it does not',
       (tester) async {
     final container = ProviderContainer(
       overrides: [
@@ -670,15 +696,406 @@ void main() {
     await gesture.moveTo(tester.getCenter(find.text('Details')));
     await tester.pumpAndSettle();
 
+    // Hover must not gate panning: a card rebuilt or removed while hovered
+    // never reports onExit, which used to lock the canvas for good.
+    viewer = tester.widget<InteractiveViewer>(viewerFinder);
+    expect(viewer.panEnabled, isTrue);
+
+    // A pointer held down on a card hands the gesture to the node instead.
+    final down = await tester.startGesture(
+      tester.getCenter(find.text('Details')),
+    );
+    await tester.pump();
+
     viewer = tester.widget<InteractiveViewer>(viewerFinder);
     expect(viewer.panEnabled, isFalse);
 
-    // Move away to empty canvas area
-    await gesture
-        .moveTo(tester.getTopLeft(viewerFinder) + const Offset(10, 10));
+    await down.up();
     await tester.pumpAndSettle();
 
     viewer = tester.widget<InteractiveViewer>(viewerFinder);
     expect(viewer.panEnabled, isTrue);
+  });
+
+  ProviderContainer containerWithService() {
+    final container = ProviderContainer(
+      overrides: [
+        multiSheetAnalysisServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+    return container;
+  }
+
+  JoinConnectorsPainter connectorsPainter(WidgetTester tester) {
+    final paint =
+        tester.widgetList<CustomPaint>(find.byType(CustomPaint)).firstWhere(
+              (widget) => widget.painter is JoinConnectorsPainter,
+            );
+    return paint.painter! as JoinConnectorsPainter;
+  }
+
+  JoinTableNodeCard nodeCardFor(WidgetTester tester, int tableId) {
+    return tester
+        .widgetList<JoinTableNodeCard>(find.byType(JoinTableNodeCard))
+        .firstWhere((card) => card.table.tableId == tableId);
+  }
+
+  testWidgets('draws the relationships already saved for the dataset',
+      (tester) async {
+    when(() => service.loadRelationships(1)).thenAnswer((_) async => const [
+          DatasetRelationship(
+            id: 7,
+            datasetId: 1,
+            endpointATableId: 1,
+            endpointAColumnDbName: 'cust_id',
+            endpointBTableId: 3,
+            endpointBColumnDbName: 'id',
+          ),
+        ]);
+
+    await pumpOverview(tester, container: containerWithService());
+
+    final painter = connectorsPainter(tester);
+    expect(painter.connections, hasLength(1));
+    final connection = painter.connections.single;
+    expect(connection.relationshipId, 7);
+    expect(connection.isSuggestion, isFalse);
+    expect(connection.fromColumnDbName, 'cust_id');
+    expect(connection.toColumnDbName, 'id');
+
+    // No generation is needed to see them.
+    verifyNever(() => service.suggestRelationships(
+          sheets: any(named: 'sheets'),
+          selectedTableIds: any(named: 'selectedTableIds'),
+        ));
+  });
+
+  testWidgets('renders nothing when the dataset has a single table',
+      (tester) async {
+    tables = [tables.first];
+    activeTable = tables.first;
+
+    await pumpOverview(tester, container: containerWithService());
+
+    expect(find.byKey(const ValueKey('dataset_tables_graph_overview_card')),
+        findsNothing);
+    expect(find.byType(InteractiveViewer), findsNothing);
+    verifyNever(() => service.loadRelationships(any()));
+  });
+
+  testWidgets('reports a failed generation instead of failing silently',
+      (tester) async {
+    when(() => service.suggestRelationships(
+          sheets: any(named: 'sheets'),
+          selectedTableIds: any(named: 'selectedTableIds'),
+        )).thenThrow(Exception('boom'));
+
+    await pumpOverview(tester, container: containerWithService());
+
+    await tester
+        .tap(find.byKey(const ValueKey('graph_generate_connections_btn')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Could not find connections.'), findsOneWidget);
+    // The spinner is gone, so the button can be used again.
+    expect(find.byKey(const ValueKey('graph_generate_connections_btn')),
+        findsOneWidget);
+  });
+
+  testWidgets('reports a failed save instead of failing silently',
+      (tester) async {
+    when(() => service.suggestRelationships(
+          sheets: any(named: 'sheets'),
+          selectedTableIds: any(named: 'selectedTableIds'),
+        )).thenAnswer((_) async => [
+          SheetRelationshipSuggestion(
+            relationship: const SheetJoinRelationship(
+              leftTableId: 1,
+              leftColumnDbName: 'cust_id',
+              rightTableId: 3,
+              rightColumnDbName: 'id',
+            ),
+            score: 0.9,
+            confidence: SuggestionConfidence.high,
+            reasons: const [RelationshipReason.nameMatch],
+          ),
+        ]);
+    when(() => service.createRelationships(
+          datasetId: any(named: 'datasetId'),
+          relationships: any(named: 'relationships'),
+        )).thenThrow(Exception('write failed'));
+
+    await pumpOverview(tester, container: containerWithService());
+
+    await tester
+        .tap(find.byKey(const ValueKey('graph_generate_connections_btn')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('graph_save_connections_btn')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Could not save the connections.'), findsOneWidget);
+    // The suggestions stay on screen so the user can retry.
+    expect(find.byKey(const ValueKey('graph_save_connections_btn')),
+        findsOneWidget);
+  });
+
+  testWidgets('tells the user how many connections a partial save stored',
+      (tester) async {
+    when(() => service.suggestRelationships(
+          sheets: any(named: 'sheets'),
+          selectedTableIds: any(named: 'selectedTableIds'),
+        )).thenAnswer((_) async => [
+          SheetRelationshipSuggestion(
+            relationship: const SheetJoinRelationship(
+              leftTableId: 1,
+              leftColumnDbName: 'cust_id',
+              rightTableId: 3,
+              rightColumnDbName: 'id',
+            ),
+            score: 0.9,
+            confidence: SuggestionConfidence.high,
+            reasons: const [RelationshipReason.nameMatch],
+          ),
+          SheetRelationshipSuggestion(
+            relationship: const SheetJoinRelationship(
+              leftTableId: 1,
+              leftColumnDbName: 'id',
+              rightTableId: 2,
+              rightColumnDbName: 'order_id',
+            ),
+            score: 0.8,
+            confidence: SuggestionConfidence.medium,
+            reasons: const [RelationshipReason.nameMatch],
+          ),
+        ]);
+    when(() => service.createRelationships(
+          datasetId: any(named: 'datasetId'),
+          relationships: any(named: 'relationships'),
+        )).thenAnswer((inv) async {
+      final requested = inv.namedArguments[const Symbol('relationships')]
+          as List<DatasetRelationship>;
+      return CreateDatasetRelationshipsResult(
+        created: [requested.first.copyWith(id: 1)],
+        failed: [requested.last],
+      );
+    });
+
+    await pumpOverview(tester, container: containerWithService());
+
+    await tester
+        .tap(find.byKey(const ValueKey('graph_generate_connections_btn')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('graph_save_connections_btn')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Saved 1 of 2 connections.'), findsOneWidget);
+  });
+
+  testWidgets('caps the columns a card renders and counts the rest',
+      (tester) async {
+    columnsByTableId = {
+      1: [for (var i = 0; i < 12; i++) _col('c$i', 1)],
+      2: [_col('id', 2), _col('order_id', 2)],
+      3: [_col('id', 3), _col('name', 3)],
+    };
+
+    await pumpOverview(tester, container: containerWithService());
+
+    final card = nodeCardFor(tester, 1);
+    expect(card.table.columns,
+        hasLength(DatasetTablesGraphOverview.maxVisibleColumnsPerCard));
+    expect(card.table.hiddenColumnCount, 4);
+    expect(find.text('+4 more columns'), findsOneWidget);
+  });
+
+  testWidgets('keeps a connected column visible even when the card is capped',
+      (tester) async {
+    columnsByTableId = {
+      1: [for (var i = 0; i < 12; i++) _col('c$i', 1)],
+      2: [_col('id', 2), _col('order_id', 2)],
+      3: [_col('id', 3), _col('name', 3)],
+    };
+    // The relationship points at the last column, which the cap would drop.
+    when(() => service.loadRelationships(1)).thenAnswer((_) async => const [
+          DatasetRelationship(
+            id: 9,
+            datasetId: 1,
+            endpointATableId: 1,
+            endpointAColumnDbName: 'c11',
+            endpointBTableId: 3,
+            endpointBColumnDbName: 'id',
+          ),
+        ]);
+
+    await pumpOverview(tester, container: containerWithService());
+
+    final card = nodeCardFor(tester, 1);
+    expect(
+      card.table.columns.map((column) => column.columnDbName),
+      contains('c11'),
+    );
+    expect(connectorsPainter(tester).connections, hasLength(1));
+  });
+
+  testWidgets('fits the whole graph inside the canvas on first layout',
+      (tester) async {
+    await pumpOverview(tester, container: containerWithService());
+
+    final viewer =
+        tester.widget<InteractiveViewer>(find.byType(InteractiveViewer));
+    final scale = viewer.transformationController!.value.getMaxScaleOnAxis();
+
+    // The graph is taller than the 320px canvas, so it opens scaled down
+    // instead of showing a slice of one card.
+    expect(scale, lessThan(1.0));
+    expect(scale, greaterThanOrEqualTo(DatasetTablesGraphOverview.minScale));
+  });
+
+  testWidgets('restores a saved node layout and persists a dragged one',
+      (tester) async {
+    final bloc = _FakeDatasetBloc();
+
+    await pumpOverview(
+      tester,
+      container: containerWithService(),
+      bloc: bloc,
+      savedNodePositions: const {2: Offset(420, 180)},
+    );
+
+    // The stored position is used instead of the automatic one.
+    expect(nodeCardFor(tester, 2).table.position, const Offset(420, 180));
+    expect(find.byKey(const ValueKey('graph_overview_reset_layout_btn')),
+        findsOneWidget);
+
+    await tester.drag(find.text('Details'), const Offset(60, 40));
+    await tester.pumpAndSettle();
+
+    final persisted = bloc.events.whereType<UpdateGraphNodePositionsEvent>();
+    expect(persisted, isNotEmpty);
+    expect(persisted.last.positions[2], isNotNull);
+    expect(persisted.last.positions[2], isNot(const Offset(420, 180)));
+
+    // Resetting the layout persists the empty map, so the automatic layout
+    // survives the next reload too.
+    await tester
+        .tap(find.byKey(const ValueKey('graph_overview_reset_layout_btn')));
+    await tester.pumpAndSettle();
+
+    expect(
+      bloc.events.whereType<UpdateGraphNodePositionsEvent>().last.positions,
+      isEmpty,
+    );
+  });
+
+  testWidgets('mouse wheel over the canvas zooms without scrolling the page',
+      (tester) async {
+    tester.view.physicalSize = const Size(1200, 700);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final container = containerWithService();
+    final pageScrollController = ScrollController();
+    addTearDown(pageScrollController.dispose);
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        EasyLocalization(
+          supportedLocales: const [Locale('en')],
+          path: 'assets/i18n',
+          fallbackLocale: const Locale('en'),
+          startLocale: const Locale('en'),
+          child: UncontrolledProviderScope(
+            container: container,
+            child: Builder(
+              builder: (context) => MaterialApp(
+                locale: context.locale,
+                supportedLocales: context.supportedLocales,
+                localizationsDelegates: context.localizationDelegates,
+                home: Scaffold(
+                  body: BlocProvider<DatasetBloc>.value(
+                    value: _FakeDatasetBloc(),
+                    child: SingleChildScrollView(
+                      controller: pageScrollController,
+                      child: Column(
+                        children: [
+                          DatasetTablesGraphOverview(
+                            dataset: dataset,
+                            tables: tables,
+                            activeTable: activeTable,
+                            columnsByTableId: columnsByTableId,
+                          ),
+                          // Makes the page genuinely scrollable, so a wheel event
+                          // leaking out of the canvas would move it.
+                          const SizedBox(height: 2000),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 150));
+    });
+    await tester.pumpAndSettle();
+
+    expect(pageScrollController.position.maxScrollExtent, greaterThan(0));
+
+    final viewerFinder = find.byType(InteractiveViewer);
+    final controller = tester
+        .widget<InteractiveViewer>(viewerFinder)
+        .transformationController!;
+    final initialScale = controller.value.getMaxScaleOnAxis();
+
+    final pointer = TestPointer(1, PointerDeviceKind.mouse);
+    pointer.hover(tester.getCenter(viewerFinder));
+    await tester.sendEventToBinding(pointer.scroll(const Offset(0, -100)));
+    await tester.pumpAndSettle();
+
+    expect(controller.value.getMaxScaleOnAxis(), greaterThan(initialScale));
+    expect(pageScrollController.offset, 0.0);
+  });
+
+  testWidgets('reuses the computed layout across unrelated rebuilds',
+      (tester) async {
+    when(() => service.loadRelationships(1)).thenAnswer((_) async => const [
+          DatasetRelationship(
+            id: 7,
+            datasetId: 1,
+            endpointATableId: 1,
+            endpointAColumnDbName: 'cust_id',
+            endpointBTableId: 3,
+            endpointBColumnDbName: 'id',
+          ),
+        ]);
+
+    await pumpOverview(tester, container: containerWithService());
+
+    final connectionsBefore = connectorsPainter(tester).connections;
+
+    // Hovering a card rebuilds the widget without changing any layout input.
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await gesture.addPointer(location: Offset.zero);
+    addTearDown(gesture.removePointer);
+    await gesture.moveTo(tester.getCenter(find.text('Details')));
+    await tester.pumpAndSettle();
+
+    expect(
+      identical(connectorsPainter(tester).connections, connectionsBefore),
+      isTrue,
+      reason: 'the layout should be memoized, not recomputed on every rebuild',
+    );
+
+    // Dragging a node is a real input change, so the layout is recomputed.
+    await tester.drag(find.text('Details'), const Offset(50, 30));
+    await tester.pumpAndSettle();
+
+    expect(
+      identical(connectorsPainter(tester).connections, connectionsBefore),
+      isFalse,
+    );
   });
 }

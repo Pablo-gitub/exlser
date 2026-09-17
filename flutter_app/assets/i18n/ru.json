@@ -266,7 +266,12 @@
                 "no_connections_found": "Автоматические связи не найдены",
                 "collapse": "Свернуть обзор",
                 "expand": "Развернуть обзор",
-                "reset_layout": "Сбросить расположение"
+                "reset_layout": "Сбросить расположение",
+                "generate_failed": "Не удалось найти связи.",
+                "save_failed": "Не удалось сохранить связи.",
+                "save_partial": "Сохранено связей: {saved} из {total}.",
+                "fit_to_view": "Уместить в окне",
+                "more_columns": "+{count} столбцов"
             }
         },
         "joins": {

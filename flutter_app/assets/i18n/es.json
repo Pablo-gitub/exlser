@@ -266,7 +266,12 @@
                 "no_connections_found": "No se encontraron conexiones automáticas",
                 "collapse": "Contraer vista",
                 "expand": "Expandir vista",
-                "reset_layout": "Restablecer diseño"
+                "reset_layout": "Restablecer diseño",
+                "generate_failed": "No se pudieron buscar las conexiones.",
+                "save_failed": "No se pudieron guardar las conexiones.",
+                "save_partial": "Se guardaron {saved} de {total} conexiones.",
+                "fit_to_view": "Ajustar a la vista",
+                "more_columns": "+{count} columnas más"
             }
         },
         "joins": {

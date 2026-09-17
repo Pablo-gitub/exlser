@@ -109,6 +109,16 @@ class AppStrings {
       'dataset.workspace.graph.expand';
   static const String datasetWorkspaceGraphResetLayout =
       'dataset.workspace.graph.reset_layout';
+  static const String datasetWorkspaceGraphGenerateFailed =
+      'dataset.workspace.graph.generate_failed';
+  static const String datasetWorkspaceGraphSaveFailed =
+      'dataset.workspace.graph.save_failed';
+  static const String datasetWorkspaceGraphSavePartial =
+      'dataset.workspace.graph.save_partial';
+  static const String datasetWorkspaceGraphFitToView =
+      'dataset.workspace.graph.fit_to_view';
+  static const String datasetWorkspaceGraphMoreColumns =
+      'dataset.workspace.graph.more_columns';
   static const String datasetWorkspaceTableView =
       'dataset.workspace.table_view';
   static const String datasetWorkspaceCardView = 'dataset.workspace.card_view';

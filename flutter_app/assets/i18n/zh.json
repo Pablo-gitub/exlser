@@ -266,7 +266,12 @@
                 "no_connections_found": "未自动找到关联",
                 "collapse": "折叠概览",
                 "expand": "展开概览",
-                "reset_layout": "重置布局"
+                "reset_layout": "重置布局",
+                "generate_failed": "无法查找连接。",
+                "save_failed": "无法保存连接。",
+                "save_partial": "已保存 {saved}/{total} 个连接。",
+                "fit_to_view": "适应视图",
+                "more_columns": "另有 {count} 列"
             }
         },
         "joins": {

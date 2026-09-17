@@ -266,7 +266,12 @@
                 "no_connections_found": "Nenhuma ligação automática encontrada",
                 "collapse": "Recolher visão geral",
                 "expand": "Expandir visão geral",
-                "reset_layout": "Redefinir layout"
+                "reset_layout": "Redefinir layout",
+                "generate_failed": "Não foi possível procurar as conexões.",
+                "save_failed": "Não foi possível salvar as conexões.",
+                "save_partial": "Foram salvas {saved} de {total} conexões.",
+                "fit_to_view": "Ajustar à visualização",
+                "more_columns": "+{count} colunas"
             }
         },
         "joins": {

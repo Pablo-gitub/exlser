@@ -133,11 +133,14 @@ void main() {
       );
       await _openDatasetRoute(tester, router);
 
-      expect(find.byKey(const ValueKey('combine_sheets_button')), findsNothing);
+      expect(find.byKey(const ValueKey('graph_edit_connections_btn')),
+          findsNothing);
+      expect(find.byKey(const ValueKey('dataset_tables_graph_overview_card')),
+          findsNothing);
     });
 
     testWidgets(
-        'shows Combine sheets with two sheets and opens the joins route',
+        'shows the graph overview with two sheets and opens the joins route',
         (tester) async {
       when(() => schemaRepository.getTablesForDataset(1)).thenAnswer(
         (_) async => [_table(), _secondTable()],
@@ -149,6 +152,8 @@ void main() {
       final joinsService = MockMultiSheetAnalysisService();
       when(() => joinsService.loadSheets(any())).thenAnswer((_) async => []);
       when(() => joinsService.listSavedQueries(any()))
+          .thenAnswer((_) async => []);
+      when(() => joinsService.loadRelationships(any()))
           .thenAnswer((_) async => []);
 
       await _pumpRouterApp(
@@ -170,7 +175,7 @@ void main() {
       );
       await _openDatasetRoute(tester, router);
 
-      final button = find.byKey(const ValueKey('combine_sheets_button'));
+      final button = find.byKey(const ValueKey('graph_edit_connections_btn'));
       expect(button, findsOneWidget);
 
       await tester.ensureVisible(button);

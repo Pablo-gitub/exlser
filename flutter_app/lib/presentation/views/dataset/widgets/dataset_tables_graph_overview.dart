@@ -6,7 +6,7 @@ import 'package:exlser/domain/entities/dataset.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/entities/dataset_relationship.dart';
 import 'package:exlser/domain/entities/dataset_table.dart';
-import 'package:exlser/domain/usecases/multisheet/manage_dataset_relationships_usecases.dart';
+import 'package:exlser/domain/value_objects/multi_sheet_join.dart';
 import 'package:exlser/domain/value_objects/sheet_relationship_suggestion.dart';
 import 'package:exlser/presentation/state/dataset_bloc.dart';
 import 'package:exlser/presentation/state/dataset_event.dart';
@@ -16,7 +16,6 @@ import 'package:exlser/presentation/views/sheet_joins/graph/join_connectors_pain
 import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_canvas.dart';
 import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_models.dart';
 import 'package:exlser/presentation/views/sheet_joins/graph/join_table_node_card.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,12 +30,24 @@ class DatasetTablesGraphOverview extends ConsumerStatefulWidget {
   final DatasetTable activeTable;
   final Map<int, List<DatasetColumn>> columnsByTableId;
 
+  /// Node positions restored from the workspace state, by table id.
+  final Map<int, Offset> savedNodePositions;
+
+  /// Rows a card renders before collapsing the rest into a "+N" row. Keeps a
+  /// wide sheet from producing a card several times taller than the canvas.
+  static const int maxVisibleColumnsPerCard = 8;
+
+  static const double canvasHeight = 320;
+  static const double minScale = 0.3;
+  static const double maxScale = 2.2;
+
   const DatasetTablesGraphOverview({
     super.key,
     required this.dataset,
     required this.tables,
     required this.activeTable,
     required this.columnsByTableId,
+    this.savedNodePositions = const {},
   });
 
   @override
@@ -49,22 +60,64 @@ class _DatasetTablesGraphOverviewState
   late final TransformationController _transformationController;
   GraphScope _scope = GraphScope.allSheets;
   bool _isGenerating = false;
+  bool _isSaving = false;
   List<SheetRelationshipSuggestion>? _suggestions;
-  bool _saved = false;
+  List<DatasetRelationship> _relationships = const [];
   bool _isCollapsed = false;
 
   final GlobalKey _viewportKey = GlobalKey();
   final Map<int, Offset> _customPositions = {};
   int? _draggingTableId;
   int? _hoveredTableId;
-  int? _activePointerTableId;
-  bool _isPanningCanvas = false;
+  int? _pointerDownTableId;
   Offset _dragOffset = Offset.zero;
+
+  /// Bumped whenever a node position changes, so the memoized layout is
+  /// invalidated without comparing the whole map.
+  int _positionsRevision = 0;
+
+  JoinGraphData? _cachedGraph;
+  int? _cachedGraphKey;
+
+  bool _pendingAutoFit = true;
 
   @override
   void initState() {
     super.initState();
     _transformationController = TransformationController();
+    _customPositions.addAll(widget.savedNodePositions);
+    _loadRelationships();
+  }
+
+  @override
+  void didUpdateWidget(DatasetTablesGraphOverview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.dataset.id != widget.dataset.id) {
+      _relationships = const [];
+      _suggestions = null;
+      _customPositions
+        ..clear()
+        ..addAll(widget.savedNodePositions);
+      _positionsRevision++;
+      _pendingAutoFit = true;
+      _loadRelationships();
+      return;
+    }
+
+    // A layout restored from the workspace state wins only while the user is not
+    // dragging, so an incoming state emit cannot yank a node from under the finger.
+    if (_draggingTableId == null &&
+        !_sameLayout(widget.savedNodePositions, _customPositions)) {
+      _customPositions
+        ..clear()
+        ..addAll(widget.savedNodePositions);
+      _positionsRevision++;
+    }
+
+    if (oldWidget.tables.length != widget.tables.length) {
+      _pendingAutoFit = true;
+    }
   }
 
   @override
@@ -73,11 +126,35 @@ class _DatasetTablesGraphOverviewState
     super.dispose();
   }
 
-  bool get _isPanEnabled {
-    if (_isPanningCanvas) return true;
-    return _draggingTableId == null &&
-        _hoveredTableId == null &&
-        _activePointerTableId == null;
+  bool _sameLayout(Map<int, Offset> a, Map<int, Offset> b) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (b[entry.key] != entry.value) return false;
+    }
+    return true;
+  }
+
+  /// Panning the canvas is disabled only while a gesture owns a node. Hover is
+  /// deliberately not part of this: a card removed or rebuilt while hovered
+  /// never reports `onExit`, which used to leave the canvas locked for good.
+  bool get _isPanEnabled =>
+      _draggingTableId == null && _pointerDownTableId == null;
+
+  Future<void> _loadRelationships() async {
+    if (widget.tables.length < 2) return;
+
+    try {
+      final service = ref.read(multiSheetAnalysisServiceProvider);
+      final relationships = await service.loadRelationships(widget.dataset.id);
+      if (!mounted) return;
+      setState(() {
+        _relationships = relationships;
+        _pendingAutoFit = true;
+      });
+    } catch (_) {
+      // Connectors are an overlay on a graph that is still usable without them,
+      // so a failed read stays quiet instead of interrupting the workspace.
+    }
   }
 
   Offset _toScene(Offset globalPosition) {
@@ -90,49 +167,43 @@ class _DatasetTablesGraphOverviewState
     return _transformationController.toScene(globalPosition);
   }
 
-  void _handlePointerSignal(PointerSignalEvent event) {
-    if (event is PointerScrollEvent) {
-      GestureBinding.instance.pointerSignalResolver.register(event, (event) {
-        if (event is! PointerScrollEvent) return;
-        final double dy = event.scrollDelta.dy;
-        if (dy == 0) return;
-
-        final double scaleDelta = math.exp(-dy / 250.0);
-        final double currentScale =
-            _transformationController.value.getMaxScaleOnAxis();
-        final double newScale = (currentScale * scaleDelta).clamp(0.3, 2.2);
-        final double effectiveScaleChange = newScale / currentScale;
-        if ((effectiveScaleChange - 1.0).abs() < 0.001) return;
-
-        final Offset localFocalPoint = event.localPosition;
-        final Offset focalPointScene =
-            _transformationController.toScene(localFocalPoint);
-
-        final matrix = _transformationController.value.clone();
-        matrix.scaleByDouble(
-            effectiveScaleChange, effectiveScaleChange, 1.0, 1.0);
-        _transformationController.value = matrix;
-
-        final Offset focalPointSceneScaled =
-            _transformationController.toScene(localFocalPoint);
-        final Offset translationChange =
-            focalPointSceneScaled - focalPointScene;
-        final finalMatrix = _transformationController.value.clone();
-        finalMatrix.translateByDouble(
-            translationChange.dx, translationChange.dy, 0.0, 1.0);
-        _transformationController.value = finalMatrix;
-      });
-    }
-  }
-
   void _zoom(double factor) {
+    final currentScale = _transformationController.value.getMaxScaleOnAxis();
+    final targetScale = (currentScale * factor).clamp(
+      DatasetTablesGraphOverview.minScale,
+      DatasetTablesGraphOverview.maxScale,
+    );
+    final effectiveFactor = targetScale / currentScale;
+    if ((effectiveFactor - 1.0).abs() < 0.001) return;
+
     final matrix = _transformationController.value.clone();
-    matrix.scaleByDouble(factor, factor, 1.0, 1.0);
+    matrix.scaleByDouble(
+        effectiveFactor, effectiveFactor, effectiveFactor, 1.0);
     _transformationController.value = matrix;
   }
 
-  void _resetZoom() {
-    _transformationController.value = Matrix4.identity();
+  /// Scales and centres the whole graph inside the viewport. Without it the
+  /// canvas opens at scale 1 on content several times taller than its 320px, so
+  /// the user sees a slice of one card and has to zoom out by hand.
+  void _fitToView() {
+    final graph = _cachedGraph;
+    final renderBox =
+        _viewportKey.currentContext?.findRenderObject() as RenderBox?;
+    if (graph == null || renderBox == null || !renderBox.hasSize) return;
+
+    final viewport = renderBox.size;
+    final canvas = graph.canvasSize;
+    if (viewport.isEmpty || canvas.width <= 0 || canvas.height <= 0) return;
+
+    final scale = math
+        .min(viewport.width / canvas.width, viewport.height / canvas.height)
+        .clamp(DatasetTablesGraphOverview.minScale, 1.0);
+    final dx = (viewport.width - canvas.width * scale) / 2;
+    final dy = (viewport.height - canvas.height * scale) / 2;
+
+    _transformationController.value = Matrix4.identity()
+      ..translateByDouble(dx, dy, 0.0, 1.0)
+      ..scaleByDouble(scale, scale, scale, 1.0);
   }
 
   void _resetPositions() {
@@ -140,8 +211,17 @@ class _DatasetTablesGraphOverviewState
       _customPositions.clear();
       _draggingTableId = null;
       _hoveredTableId = null;
-      _activePointerTableId = null;
+      _pointerDownTableId = null;
+      _positionsRevision++;
+      _pendingAutoFit = true;
     });
+    _persistPositions();
+  }
+
+  void _persistPositions() {
+    context
+        .read<DatasetBloc>()
+        .add(UpdateGraphNodePositionsEvent(Map.of(_customPositions)));
   }
 
   bool get _hasMultipleSheetsWithSubTables {
@@ -174,22 +254,72 @@ class _DatasetTablesGraphOverviewState
     ];
   }
 
+  /// Saved relationships are rendered through the same path as a join spec: one
+  /// synthetic join per stored relationship, so reopening the workspace shows
+  /// the connections the user already confirmed.
+  (List<MultiSheetJoin>, Map<int, DatasetRelationship>) _savedEdges() {
+    final joins = <MultiSheetJoin>[];
+    final byId = <int, DatasetRelationship>{};
+    for (final relationship in _relationships) {
+      final id = relationship.id;
+      if (id == null) continue;
+      byId[id] = relationship;
+      joins.add(MultiSheetJoin(relationshipId: id));
+    }
+    return (joins, byId);
+  }
+
+  /// Rebuilding the layout walks every table, column and connector, so it is
+  /// memoized: an unrelated rebuild (a bloc emit, a hover, the collapse toggle)
+  /// reuses it, while a real input change invalidates it.
+  JoinGraphData _graphFor(List<MultiSheetSheetInfo> displayedSheets) {
+    final key = Object.hash(
+      identityHashCode(widget.tables),
+      identityHashCode(widget.columnsByTableId),
+      widget.activeTable.id,
+      _scope,
+      identityHashCode(_relationships),
+      _suggestions == null ? 0 : identityHashCode(_suggestions),
+      _positionsRevision,
+      displayedSheets.length,
+    );
+
+    final cached = _cachedGraph;
+    if (cached != null && _cachedGraphKey == key) return cached;
+
+    final (joins, relationshipsById) = _savedEdges();
+    final graph = JoinGraphLayoutBuilder.build(
+      selectedSheets: displayedSheets,
+      baseTableId: widget.activeTable.id,
+      joins: joins,
+      relationships: relationshipsById,
+      suggestions: _suggestions ?? const [],
+      customPositions: _customPositions,
+      orderBaseTableFirst: false,
+      maxVisibleColumns: DatasetTablesGraphOverview.maxVisibleColumnsPerCard,
+    );
+
+    _cachedGraph = graph;
+    _cachedGraphKey = key;
+    return graph;
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Future<void> _generateConnections(
       List<MultiSheetSheetInfo> displayedSheets) async {
     if (displayedSheets.length < 2) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppStrings.datasetJoinsErrorNotEnoughTables.tr()),
-          ),
-        );
-      }
+      _showMessage(AppStrings.datasetJoinsErrorNotEnoughTables.tr());
       return;
     }
 
     setState(() {
       _isGenerating = true;
-      _saved = false;
     });
 
     try {
@@ -204,59 +334,77 @@ class _DatasetTablesGraphOverviewState
         _isGenerating = false;
       });
       if (suggestions.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text(AppStrings.datasetWorkspaceGraphNoConnectionsFound.tr()),
-          ),
-        );
+        _showMessage(AppStrings.datasetWorkspaceGraphNoConnectionsFound.tr());
       }
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _isGenerating = false;
       });
+      _showMessage(AppStrings.datasetWorkspaceGraphGenerateFailed.tr());
     }
   }
 
   Future<void> _saveConnections() async {
-    if (_suggestions == null || _suggestions!.isEmpty) return;
+    final suggestions = _suggestions;
+    if (suggestions == null || suggestions.isEmpty || _isSaving) return;
 
-    try {
-      final service = ref.read(multiSheetAnalysisServiceProvider);
-      for (final suggestion in _suggestions!) {
-        final r = suggestion.relationship;
-        final rel = DatasetRelationship(
+    setState(() {
+      _isSaving = true;
+    });
+
+    final now = DateTime.now();
+    final relationships = [
+      for (final suggestion in suggestions)
+        DatasetRelationship(
           datasetId: widget.dataset.id,
-          endpointATableId: r.leftTableId,
-          endpointAColumnDbName: r.leftColumnDbName,
-          endpointBTableId: r.rightTableId,
-          endpointBColumnDbName: r.rightColumnDbName,
+          endpointATableId: suggestion.relationship.leftTableId,
+          endpointAColumnDbName: suggestion.relationship.leftColumnDbName,
+          endpointBTableId: suggestion.relationship.rightTableId,
+          endpointBColumnDbName: suggestion.relationship.rightColumnDbName,
           cardinality: suggestion.cardinality,
           relationshipConfidence: suggestion.score,
           cardinalityConfidence: suggestion.cardinalityConfidence,
           sampleSize: suggestion.sampleSize,
           origin: RelationshipOrigin.suggested,
-          confirmedAt: DateTime.now(),
-        );
-        try {
-          await service.createRelationship(rel);
-        } on DuplicateRelationshipException {
-          // Already saved, proceed
-        }
-      }
-      if (mounted) {
-        setState(() {
-          _saved = true;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppStrings.datasetWorkspaceGraphSavedSuccess.tr()),
+          confirmedAt: now,
+        ),
+    ];
+
+    try {
+      final service = ref.read(multiSheetAnalysisServiceProvider);
+      final result = await service.createRelationships(
+        datasetId: widget.dataset.id,
+        relationships: relationships,
+      );
+      if (!mounted) return;
+
+      setState(() {
+        _isSaving = false;
+        // The suggestions are now part of the graph as confirmed connections.
+        if (!result.hasFailures) _suggestions = null;
+      });
+      await _loadRelationships();
+      if (!mounted) return;
+
+      if (result.hasFailures) {
+        _showMessage(
+          AppStrings.datasetWorkspaceGraphSavePartial.tr(
+            namedArgs: {
+              'saved': '${result.created.length + result.skipped.length}',
+              'total': '${result.requestedCount}',
+            },
           ),
         );
+      } else {
+        _showMessage(AppStrings.datasetWorkspaceGraphSavedSuccess.tr());
       }
     } catch (_) {
-      // Ignore save failure
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+      });
+      _showMessage(AppStrings.datasetWorkspaceGraphSaveFailed.tr());
     }
   }
 
@@ -273,18 +421,22 @@ class _DatasetTablesGraphOverviewState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // One node relates to nothing: the canvas only earns its space from two
+    // tables up.
+    if (widget.tables.length < 2) return const SizedBox.shrink();
+
     final displayed = _displayedTables;
     final displayedSheets = _buildSheetInfos(displayed);
+    final graphData = _graphFor(displayedSheets);
+    final canSuggest = displayedSheets.length >= 2;
 
-    final graphData = JoinGraphLayoutBuilder.build(
-      selectedSheets: displayedSheets,
-      baseTableId: widget.activeTable.id,
-      joins: const [],
-      relationships: const {},
-      suggestions: _suggestions ?? const [],
-      customPositions: _customPositions,
-      orderBaseTableFirst: false,
-    );
+    if (_pendingAutoFit && !_isCollapsed) {
+      _pendingAutoFit = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _fitToView();
+      });
+    }
 
     return Card(
       key: const ValueKey('dataset_tables_graph_overview_card'),
@@ -357,11 +509,12 @@ class _DatasetTablesGraphOverviewState
                           setState(() {
                             _scope = newSelection.first;
                             _suggestions = null;
-                            _saved = false;
                             _customPositions.clear();
                             _draggingTableId = null;
                             _hoveredTableId = null;
-                            _activePointerTableId = null;
+                            _pointerDownTableId = null;
+                            _positionsRevision++;
+                            _pendingAutoFit = true;
                           });
                         },
                       ),
@@ -392,33 +545,34 @@ class _DatasetTablesGraphOverviewState
                         label: Text(
                           AppStrings.datasetWorkspaceGraphGenerate.tr(),
                         ),
-                        onPressed: displayedSheets.length >= 2
+                        onPressed: canSuggest
                             ? () => _generateConnections(displayedSheets)
                             : null,
                       ),
                     ],
-                    if (_suggestions != null && _suggestions!.isNotEmpty) ...[
+                    if (_suggestions != null && _suggestions!.isNotEmpty)
                       FilledButton.icon(
                         key: const ValueKey('graph_save_connections_btn'),
-                        icon: Icon(
-                          _saved ? Icons.check_circle : Icons.save_outlined,
-                          size: 18,
-                        ),
-                        label: Text(
-                          _saved
-                              ? AppStrings.datasetWorkspaceGraphSavedSuccess
-                                  .tr()
-                              : AppStrings.datasetWorkspaceGraphSave.tr(),
-                        ),
-                        onPressed: _saved ? null : _saveConnections,
+                        icon: _isSaving
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.save_outlined, size: 18),
+                        label: Text(AppStrings.datasetWorkspaceGraphSave.tr()),
+                        onPressed: _isSaving ? null : _saveConnections,
                       ),
+                    // Always reachable: editing the relationships is the point
+                    // of the overview, not a follow-up to a generation.
+                    if (canSuggest)
                       OutlinedButton.icon(
                         key: const ValueKey('graph_edit_connections_btn'),
                         icon: const Icon(Icons.tune, size: 18),
                         label: Text(AppStrings.datasetWorkspaceGraphEdit.tr()),
                         onPressed: _navigateToCombineSheets,
                       ),
-                    ],
                     IconButton(
                       key: const ValueKey('graph_collapse_toggle_btn'),
                       icon: Icon(
@@ -430,6 +584,7 @@ class _DatasetTablesGraphOverviewState
                       onPressed: () {
                         setState(() {
                           _isCollapsed = !_isCollapsed;
+                          if (!_isCollapsed) _pendingAutoFit = true;
                         });
                       },
                     ),
@@ -443,7 +598,7 @@ class _DatasetTablesGraphOverviewState
             const Divider(height: 1),
             // Canvas View
             SizedBox(
-              height: 320,
+              height: DatasetTablesGraphOverview.canvasHeight,
               child: Stack(
                 children: [
                   // Dot Grid Background
@@ -451,154 +606,43 @@ class _DatasetTablesGraphOverviewState
                     child: JoinGridBackground(colorScheme: colorScheme),
                   ),
 
-                  // Interactive Zoom/Pan Canvas
+                  // Interactive Zoom/Pan Canvas. Scroll-to-zoom and the wheel
+                  // isolation from the surrounding page are handled by
+                  // InteractiveViewer itself: its own pointer-signal handler
+                  // sits deeper in the tree and always wins the resolver.
                   Positioned.fill(
-                    child: Listener(
-                      onPointerSignal: _handlePointerSignal,
-                      child: InteractiveViewer(
-                        key: _viewportKey,
-                        transformationController: _transformationController,
-                        panEnabled: _isPanEnabled,
-                        trackpadScrollCausesScale: true,
-                        minScale: 0.3,
-                        maxScale: 2.2,
-                        boundaryMargin: const EdgeInsets.all(250),
-                        constrained: false,
-                        onInteractionStart: (details) {
-                          if (_draggingTableId == null &&
-                              _hoveredTableId == null &&
-                              _activePointerTableId == null) {
-                            _isPanningCanvas = true;
-                          }
-                        },
-                        onInteractionEnd: (_) {
-                          _isPanningCanvas = false;
-                        },
-                        child: SizedBox(
-                          width: graphData.canvasSize.width,
-                          height: graphData.canvasSize.height,
-                          child: Stack(
-                            children: [
-                              // Connectors Painter
-                              Positioned.fill(
-                                child: CustomPaint(
-                                  painter: JoinConnectorsPainter(
-                                    connections: graphData.connections,
-                                    colorScheme: colorScheme,
-                                  ),
+                    child: InteractiveViewer(
+                      key: _viewportKey,
+                      transformationController: _transformationController,
+                      panEnabled: _isPanEnabled,
+                      trackpadScrollCausesScale: true,
+                      minScale: DatasetTablesGraphOverview.minScale,
+                      maxScale: DatasetTablesGraphOverview.maxScale,
+                      boundaryMargin: const EdgeInsets.all(250),
+                      constrained: false,
+                      child: SizedBox(
+                        width: graphData.canvasSize.width,
+                        height: graphData.canvasSize.height,
+                        child: Stack(
+                          children: [
+                            // Connectors Painter
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: JoinConnectorsPainter(
+                                  connections: graphData.connections,
+                                  colorScheme: colorScheme,
                                 ),
                               ),
+                            ),
 
-                              // Table Node Cards
-                              for (final table in graphData.tables)
-                                Positioned(
-                                  left: table.position.dx,
-                                  top: table.position.dy,
-                                  child: MouseRegion(
-                                    cursor: _draggingTableId == table.tableId
-                                        ? SystemMouseCursors.grabbing
-                                        : SystemMouseCursors.grab,
-                                    onEnter: (_) {
-                                      if (!_isPanningCanvas &&
-                                          _hoveredTableId != table.tableId) {
-                                        setState(() =>
-                                            _hoveredTableId = table.tableId);
-                                      }
-                                    },
-                                    onExit: (_) {
-                                      if (_hoveredTableId == table.tableId) {
-                                        setState(() => _hoveredTableId = null);
-                                      }
-                                    },
-                                    child: Listener(
-                                      onPointerDown: (_) {
-                                        if (!_isPanningCanvas &&
-                                            _activePointerTableId !=
-                                                table.tableId) {
-                                          setState(() => _activePointerTableId =
-                                              table.tableId);
-                                        }
-                                      },
-                                      onPointerUp: (_) {
-                                        if (_activePointerTableId ==
-                                            table.tableId) {
-                                          setState(() =>
-                                              _activePointerTableId = null);
-                                        }
-                                      },
-                                      onPointerCancel: (_) {
-                                        if (_activePointerTableId ==
-                                            table.tableId) {
-                                          setState(() =>
-                                              _activePointerTableId = null);
-                                        }
-                                      },
-                                      child: GestureDetector(
-                                        onPanStart: (details) {
-                                          HapticFeedback.selectionClick();
-                                          final scenePoint =
-                                              _toScene(details.globalPosition);
-                                          final currentPos =
-                                              _customPositions[table.tableId] ??
-                                                  table.position;
-                                          _dragOffset = scenePoint - currentPos;
-                                          setState(() {
-                                            _draggingTableId = table.tableId;
-                                          });
-                                        },
-                                        onPanUpdate: (details) {
-                                          if (_draggingTableId !=
-                                              table.tableId) {
-                                            return;
-                                          }
-                                          final scenePoint =
-                                              _toScene(details.globalPosition);
-                                          final newPos =
-                                              scenePoint - _dragOffset;
-                                          setState(() {
-                                            _customPositions[table.tableId] =
-                                                Offset(
-                                              math.max(10.0, newPos.dx),
-                                              math.max(10.0, newPos.dy),
-                                            );
-                                          });
-                                        },
-                                        onPanEnd: (_) {
-                                          setState(() {
-                                            _draggingTableId = null;
-                                            _activePointerTableId = null;
-                                          });
-                                        },
-                                        onPanCancel: () {
-                                          setState(() {
-                                            _draggingTableId = null;
-                                            _activePointerTableId = null;
-                                          });
-                                        },
-                                        child: JoinTableNodeCard(
-                                          table: table,
-                                          isDragging:
-                                              _draggingTableId == table.tableId,
-                                          mouseCursor:
-                                              _draggingTableId == table.tableId
-                                                  ? SystemMouseCursors.grabbing
-                                                  : SystemMouseCursors.grab,
-                                          onTap: () {
-                                            if (table.tableId !=
-                                                widget.activeTable.id) {
-                                              context.read<DatasetBloc>().add(
-                                                    ChangeSheetEvent(
-                                                        table.tableId),
-                                                  );
-                                            }
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
+                            // Table Node Cards
+                            for (final table in graphData.tables)
+                              Positioned(
+                                left: table.position.dx,
+                                top: table.position.dy,
+                                child: _buildNode(table),
+                              ),
+                          ],
                         ),
                       ),
                     ),
@@ -636,9 +680,11 @@ class _DatasetTablesGraphOverviewState
                           IconButton(
                             key:
                                 const ValueKey('graph_overview_zoom_reset_btn'),
-                            icon: const Icon(Icons.restart_alt, size: 18),
-                            tooltip: AppStrings.datasetJoinsGraphReset.tr(),
-                            onPressed: _resetZoom,
+                            icon:
+                                const Icon(Icons.fit_screen_outlined, size: 18),
+                            tooltip:
+                                AppStrings.datasetWorkspaceGraphFitToView.tr(),
+                            onPressed: _fitToView,
                           ),
                           if (_customPositions.isNotEmpty) ...[
                             const SizedBox(
@@ -665,6 +711,93 @@ class _DatasetTablesGraphOverviewState
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildNode(GraphTableLayout table) {
+    final isDragging = _draggingTableId == table.tableId;
+
+    return MouseRegion(
+      cursor:
+          isDragging ? SystemMouseCursors.grabbing : SystemMouseCursors.grab,
+      onEnter: (_) {
+        if (_hoveredTableId != table.tableId) {
+          setState(() => _hoveredTableId = table.tableId);
+        }
+      },
+      onExit: (_) {
+        if (_hoveredTableId == table.tableId) {
+          setState(() => _hoveredTableId = null);
+        }
+      },
+      child: Listener(
+        onPointerDown: (_) {
+          if (_pointerDownTableId != table.tableId) {
+            setState(() => _pointerDownTableId = table.tableId);
+          }
+        },
+        onPointerUp: (_) {
+          if (_pointerDownTableId == table.tableId) {
+            setState(() => _pointerDownTableId = null);
+          }
+        },
+        onPointerCancel: (_) {
+          if (_pointerDownTableId == table.tableId) {
+            setState(() => _pointerDownTableId = null);
+          }
+        },
+        child: GestureDetector(
+          onPanStart: (details) {
+            HapticFeedback.selectionClick();
+            final scenePoint = _toScene(details.globalPosition);
+            final currentPos =
+                _customPositions[table.tableId] ?? table.position;
+            _dragOffset = scenePoint - currentPos;
+            setState(() {
+              _draggingTableId = table.tableId;
+            });
+          },
+          onPanUpdate: (details) {
+            if (_draggingTableId != table.tableId) return;
+            final scenePoint = _toScene(details.globalPosition);
+            final newPos = scenePoint - _dragOffset;
+            setState(() {
+              _customPositions[table.tableId] = Offset(
+                math.max(10.0, newPos.dx),
+                math.max(10.0, newPos.dy),
+              );
+              _positionsRevision++;
+            });
+          },
+          onPanEnd: (_) {
+            setState(() {
+              _draggingTableId = null;
+              _pointerDownTableId = null;
+            });
+            _persistPositions();
+          },
+          onPanCancel: () {
+            setState(() {
+              _draggingTableId = null;
+              _pointerDownTableId = null;
+            });
+          },
+          child: JoinTableNodeCard(
+            table: table,
+            isDragging: isDragging,
+            mouseCursor: isDragging
+                ? SystemMouseCursors.grabbing
+                : SystemMouseCursors.grab,
+            onTap: () {
+              if (table.tableId != widget.activeTable.id) {
+                context
+                    .read<DatasetBloc>()
+                    .add(ChangeSheetEvent(table.tableId));
+              }
+            },
+          ),
+        ),
       ),
     );
   }

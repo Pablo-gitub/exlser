@@ -266,7 +266,12 @@
                 "no_connections_found": "Aucune liaison automatique trouvée",
                 "collapse": "Réduire l'aperçu",
                 "expand": "Développer l'aperçu",
-                "reset_layout": "Réinitialiser la disposition"
+                "reset_layout": "Réinitialiser la disposition",
+                "generate_failed": "Impossible de rechercher les connexions.",
+                "save_failed": "Impossible d'enregistrer les connexions.",
+                "save_partial": "{saved} connexions sur {total} enregistrées.",
+                "fit_to_view": "Ajuster à la vue",
+                "more_columns": "+{count} autres colonnes"
             }
         },
         "joins": {
