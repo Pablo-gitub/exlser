@@ -46,6 +46,7 @@ class MultiSheetAnalysisService {
   final LoadMultiSheetQueryUseCase loadQueryUseCase;
   final DeleteMultiSheetQueryUseCase deleteQueryUseCase;
   final CreateDatasetRelationshipUseCase createRelationshipUseCase;
+  final CreateDatasetRelationshipsUseCase createRelationshipsUseCase;
   final ListDatasetRelationshipsUseCase listRelationshipsUseCase;
   final UpdateDatasetRelationshipUseCase updateRelationshipUseCase;
 
@@ -61,6 +62,7 @@ class MultiSheetAnalysisService {
     required this.loadQueryUseCase,
     required this.deleteQueryUseCase,
     required this.createRelationshipUseCase,
+    required this.createRelationshipsUseCase,
     required this.listRelationshipsUseCase,
     required this.updateRelationshipUseCase,
     this.graphValidator = const MultiSheetGraphValidator(),
@@ -116,6 +118,14 @@ class MultiSheetAnalysisService {
     DatasetRelationship relationship,
   ) =>
       createRelationshipUseCase(relationship);
+
+  /// Persists several relationships at once, reading the dataset's existing ones
+  /// a single time. Returns what was created, skipped as duplicate and failed.
+  Future<CreateDatasetRelationshipsResult> createRelationships({
+    required int datasetId,
+    required List<DatasetRelationship> relationships,
+  }) =>
+      createRelationshipsUseCase(datasetId, relationships);
 
   Future<DatasetRelationship> updateRelationship(
     DatasetRelationship relationship,

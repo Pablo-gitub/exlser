@@ -44,6 +44,81 @@ class CreateDatasetRelationshipUseCase {
   }
 }
 
+/// The outcome of a batch relationship creation.
+///
+/// [created] holds the persisted relationships, [skipped] the ones that already
+/// existed (same unordered endpoint pair), and [failed] the ones the repository
+/// refused — so a caller can report a partial save instead of guessing.
+class CreateDatasetRelationshipsResult {
+  final List<DatasetRelationship> created;
+  final List<DatasetRelationship> skipped;
+  final List<DatasetRelationship> failed;
+
+  const CreateDatasetRelationshipsResult({
+    this.created = const [],
+    this.skipped = const [],
+    this.failed = const [],
+  });
+
+  int get requestedCount => created.length + skipped.length + failed.length;
+
+  /// True when at least one relationship could not be persisted.
+  bool get hasFailures => failed.isNotEmpty;
+}
+
+/// Creates several relationships for one dataset, reading the existing ones once.
+///
+/// [CreateDatasetRelationshipUseCase] re-reads the whole dataset on every call,
+/// which turns a batch of N suggestions into N full listings. This use case
+/// lists once and deduplicates in memory — against what is already stored and
+/// within the incoming batch — then reports exactly what happened instead of
+/// failing the whole batch on the first rejected row.
+class CreateDatasetRelationshipsUseCase {
+  final DatasetRelationshipRepository repository;
+
+  const CreateDatasetRelationshipsUseCase({required this.repository});
+
+  Future<CreateDatasetRelationshipsResult> call(
+    int datasetId,
+    List<DatasetRelationship> relationships,
+  ) async {
+    if (relationships.isEmpty) {
+      return const CreateDatasetRelationshipsResult();
+    }
+
+    final existing = await repository.listForDataset(datasetId);
+    final knownKeys = {for (final r in existing) r.endpointKey};
+
+    final created = <DatasetRelationship>[];
+    final skipped = <DatasetRelationship>[];
+    final failed = <DatasetRelationship>[];
+
+    for (final relationship in relationships) {
+      if (relationship.endpointATableId == relationship.endpointBTableId) {
+        failed.add(relationship);
+        continue;
+      }
+      if (!knownKeys.add(relationship.endpointKey)) {
+        skipped.add(relationship);
+        continue;
+      }
+
+      try {
+        created.add(await repository.create(relationship));
+      } catch (_) {
+        knownKeys.remove(relationship.endpointKey);
+        failed.add(relationship);
+      }
+    }
+
+    return CreateDatasetRelationshipsResult(
+      created: created,
+      skipped: skipped,
+      failed: failed,
+    );
+  }
+}
+
 /// Lists a dataset's relationships (oldest first).
 class ListDatasetRelationshipsUseCase {
   final DatasetRelationshipRepository repository;

@@ -118,6 +118,9 @@ void main() {
         createRelationshipUseCase: CreateDatasetRelationshipUseCase(
           repository: relationshipRepository,
         ),
+        createRelationshipsUseCase: CreateDatasetRelationshipsUseCase(
+          repository: relationshipRepository,
+        ),
         listRelationshipsUseCase: ListDatasetRelationshipsUseCase(
           repository: relationshipRepository,
         ),
