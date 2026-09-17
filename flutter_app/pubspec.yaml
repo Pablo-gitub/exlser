@@ -40,11 +40,11 @@ dependencies:
   fl_chart: ^1.0.0
   share_plus: 11.0.0
   pdf: ^3.11.3
-  drift: ^2.32.0
+  drift: ^2.35.0
   drift_flutter: ^0.3.0
   path_provider: ^2.1.5
-  sqlite3_flutter_libs: ^0.6.0+eol
-  sqlite3: ^3.1.6
+  sqlite3: ^3.5.2
+  sqlparser: ^0.45.0
   sqlite3_web: ^0.5.0
   path: ^1.9.1
   csv: ^8.0.0
@@ -52,7 +52,7 @@ dependencies:
   qr: ^3.0.2
   go_router: ^17.1.0
   flutter_dropzone: ^4.2.1
-  excel_community: ^1.0.9
+  excel_community: ^2.4.0
   flutter_bloc: ^9.1.1
   shared_preferences: ^2.5.3
   desktop_drop: ^0.7.1

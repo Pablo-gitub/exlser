@@ -2940,8 +2940,7 @@ final class $$DatasetsTableReferences
   static MultiTypedResultKey<$DatasetTablesTable, List<DatasetTable>>
       _datasetTablesRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.datasetTables,
-              aliasName: $_aliasNameGenerator(
-                  db.datasets.id, db.datasetTables.datasetId));
+              aliasName: 'datasets__id__dataset_tables__dataset_id');
 
   $$DatasetTablesTableProcessedTableManager get datasetTablesRefs {
     final manager = $$DatasetTablesTableTableManager($_db, $_db.datasetTables)
@@ -2953,10 +2952,9 @@ final class $$DatasetsTableReferences
   }
 
   static MultiTypedResultKey<$DatasetFilesTable, List<DatasetFile>>
-      _datasetFilesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-          db.datasetFiles,
-          aliasName:
-              $_aliasNameGenerator(db.datasets.id, db.datasetFiles.datasetId));
+      _datasetFilesRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.datasetFiles,
+              aliasName: 'datasets__id__dataset_files__dataset_id');
 
   $$DatasetFilesTableProcessedTableManager get datasetFilesRefs {
     final manager = $$DatasetFilesTableTableManager($_db, $_db.datasetFiles)
@@ -2971,8 +2969,7 @@ final class $$DatasetsTableReferences
       List<SavedMultiSheetQuery>> _savedMultiSheetQueriesRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.savedMultiSheetQueries,
-          aliasName: $_aliasNameGenerator(
-              db.datasets.id, db.savedMultiSheetQueries.datasetId));
+          aliasName: 'datasets__id__saved_multi_sheet_queries__dataset_id');
 
   $$SavedMultiSheetQueriesTableProcessedTableManager
       get savedMultiSheetQueriesRefs {
@@ -2990,8 +2987,7 @@ final class $$DatasetsTableReferences
       List<DatasetRelationship>> _datasetRelationshipsRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.datasetRelationships,
-          aliasName: $_aliasNameGenerator(
-              db.datasets.id, db.datasetRelationships.datasetId));
+          aliasName: 'datasets__id__dataset_relationships__dataset_id');
 
   $$DatasetRelationshipsTableProcessedTableManager
       get datasetRelationshipsRefs {
@@ -3342,8 +3338,10 @@ class $$DatasetsTableTableManager extends RootTableManager<
             uiStateJson: uiStateJson,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$DatasetsTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$DatasetsTable, Dataset>(table),
+                    $$DatasetsTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: (
               {datasetTablesRefs = false,
@@ -3463,8 +3461,7 @@ final class $$DatasetTablesTableReferences
       super.$_db, super.$_table, super.$_typedResult);
 
   static $DatasetsTable _datasetIdTable(_$AppDatabase db) =>
-      db.datasets.createAlias(
-          $_aliasNameGenerator(db.datasetTables.datasetId, db.datasets.id));
+      db.datasets.createAlias('dataset_tables__dataset_id__datasets__id');
 
   $$DatasetsTableProcessedTableManager get datasetId {
     final $_column = $_itemColumn<int>('dataset_id')!;
@@ -3480,8 +3477,8 @@ final class $$DatasetTablesTableReferences
   static MultiTypedResultKey<$DatasetColumnsTable, List<DatasetColumn>>
       _datasetColumnsRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.datasetColumns,
-              aliasName: $_aliasNameGenerator(
-                  db.datasetTables.id, db.datasetColumns.datasetTableId));
+              aliasName:
+                  'dataset_tables__id__dataset_columns__dataset_table_id');
 
   $$DatasetColumnsTableProcessedTableManager get datasetColumnsRefs {
     final manager = $$DatasetColumnsTableTableManager($_db, $_db.datasetColumns)
@@ -3744,7 +3741,7 @@ class $$DatasetTablesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$DatasetTablesTable, DatasetTable>(table),
                     $$DatasetTablesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -3844,8 +3841,8 @@ final class $$DatasetColumnsTableReferences
       super.$_db, super.$_table, super.$_typedResult);
 
   static $DatasetTablesTable _datasetTableIdTable(_$AppDatabase db) =>
-      db.datasetTables.createAlias($_aliasNameGenerator(
-          db.datasetColumns.datasetTableId, db.datasetTables.id));
+      db.datasetTables
+          .createAlias('dataset_columns__dataset_table_id__dataset_tables__id');
 
   $$DatasetTablesTableProcessedTableManager get datasetTableId {
     final $_column = $_itemColumn<int>('dataset_table_id')!;
@@ -4080,7 +4077,7 @@ class $$DatasetColumnsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$DatasetColumnsTable, DatasetColumn>(table),
                     $$DatasetColumnsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -4161,8 +4158,7 @@ final class $$DatasetFilesTableReferences
   $$DatasetFilesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $DatasetsTable _datasetIdTable(_$AppDatabase db) =>
-      db.datasets.createAlias(
-          $_aliasNameGenerator(db.datasetFiles.datasetId, db.datasets.id));
+      db.datasets.createAlias('dataset_files__dataset_id__datasets__id');
 
   $$DatasetsTableProcessedTableManager get datasetId {
     final $_column = $_itemColumn<int>('dataset_id')!;
@@ -4381,7 +4377,7 @@ class $$DatasetFilesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$DatasetFilesTable, DatasetFile>(table),
                     $$DatasetFilesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -4463,9 +4459,8 @@ final class $$SavedMultiSheetQueriesTableReferences extends BaseReferences<
   $$SavedMultiSheetQueriesTableReferences(
       super.$_db, super.$_table, super.$_typedResult);
 
-  static $DatasetsTable _datasetIdTable(_$AppDatabase db) =>
-      db.datasets.createAlias($_aliasNameGenerator(
-          db.savedMultiSheetQueries.datasetId, db.datasets.id));
+  static $DatasetsTable _datasetIdTable(_$AppDatabase db) => db.datasets
+      .createAlias('saved_multi_sheet_queries__dataset_id__datasets__id');
 
   $$DatasetsTableProcessedTableManager get datasetId {
     final $_column = $_itemColumn<int>('dataset_id')!;
@@ -4703,7 +4698,8 @@ class $$SavedMultiSheetQueriesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$SavedMultiSheetQueriesTable,
+                        SavedMultiSheetQuery>(table),
                     $$SavedMultiSheetQueriesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -4799,9 +4795,8 @@ final class $$DatasetRelationshipsTableReferences extends BaseReferences<
   $$DatasetRelationshipsTableReferences(
       super.$_db, super.$_table, super.$_typedResult);
 
-  static $DatasetsTable _datasetIdTable(_$AppDatabase db) =>
-      db.datasets.createAlias($_aliasNameGenerator(
-          db.datasetRelationships.datasetId, db.datasets.id));
+  static $DatasetsTable _datasetIdTable(_$AppDatabase db) => db.datasets
+      .createAlias('dataset_relationships__dataset_id__datasets__id');
 
   $$DatasetsTableProcessedTableManager get datasetId {
     final $_column = $_itemColumn<int>('dataset_id')!;
@@ -5125,7 +5120,8 @@ class $$DatasetRelationshipsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$DatasetRelationshipsTable,
+                        DatasetRelationship>(table),
                     $$DatasetRelationshipsTableReferences(db, table, e)
                   ))
               .toList(),
