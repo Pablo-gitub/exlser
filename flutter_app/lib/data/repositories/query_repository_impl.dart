@@ -1,4 +1,5 @@
 import 'package:exlser/core/normalizers/sql_name_sanitizer.dart';
+import 'package:exlser/core/sql/read_only_sql_guard.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/repositories/query_repository.dart';
 import 'package:exlser/data/datasources/drift_datasource.dart';
@@ -10,9 +11,13 @@ import 'package:exlser/data/datasources/drift_datasource.dart';
 
 class QueryRepositoryImpl implements QueryRepository {
   final DriftDatasource datasource;
+  final ReadOnlySqlGuard _readOnlyGuard;
   static const int _batchSize = 200;
 
-  QueryRepositoryImpl(this.datasource);
+  QueryRepositoryImpl(
+    this.datasource, {
+    ReadOnlySqlGuard readOnlyGuard = const ReadOnlySqlGuard(),
+  }) : _readOnlyGuard = readOnlyGuard;
 
   /// Retrieves rows from a dataset table with optional pagination.
   ///
@@ -430,7 +435,8 @@ class QueryRepositoryImpl implements QueryRepository {
   /// - Exception if SQL is empty
   ///
   /// Notes:
-  /// - Use carefully (bypasses abstraction safety)
+  /// - Every statement is checked to be a single read-only SELECT before it
+  ///   reaches the database, so a caller cannot write through this method
   /// - Prefer structured methods when possible
   @override
   Future<List<Map<String, dynamic>>> executeRawQuery(
@@ -442,6 +448,8 @@ class QueryRepositoryImpl implements QueryRepository {
     if (trimmedSql.isEmpty) {
       throw Exception('SQL query cannot be empty');
     }
+
+    _readOnlyGuard.assertSingleSelect(trimmedSql);
 
     final result = await datasource.query(
       trimmedSql,

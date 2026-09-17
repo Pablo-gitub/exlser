@@ -1,3 +1,5 @@
+import 'package:exlser/core/sql/sql_statement_analyzer.dart';
+
 class ReadOnlySqlValidation {
   final String originalSql;
   final String normalizedSql;
@@ -19,6 +21,14 @@ class ReadOnlyQueryException implements Exception {
   String toString() => 'ReadOnlyQueryException($code)';
 }
 
+/// The read-only boundary for user-authored SQL.
+///
+/// Accepts a single `SELECT` that reads only the tables the caller allows, and
+/// returns it wrapped in a hard row limit. Validation runs on the parsed
+/// statement rather than on the text: a comma-joined table
+/// (`SELECT * FROM sheet, other_dataset` or `…, sqlite_master`) used to slip past
+/// the `FROM`/`JOIN` regular expression, and scanning raw text for blocked
+/// keywords rejected safe queries such as `WHERE note = 'update'`.
 class ReadOnlySqlValidator {
   static const String emptyCode = 'empty';
   static const String notSelectCode = 'not_select';
@@ -26,32 +36,13 @@ class ReadOnlySqlValidator {
   static const String multipleStatementsCode = 'multiple_statements';
   static const String unknownTableCode = 'unknown_table';
   static const String invalidLimitCode = 'invalid_limit';
+  static const String invalidSyntaxCode = 'invalid_syntax';
 
-  static const Set<String> _blockedKeywords = {
-    'insert',
-    'update',
-    'delete',
-    'drop',
-    'alter',
-    'create',
-    'replace',
-    'attach',
-    'detach',
-    'pragma',
-    'vacuum',
-    'reindex',
-    'analyze',
-    'begin',
-    'commit',
-    'rollback',
-    'savepoint',
-    'release',
-    'grant',
-    'revoke',
-    'truncate',
-  };
+  final SqlStatementAnalyzer analyzer;
 
-  const ReadOnlySqlValidator();
+  const ReadOnlySqlValidator({
+    this.analyzer = const SqlStatementAnalyzer(),
+  });
 
   ReadOnlySqlValidation validate({
     required String sql,
@@ -79,31 +70,53 @@ class ReadOnlySqlValidator {
       throw const ReadOnlyQueryException(invalidLimitCode);
     }
 
-    if (trimmedSql.contains(';') ||
-        trimmedSql.contains('--') ||
-        trimmedSql.contains('/*') ||
-        trimmedSql.contains('*/')) {
-      throw const ReadOnlyQueryException(multipleStatementsCode);
-    }
-
-    if (!RegExp(r'^\s*select\b', caseSensitive: false).hasMatch(trimmedSql)) {
-      throw const ReadOnlyQueryException(notSelectCode);
-    }
-
-    for (final keyword in _blockedKeywords) {
-      if (RegExp('\\b$keyword\\b', caseSensitive: false).hasMatch(trimmedSql)) {
-        throw const ReadOnlyQueryException(unsafeStatementCode);
-      }
-    }
-
     final normalizedSql = _replaceActiveSheetAlias(
       trimmedSql,
       activeTableName: trimmedActiveTable,
     );
-    final referencedTables = _referencedTables(normalizedSql);
 
-    for (final tableName in referencedTables) {
-      if (!safeAllowedTableNames.contains(tableName)) {
+    final analysis = analyzer.analyze(normalizedSql);
+
+    if (analysis.hasMultipleStatements) {
+      throw const ReadOnlyQueryException(multipleStatementsCode);
+    }
+
+    switch (analysis.kind) {
+      case SqlStatementKind.invalid:
+        throw const ReadOnlyQueryException(invalidSyntaxCode);
+      case SqlStatementKind.write:
+        throw const ReadOnlyQueryException(unsafeStatementCode);
+      case SqlStatementKind.other:
+        throw const ReadOnlyQueryException(notSelectCode);
+      case SqlStatementKind.select:
+        break;
+    }
+
+    // A table-valued function is a source we cannot allowlist (pragma_table_info
+    // and friends expose the whole schema), so none is accepted.
+    if (analysis.tableValuedFunctions.isNotEmpty) {
+      throw const ReadOnlyQueryException(unsafeStatementCode);
+    }
+
+    for (final function in analysis.functionNames) {
+      if (SqlStatementAnalyzer.dangerousFunctions.contains(function)) {
+        throw const ReadOnlyQueryException(unsafeStatementCode);
+      }
+    }
+
+    final lowerCasedAllowed = {
+      for (final name in safeAllowedTableNames) name.toLowerCase(),
+    };
+    final lowerCasedCtes = {
+      for (final name in analysis.cteNames) name.toLowerCase(),
+    };
+
+    for (final table in analysis.referencedTables) {
+      final normalized = table.trim().toLowerCase();
+      // SQLite identifiers are case-insensitive, and a name introduced by the
+      // statement's own WITH clause is not a dataset table.
+      if (lowerCasedCtes.contains(normalized)) continue;
+      if (!lowerCasedAllowed.contains(normalized)) {
         throw const ReadOnlyQueryException(unknownTableCode);
       }
     }
@@ -128,29 +141,5 @@ class ReadOnlySqlValidator {
           RegExp(r'\b(from|join)\s+"sheet"', caseSensitive: false),
           (match) => '${match.group(1)} $activeTableName',
         );
-  }
-
-  Set<String> _referencedTables(String sql) {
-    final tablePattern = RegExp(
-      r'\b(?:from|join)\s+("[^"]+"|`[^`]+`|\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*)',
-      caseSensitive: false,
-    );
-
-    return {
-      for (final match in tablePattern.allMatches(sql))
-        _unquoteIdentifier(match.group(1) ?? ''),
-    };
-  }
-
-  String _unquoteIdentifier(String value) {
-    final trimmed = value.trim();
-    if (trimmed.length >= 2 &&
-        ((trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-            (trimmed.startsWith('`') && trimmed.endsWith('`')) ||
-            (trimmed.startsWith('[') && trimmed.endsWith(']')))) {
-      return trimmed.substring(1, trimmed.length - 1);
-    }
-
-    return trimmed;
   }
 }

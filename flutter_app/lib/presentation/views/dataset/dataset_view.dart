@@ -1919,6 +1919,8 @@ String _readOnlyQueryErrorMessage(String code) {
       return AppStrings.datasetWorkspaceQueryErrorUnsafe;
     case 'multiple_statements':
       return AppStrings.datasetWorkspaceQueryErrorMultiple;
+    case 'invalid_syntax':
+      return AppStrings.datasetWorkspaceQueryErrorInvalidSyntax;
     case 'unknown_table':
       return AppStrings.datasetWorkspaceQueryErrorUnknownTable;
     case 'invalid_limit':

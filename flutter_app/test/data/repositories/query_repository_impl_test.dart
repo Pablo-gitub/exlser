@@ -1,5 +1,6 @@
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
+import 'package:exlser/core/sql/read_only_sql_guard.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -727,6 +728,27 @@ void main() {
   });
 
   group('executeRawQuery', () {
+    test('should refuse a statement that is not a single read-only select',
+        () async {
+      for (final sql in [
+        'DELETE FROM test_table',
+        'DROP TABLE test_table',
+        'SELECT 1; DROP TABLE test_table',
+        "SELECT * FROM pragma_table_info('test_table')",
+      ]) {
+        await expectLater(
+          repository.executeRawQuery(sql, null),
+          throwsA(isA<UnsafeRawQueryException>()),
+          reason: sql,
+        );
+      }
+
+      verifyNever(() => datasource.query(
+            any(),
+            arguments: any(named: 'arguments'),
+          ));
+    });
+
     test('should execute raw query and return result', () async {
       /// ---------------- ARRANGE ----------------
 
