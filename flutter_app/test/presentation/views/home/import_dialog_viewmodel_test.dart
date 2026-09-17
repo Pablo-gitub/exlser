@@ -397,6 +397,16 @@ void main() {
           viewModel.tableNameErrorFor(1), AppStrings.importTableNameDuplicate);
       expect(viewModel.canContinue, isFalse);
 
+      // Names that differ only by punctuation collapse to the same SQL
+      // identifier, so the wizard must reject them before CREATE TABLE does.
+      viewModel.updateTableName(sheetIndex: 0, name: 'TableB!');
+      expect(viewModel.hasValidTableNames, isFalse);
+      expect(
+          viewModel.tableNameErrorFor(0), AppStrings.importTableNameDuplicate);
+      expect(
+          viewModel.tableNameErrorFor(1), AppStrings.importTableNameDuplicate);
+      expect(viewModel.canContinue, isFalse);
+
       // Fixed unique name
       viewModel.updateTableName(sheetIndex: 0, name: 'TableA_Renamed');
       expect(viewModel.hasValidTableNames, isTrue);

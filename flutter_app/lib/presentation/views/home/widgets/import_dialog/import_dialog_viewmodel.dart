@@ -251,13 +251,21 @@ class ImportDialogViewModel extends ChangeNotifier {
     if (prepared == null || !prepared.hasSheets) return true;
 
     final names = <String>{};
+    final sqlNames = <String>{};
     for (var i = 0; i < prepared.sheets.length; i++) {
       final name = tableNameFor(i).trim();
       if (name.isEmpty) return false;
-      if (names.contains(name.toLowerCase())) return false;
-      names.add(name.toLowerCase());
+      if (!names.add(name.toLowerCase())) return false;
+      if (!sqlNames.add(_sqlNameFor(i))) return false;
     }
     return true;
+  }
+
+  /// The identifier a table name will end up as. Two different labels can map to
+  /// the same one ("Sales 2024" and "Sales-2024"), which used to pass the wizard
+  /// and only fail at CREATE TABLE time.
+  String _sqlNameFor(int sheetIndex) {
+    return SqlNameSanitizer.sanitizeTableName(tableNameFor(sheetIndex).trim());
   }
 
   String? tableNameErrorFor(int sheetIndex) {
@@ -267,9 +275,11 @@ class ImportDialogViewModel extends ChangeNotifier {
     }
     final prepared = _preparedImportResult;
     if (prepared != null) {
+      final sqlName = _sqlNameFor(sheetIndex);
       for (var i = 0; i < prepared.sheets.length; i++) {
-        if (i != sheetIndex &&
-            tableNameFor(i).trim().toLowerCase() == name.toLowerCase()) {
+        if (i == sheetIndex) continue;
+        if (tableNameFor(i).trim().toLowerCase() == name.toLowerCase() ||
+            _sqlNameFor(i) == sqlName) {
           return AppStrings.importTableNameDuplicate;
         }
       }

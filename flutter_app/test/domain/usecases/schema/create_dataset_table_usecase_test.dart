@@ -28,6 +28,10 @@ void main() {
       useCase = CreateDatasetTableUseCase(
         repository: repository,
       );
+
+      /// The use case reads the dataset's tables to keep names unique.
+      when(() => repository.getTablesForDataset(any()))
+          .thenAnswer((_) async => []);
     });
 
     test(
@@ -125,12 +129,86 @@ void main() {
       },
     );
 
-    /// TODO:
-    /// Add edge case tests:
-    /// - invalid SQL characters in sheet name
-    /// - SQL reserved keywords
-    /// - duplicated sheet names
-    /// - very long sheet names
-    /// - unicode sheet names
+    test('suffixes a name that collides with an existing table', () async {
+      when(() => repository.getTablesForDataset(10)).thenAnswer(
+        (_) async => [
+          DatasetTable(
+            id: 1,
+            datasetId: 10,
+            sheetNameOriginal: 'Sales 2024',
+            sqlTableName: 'ds_10_sales_2024',
+            rowCount: 10,
+            colCount: 2,
+          ),
+        ],
+      );
+      when(() => repository.createDatasetTable(any())).thenAnswer(
+        (invocation) async =>
+            (invocation.positionalArguments.first as DatasetTable)
+                .copyWith(id: 2),
+      );
+
+      // Sanitizes to the same identifier as the stored one.
+      final result = await useCase(
+        datasetId: 10,
+        sheetName: 'Sales-2024',
+        rowCount: 5,
+        colCount: 2,
+      );
+
+      expect(result.sqlTableName, 'ds_10_sales_2024_1');
+      expect(result.sheetNameOriginal, 'Sales-2024');
+    });
+
+    test('strips invalid characters and keeps the name usable unquoted',
+        () async {
+      when(() => repository.createDatasetTable(any())).thenAnswer(
+        (invocation) async =>
+            (invocation.positionalArguments.first as DatasetTable)
+                .copyWith(id: 1),
+      );
+
+      final result = await useCase(
+        datasetId: 3,
+        sheetName: 'Prezzi (€) "2024"; DROP TABLE x--',
+        rowCount: 1,
+        colCount: 1,
+      );
+
+      expect(result.sqlTableName, matches(RegExp(r'^[a-z][a-z0-9_]*$')));
+      expect(result.sqlTableName, startsWith('ds_3_prezzi'));
+    });
+
+    test('keeps a unicode or emoji-only sheet name addressable', () async {
+      when(() => repository.createDatasetTable(any())).thenAnswer(
+        (invocation) async =>
+            (invocation.positionalArguments.first as DatasetTable)
+                .copyWith(id: 1),
+      );
+
+      final result = await useCase(
+        datasetId: 4,
+        sheetName: '📊',
+        rowCount: 1,
+        colCount: 1,
+      );
+
+      expect(result.sqlTableName, 'ds_4');
+      expect(result.sheetNameOriginal, '📊');
+    });
+
+    test('rejects an empty sheet name before touching the repository',
+        () async {
+      expect(
+        () => useCase(
+          datasetId: 1,
+          sheetName: '   ',
+          rowCount: 1,
+          colCount: 1,
+        ),
+        throwsA(isA<Exception>()),
+      );
+      verifyNever(() => repository.createDatasetTable(any()));
+    });
   });
 }

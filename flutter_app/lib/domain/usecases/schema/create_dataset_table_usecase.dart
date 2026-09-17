@@ -1,4 +1,4 @@
-import 'package:exlser/data/adapters/sanitizers/sql_name_sanitizer.dart';
+import 'package:exlser/core/normalizers/sql_name_sanitizer.dart';
 import 'package:exlser/domain/entities/dataset_table.dart';
 import 'package:exlser/domain/repositories/schema_repository.dart';
 
@@ -16,7 +16,7 @@ import 'package:exlser/domain/repositories/schema_repository.dart';
 ///
 /// Expected flow:
 /// 1. Receive datasetId and sheet name
-/// 2. Generate SQL-safe table name
+/// 2. Generate SQL-safe table name, unique within the dataset
 /// 3. Create DatasetTable entity
 /// 4. Persist metadata using repository
 /// 5. Return created DatasetTable
@@ -43,8 +43,17 @@ class CreateDatasetTableUseCase {
       );
     }
 
-    final sqlTableName = SqlNameSanitizer.sanitize(
+    // Two sheet names can sanitize to the same identifier ("Sales 2024" and
+    // "Sales-2024" both become sales_2024), so the names already taken by this
+    // dataset are passed in and the sanitizer suffixes a collision instead of
+    // producing a duplicate physical table.
+    final existingTables = await repository.getTablesForDataset(datasetId);
+    final sqlTableName = SqlNameSanitizer.sanitizeTableName(
       'ds_${datasetId}_$trimmedSheetName',
+      existingNames: [
+        for (final table in existingTables)
+          if (table.sqlTableName.trim().isNotEmpty) table.sqlTableName.trim(),
+      ],
     );
 
     final table = DatasetTable(
