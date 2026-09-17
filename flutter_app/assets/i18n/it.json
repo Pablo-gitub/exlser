@@ -159,6 +159,7 @@
                     "not_select": "Sono permesse solo query SELECT.",
                     "unsafe_statement": "Questa query contiene un comando SQL bloccato.",
                     "multiple_statements": "Esegui una sola query SELECT alla volta, senza commenti o punto e virgola.",
+                    "invalid_syntax": "Controlla la sintassi della query.",
                     "unknown_table": "Usa solo tabelle che appartengono a questo dataset.",
                     "invalid_limit": "Inserisci un limite righe positivo.",
                     "execution_failed": "Impossibile eseguire questa query."
@@ -464,6 +465,7 @@
             "empty_file_bytes": "Il file selezionato è vuoto o non disponibile. Seleziona di nuovo il file.",
             "no_extension": "Il file selezionato non ha estensione. Usa un file CSV o XLSX.",
             "unsupported_format": "Questo formato file non è supportato. Usa un file CSV o XLSX. I file XLS legacy non sono ancora supportati.",
+            "file_too_large": "Questo file è troppo grande per essere importato (limite: {limit}). Dividilo in file più piccoli.",
             "parser_not_found": "L'app non può ancora leggere questo tipo di file. Usa un file CSV o XLSX.",
             "parsing_failed": "Il file non può essere letto. Verifica che non sia danneggiato o protetto da password.",
             "no_sheets": "Nel file non sono stati trovati fogli leggibili.",

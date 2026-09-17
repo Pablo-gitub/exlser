@@ -280,6 +280,8 @@ class AppStrings {
       'dataset.workspace.query.errors.unsafe_statement';
   static const String datasetWorkspaceQueryErrorMultiple =
       'dataset.workspace.query.errors.multiple_statements';
+  static const String datasetWorkspaceQueryErrorInvalidSyntax =
+      'dataset.workspace.query.errors.invalid_syntax';
   static const String datasetWorkspaceQueryErrorUnknownTable =
       'dataset.workspace.query.errors.unknown_table';
   static const String datasetWorkspaceQueryErrorInvalidLimit =
@@ -479,6 +481,7 @@ class AppStrings {
   static const String importNoExtension = 'import.error.no_extension';
   static const String importUnsupportedFormat =
       'import.error.unsupported_format';
+  static const String importFileTooLarge = 'import.error.file_too_large';
   static const String importParserNotFound = 'import.error.parser_not_found';
   static const String importParsingFailed = 'import.error.parsing_failed';
   static const String importEmptySheets = 'import.error.no_sheets';

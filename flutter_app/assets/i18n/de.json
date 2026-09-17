@@ -159,6 +159,7 @@
                     "not_select": "Es sind nur SELECT-Abfragen erlaubt.",
                     "unsafe_statement": "Diese Abfrage enthält einen blockierten SQL-Befehl.",
                     "multiple_statements": "Führen Sie jeweils nur eine SELECT-Abfrage ohne Kommentare oder Semikolons aus.",
+                    "invalid_syntax": "Prüfe die Syntax der Abfrage.",
                     "unknown_table": "Verwenden Sie nur Tabellen, die zu diesem Dataset gehören.",
                     "invalid_limit": "Geben Sie ein positives Zeilenlimit ein.",
                     "execution_failed": "Diese Abfrage konnte nicht ausgeführt werden."
@@ -464,6 +465,7 @@
             "empty_file_bytes": "Die ausgewählte Datei ist leer oder nicht verfügbar. Wählen Sie die Datei erneut aus.",
             "no_extension": "Die ausgewählte Datei hat keine Erweiterung. Verwenden Sie eine CSV- oder XLSX-Datei.",
             "unsupported_format": "Dieses Dateiformat wird nicht unterstützt. Verwenden Sie eine CSV- oder XLSX-Datei. Ältere XLS-Dateien werden noch nicht unterstützt.",
+            "file_too_large": "Diese Datei ist zu groß für den Import (Grenze: {limit}). Teile sie in kleinere Dateien auf.",
             "parser_not_found": "Die App kann diesen Dateityp noch nicht lesen. Verwenden Sie eine CSV- oder XLSX-Datei.",
             "parsing_failed": "Die Datei konnte nicht gelesen werden. Prüfen Sie, ob sie beschädigt oder passwortgeschützt ist.",
             "no_sheets": "In der Datei wurden keine lesbaren Blätter gefunden.",
