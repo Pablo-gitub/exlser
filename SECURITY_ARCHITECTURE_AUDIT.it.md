@@ -2,7 +2,8 @@
 
 **Data:** 2026-09-17
 **Branch analizzato:** `feature/multi-table-detection` (15 commit sopra `main`, +8793 righe)
-**Baseline verificata:** `flutter analyze` pulito · 687 test verdi · i18n 386 chiavi × 9 locale, 0 mancanti ·
+**Stato:** §1 e §2 chiuse (vedi §5 per le verifiche); §3 aperta.
+**Baseline all'apertura dell'audit:** `flutter analyze` pulito · 687 test verdi · i18n 386 chiavi × 9 locale, 0 mancanti ·
 delete chain completa (include `dataset_relationships`) · `schemaVersion 4` con migrazione corretta ·
 nessun permesso `INTERNET` nel manifest di release · `npm audit` landing page: 0 vulnerabilità
 
@@ -96,62 +97,90 @@ Legenda priorità: **P0** blocca il merge · **P1** da chiudere prima della pros
 
 ## 2. Sicurezza
 
-- [ ] **P0 — Bypass del `ReadOnlySqlValidator` con join a virgola (dimostrato empiricamente).**
-      Entrambe queste query superano la validazione:
-      ```sql
-      SELECT * FROM sheet, ds_99_secret
-      SELECT name, sql FROM sheet, sqlite_master
-      ```
-      `_referencedTables` riconosce solo identificatori dopo `FROM`/`JOIN`
-      (`read_only_sql_validator.dart:131`): si leggono le tabelle di altri dataset e l'intero schema
-      del database. Impatto reale locale limitato (single-user), ma è il confine di sicurezza
-      dichiarato in AGENTS.md.
-      *Fix:* validare con `sqlparser` (già dipendenza transitiva di drift) invece che a regex.
+**Chiusi 8 su 9 il 2026-09-17** (il nono, gli aggiornamenti major di framework, è parzialmente
+aperto per scelta: vedi in fondo). Analyzer pulito, **741 test** verdi, i18n 393 chiavi × 9 locale.
 
-- [ ] **P1 — Denylist di keyword sull'SQL grezzo: falsi positivi e sicurezza apparente.**
-      `SELECT * FROM sheet WHERE note = 'update'` viene rifiutato (verificato); idem `--` dentro una
-      stringa. *Fix:* rimuovere i literal prima dello scan keyword, o affidarsi al parser.
+- [x] **P0 — Bypass del `ReadOnlySqlValidator` con join a virgola.**
+      La validazione non lavora più sul testo ma sull'**AST**: nuovo
+      `core/sql/sql_statement_analyzer.dart` su `sqlparser` (promosso a dipendenza diretta, era già
+      transitivo di drift) che restituisce tipo di statement, tabelle referenziate — comprese quelle
+      raggiunte via lista con virgola, subquery e CTE — funzioni e table-valued function.
+      Le due query dell'audit ora sono rifiutate con `unknown_table`, e con loro
+      `sqlite_master`, `pragma_table_info(...)` e `load_extension(...)`.
+      *Test:* 22 casi in `read_only_sql_validator_test.dart` (prima non esisteva un test diretto).
 
-- [ ] **P1 — `executeRawQuery` non valida nulla.**
-      `query_repository_impl.dart:431` è un passthrough usato da 6 call site (analytics, sampling
-      relazioni, preview multi-sheet): il "choke point unico" esiste solo se il chiamante si ricorda
-      di passare dal validator. *Fix:* rendere il passthrough privato e imporre la validazione in ingresso.
+- [x] **P1 — Denylist di keyword: falsi positivi eliminati.**
+      Non c'è più nessuno scan testuale: `WHERE note = 'update'`, un literal con `;` o con `--`, e un
+      commento finale sono query legittime e passano. Restano rifiutati DML, DDL, `PRAGMA`,
+      transazioni e statement multipli, ma per **struttura**, non per stringa.
+      Nuovo codice d'errore `invalid_syntax` (9 locale + mappatura UI) per distinguere un errore di
+      sintassi da un comando bloccato.
+      **Effetto collaterale voluto:** le CTE read-only (`WITH x AS (SELECT …) SELECT * FROM x`) ora
+      funzionano — il corpo resta comunque soggetto all'allowlist.
 
-- [ ] **P1 — Identificatori interpolati senza quoting.**
-      `SELECT DISTINCT $col FROM $table`, `SELECT $fn($col) FROM $table`
-      (`query_repository_impl.dart:244`, `:312`) e `CREATE TABLE $tableName (...)`
-      (`dynamic_table_builder.dart:39`). Tutta la sicurezza poggia sui sanitizer.
-      *Fix:* quotare sempre (`"name"`) come difesa in profondità.
+- [x] **P1 — `executeRawQuery` non valida nulla.**
+      Nuovo `core/sql/read_only_sql_guard.dart`: ogni SQL grezzo che passa dal repository deve essere
+      **un singolo SELECT**, altrimenti `UnsafeRawQueryException` prima di toccare il database. I 6
+      call site interni (analytics, filtri, sampling relazioni, preview multi-sheet) passano senza
+      modifiche — il che è anche la prova che il vincolo non è arbitrario.
+      *Test:* 6 casi sul guard + un test sul repository che verifica che il datasource non venga
+      nemmeno raggiunto.
 
-- [ ] **P1 — Due classi `SqlNameSanitizer` diverse, e i nomi tabella usano quella debole.**
-      `core/normalizers/sql_name_sanitizer.dart` gestisce cifra iniziale, dedup e 30 keyword;
-      `data/adapters/sanitizers/sql_name_sanitizer.dart` no — ed è quella importata da
-      `create_dataset_table_usecase.dart:1`. Inoltre la wizard valida i duplicati sulle **label**
-      (`import_dialog_viewmodel.dart:263`), non sul nome SQL finale: "Vendite 2024" e "Vendite-2024"
-      passano la UI e collidono entrambe su `ds_N_vendite_2024` → import che fallisce in transazione.
-      *Fix:* una sola classe, con dedup sul nome SQL generato.
+- [x] **P1 — Identificatori interpolati senza quoting.**
+      Nuovo `SqlNameSanitizer.quote()` usato in tutte le istruzioni dinamiche: tabelle e colonne in
+      `query_repository_impl` (fetch, filtri, count, distinct, aggregati, INSERT), `CREATE TABLE` in
+      `dynamic_table_builder`, `WHERE`/`ORDER BY`/`COUNT` in `apply_filters_usecase`.
+      23 asserzioni di test aggiornate alla forma quotata.
 
-- [ ] **P1 — Nessun isolate e nessun limite di dimensione file.**
-      `compute(` / `Isolate.run`: 0 occorrenze in `lib/`. Parsing, boundary detection, type inference
-      e mapping righe girano sull'isolate UI, con l'intero CSV decodificato in memoria
-      (`csv_parser.dart:68`): freeze e OOM su file grandi, e sul web blocca l'unico thread.
+- [x] **P1 — Due `SqlNameSanitizer`.**
+      Cancellata la classe debole in `data/adapters/sanitizers/` (e il suo test): resta solo quella in
+      `core/normalizers/`. `CreateDatasetTableUseCase` ora usa quella — il che chiude anche una delle
+      violazioni di layer `domain → data` — e le passa i nomi già presenti nel dataset, così due fogli
+      che sanificano allo stesso identificatore producono `..._1` invece di collidere al CREATE TABLE.
+      La wizard valida i duplicati anche sul **nome SQL**, non solo sull'etichetta.
+      *Test:* 4 nuovi casi sul use case (collisione, caratteri invalidi, unicode, nome vuoto), più il
+      caso di collisione nella wizard. Chiusi i TODO che erano rimasti nel test file.
 
-- [ ] **P1 — `_recursiveCut` senza limite di profondità.**
-      `table_boundary_detector.dart:298`, ricorsione a `:420` e `:438`: un foglio con righe vuote
-      alternate (pattern comune negli export) porta la profondità a ~N/2 → stack overflow.
-      *Fix:* worklist esplicita + cap sul numero di blocchi rilevati.
+- [x] **P1 — Parsing sul thread UI e nessun limite di dimensione.**
+      CSV ed Excel ora fanno il lavoro pesante in un isolate (`compute`: decodifica, unzip, XML,
+      boundary detection), con entry point top-level e payload immutabile; sul web, che non ha
+      isolate, `compute` esegue inline come prima. Aggiunto un limite di **256 MiB** con
+      `FileTooLargeException`, controllato prima di risolvere il parser, con messaggio localizzato in
+      9 lingue che riporta il limite.
+      *Test:* 3 casi sul limite; i test dei parser girano attraverso `compute` con fixture binarie reali.
+      **Resta fuori** (dichiarato): l'inferenza di schema e il mapping delle righe in
+      `ImportDataService`/`CreateDatasetService` girano ancora sull'isolate UI. Spostarli richiede un
+      seam iniettabile perché i test mockano `ParserFactory` e `InferSchemaUseCase`, e gli oggetti
+      mockati non sono inviabili a un isolate — va progettato, non improvvisato.
 
-- [ ] **P2 — Dipendenze indietro dove conta.**
-      `sqlite3_flutter_libs ^0.6.0+eol` (linea **EOL**: nessun fix CVE sulla lib nativa) e
-      `excel_community 1.0.9` vs 2.4.0 — è il parser che macina file non fidati, cioè la superficie
-      d'attacco principale. Poi `file_picker 10→13`, `flutter_riverpod 2.6→3.4`, `go_router 17→18`,
-      `share_plus 11→13`, `sqlite3_web 0.5→0.9.4`, `sqlite3 3.1.6→3.5.2`.
+- [x] **P1 — `_recursiveCut` senza limite di profondità.**
+      Sostituita da un worklist esplicito (`_cutIntoBlocks`) con `_trim` e `_findWidestGutter`
+      separati, ordine di lettura preservato e tetto di **200 blocchi** per foglio: esaurito il
+      budget i box rimanenti vengono emessi interi invece di essere spezzati, senza perdere contenuto.
+      *Test:* una griglia da 2500 righe alternate contenuto/vuoto e una diagonale sparsa 600×600.
 
-- [ ] **P2 — La CI non fa da gate.**
-      `dart.yml` è solo `workflow_dispatch`; gli altri workflow scattano solo su tag. Analyzer e test
-      non girano su push/PR: la regola "verdi prima di `main`" è affidata alla disciplina manuale.
+- [x] **P2 — La CI non fa da gate.**
+      Nuovo `.github/workflows/ci.yml` su **push e pull request**: job Flutter (`pub get`, format
+      informativo, `analyze`, `test`) e job landing page (`npm ci`, `build`, `npm audit --audit-level=high`),
+      con `concurrency` per annullare i run sovrapposti.
+      Nota: `dart.yml` non è una CI Dart — è una build IPA iOS con il nome sbagliato; conviene
+      rinominarla (non l'ho fatto: si perde lo storico dei run nella UI di Actions).
 
----
+- [~] **P2 — Dipendenze indietro — chiuso a metà, per scelta.**
+      **Fatto e verificato** (analyzer pulito, 741 test verdi):
+      86 pacchetti aggiornati dentro i vincoli esistenti; `drift` 2.32 → **2.35** con codegen
+      rigenerato; `sqlparser` → 0.45; **`sqlite3` 3.1.6 → 3.5.2** (e vincolo alzato a `^3.5.2`, così
+      non può risolvere più in basso); **`excel_community` 1.0.9 → 2.4.0** — il major che conta,
+      perché è il parser dei file non fidati, validato dai test con fixture `.xlsx` binarie reali;
+      rimosso `sqlite3_flutter_libs` dal pubspec: la `0.6.0+eol` è un pacchetto **vuoto** di
+      deprecazione (il nativo arriva da `sqlite3` 3.x), e resta comunque pinnata come transitiva da
+      `drift_flutter`, quindi i vecchi script di build restano esclusi.
+      **Lasciati aperti, con motivo:** `flutter_riverpod` 2.6 → 3.4, `go_router` 17 → 18,
+      `file_picker` 10 → 13, `share_plus` 11 → 13, `desktop_drop` 0.7 → 0.8 sono major che toccano
+      wiring, navigazione e canali di piattaforma: la suite non copre l'interazione reale e da qui non
+      posso provare l'app su Android/desktop. `sqlite3_web` 0.5 → 0.9.4 richiede anche di rigenerare
+      `web/drift_worker.js` e `web/sqlite3.wasm`, che sono asset committati e vanno scaricati dalla
+      release di drift/sqlite3 e provati sulla demo web.
 
 ## 3. Architettura e manutenibilità
 
@@ -186,11 +215,32 @@ Legenda priorità: **P0** blocca il merge · **P1** da chiudere prima della pros
 ## 4. Ordine di lavoro suggerito
 
 - [x] **Ondata 1 — chiudere la table overview** — fatta il 2026-09-17 (vedi §1).
-- [ ] **Ondata 2 — validator SQL su parser vero** (`sqlparser`) e `executeRawQuery` incapsulato:
-      chiude i tre punti del validator in un colpo e rende reale il confine di sicurezza.
-- [ ] **Ondata 3 — sanitizer unico** con dedup sul nome SQL + quoting degli identificatori.
-- [ ] **Ondata 4 — import fuori dall'UI thread** (isolate), worklist nel detector, limite di
-      dimensione file: è ciò che separa la demo dal prodotto su file reali.
-- [ ] **Ondata 5 — CI su push/PR**, così le ondate 1-4 non regrediscono.
-- [ ] **Ondata 6 — manutenzione:** aggiornare `excel_community` e la linea EOL di sqlite3, spezzare
-      `dataset_view`, ridurre i `catch (_)`.
+- [x] **Ondata 2 — validator SQL su parser vero** e `executeRawQuery` guardato — fatta il 2026-09-17.
+- [x] **Ondata 3 — sanitizer unico** con dedup sul nome SQL + quoting degli identificatori — fatta.
+- [x] **Ondata 4 — import fuori dall'UI thread** (isolate nei parser), worklist nel detector, limite
+      di dimensione file — fatta; resta da spostare l'inferenza di schema (vedi §2).
+- [x] **Ondata 5 — CI su push/PR** — fatta (`.github/workflows/ci.yml`).
+- [ ] **Ondata 6 — manutenzione rimasta:** i major di framework (`flutter_riverpod` 3, `go_router` 18,
+      `file_picker` 13, `share_plus` 13, `desktop_drop` 0.8) e lo stack web (`sqlite3_web` 0.9 +
+      asset `drift_worker.js`/`sqlite3.wasm`), che richiedono prove manuali su device; spezzare
+      `dataset_view`; ridurre i 37 `catch (_)`.
+
+---
+
+## 5. Verifiche eseguite il 2026-09-17
+
+- `flutter analyze`: pulito
+- `flutter test`: **741 test** verdi (erano 687 all'apertura dell'audit)
+- i18n: **393 chiavi × 9 locale**, set identici
+- `flutter build web --release`: compila con le dipendenze aggiornate
+- `flutter build linux --debug`: compila e linka il nativo (sqlite3 3.5.2 e il plugin FFI `jni`)
+- `dart run build_runner build --delete-conflicting-outputs`: rigenerato dopo il bump di drift
+- `dart format`: solo sui file toccati, nessuna riscrittura collaterale
+
+Note per chi rilascia:
+- `path_provider_foundation` 2.6 è passata a Dart+FFI, quindi è correttamente **uscita** dal
+  registrant dei plugin macOS/iOS: il diff su `GeneratedPluginRegistrant.swift` è atteso, non una
+  regressione.
+- `jni` compare nei plugin generati di Linux/Windows come plugin FFI transitivo delle dipendenze
+  aggiornate.
+- Android e iOS non sono verificabili da questa sessione: vale una build per ciascuno prima del tag.
