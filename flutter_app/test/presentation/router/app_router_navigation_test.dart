@@ -28,6 +28,7 @@ import 'package:exlser/presentation/views/home/home_view.dart';
 import 'package:exlser/presentation/views/settings/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';

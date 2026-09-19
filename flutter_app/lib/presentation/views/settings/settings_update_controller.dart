@@ -2,6 +2,7 @@ import 'package:exlser/application/services/update_service.dart';
 import 'package:exlser/presentation/providers/service_providers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 enum SettingsUpdateStatus {
   idle,

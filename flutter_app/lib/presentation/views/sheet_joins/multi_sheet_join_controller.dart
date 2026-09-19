@@ -12,7 +12,7 @@ import 'package:exlser/domain/value_objects/multi_sheet_query_spec.dart';
 import 'package:exlser/domain/value_objects/sheet_join_type.dart';
 import 'package:exlser/domain/value_objects/sheet_relationship_suggestion.dart';
 import 'package:exlser/presentation/providers/service_providers.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 /// Explicit lifecycle of the guided join workspace.
 enum MultiSheetJoinStatus {

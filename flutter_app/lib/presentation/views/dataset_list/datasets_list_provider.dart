@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:exlser/presentation/providers/usecase_providers.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import 'datasets_list_viewmodel.dart';
 
