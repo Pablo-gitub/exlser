@@ -87,22 +87,24 @@ class HomeViewModel extends ChangeNotifier {
 
   /// Mobile/Desktop file picker.
   Future<void> pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: const ['csv', 'xlsx'],
-      withData: kIsWeb,
     );
 
-    if (result == null || result.files.isEmpty) {
+    if (file == null) {
       return;
     }
 
-    final file = result.files.first;
+    // A local path is preferred: the parser reads it inside its isolate instead
+    // of carrying the whole file through memory. The web has no path, and
+    // neither does an Android content URI, so those are read as bytes.
+    final path = kIsWeb ? null : file.path;
 
     setSelectedFile(
       name: file.name,
-      path: file.path,
-      bytes: file.bytes,
+      path: path,
+      bytes: path == null ? await file.readAsBytes() : null,
     );
   }
 

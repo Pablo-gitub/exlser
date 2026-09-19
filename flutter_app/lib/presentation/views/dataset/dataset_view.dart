@@ -268,10 +268,11 @@ class _DatasetExportActionState extends State<_DatasetExportAction> {
         );
       } else {
         for (final file in files) {
-          await FilePicker.platform.saveFile(
+          await FilePicker.saveFile(
             dialogTitle: file.fileName,
             fileName: file.fileName,
             bytes: file.bytes,
+            mimeType: file.mimeType,
           );
         }
       }
