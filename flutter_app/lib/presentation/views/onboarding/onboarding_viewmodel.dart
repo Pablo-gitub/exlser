@@ -5,7 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../router/router_notifier.dart';
 
 final onboardingViewModelProvider = Provider.autoDispose<OnboardingViewModel>(
-  (ref) => OnboardingViewModel(ref),
+  // The router notifier is resolved here, while the provider's Ref is alive.
+  // Holding the Ref and reading through it later broke the flow: the view reads
+  // this provider once, without watching it, so the autoDispose Ref is gone by
+  // the time onboarding completes.
+  (ref) => OnboardingViewModel(ref.read(routerNotifierProvider)),
 );
 
 enum OnboardingMediaType {
@@ -32,7 +36,7 @@ class OnboardingPageData {
 /// - expose current page state
 /// - notify router when onboarding completes
 class OnboardingViewModel {
-  final Ref ref;
+  final RouterNotifier router;
 
   late final PageController pageController;
 
@@ -56,7 +60,7 @@ class OnboardingViewModel {
 
   int currentPage = 0;
 
-  OnboardingViewModel(this.ref) {
+  OnboardingViewModel(this.router) {
     pageController = PageController();
   }
 
@@ -91,7 +95,7 @@ class OnboardingViewModel {
   Future<void> completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_completed', true);
-    ref.read(routerNotifierProvider).completeOnboarding();
+    router.completeOnboarding();
   }
 
   void dispose() {
