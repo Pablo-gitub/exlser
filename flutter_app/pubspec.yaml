@@ -45,7 +45,6 @@ dependencies:
   path_provider: ^2.1.5
   sqlite3: ^3.5.2
   sqlparser: ^0.45.0
-  sqlite3_web: ^0.5.0
   path: ^1.9.1
   csv: ^8.0.0
   archive: ^4.0.9
