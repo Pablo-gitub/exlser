@@ -2,7 +2,7 @@
 
 **Data:** 2026-09-17
 **Branch analizzato:** `feature/multi-table-detection` (15 commit sopra `main`, +8793 righe)
-**Stato:** §1 e §2 chiuse (vedi §5 per le verifiche); §3 aperta.
+**Stato:** §1 e §2 chiuse (§5 le verifiche); §3 aperta; §6 due scoperte nuove, una chiusa e una aperta.
 **Baseline all'apertura dell'audit:** `flutter analyze` pulito · 687 test verdi · i18n 386 chiavi × 9 locale, 0 mancanti ·
 delete chain completa (include `dataset_relationships`) · `schemaVersion 4` con migrazione corretta ·
 nessun permesso `INTERNET` nel manifest di release · `npm audit` landing page: 0 vulnerabilità
@@ -97,8 +97,8 @@ Legenda priorità: **P0** blocca il merge · **P1** da chiudere prima della pros
 
 ## 2. Sicurezza
 
-**Chiusi 8 su 9 il 2026-09-17** (il nono, gli aggiornamenti major di framework, è parzialmente
-aperto per scelta: vedi in fondo). Analyzer pulito, **741 test** verdi, i18n 393 chiavi × 9 locale.
+**Tutti e 9 chiusi** (otto il 2026-09-17, il nono — i major di framework — il 2026-09-20).
+Analyzer pulito, **741 test** verdi, i18n 393 chiavi × 9 locale, build web e Linux verificate.
 
 - [x] **P0 — Bypass del `ReadOnlySqlValidator` con join a virgola.**
       La validazione non lavora più sul testo ma sull'**AST**: nuovo
@@ -166,21 +166,30 @@ aperto per scelta: vedi in fondo). Analyzer pulito, **741 test** verdi, i18n 393
       Nota: `dart.yml` non è una CI Dart — è una build IPA iOS con il nome sbagliato; conviene
       rinominarla (non l'ho fatto: si perde lo storico dei run nella UI di Actions).
 
-- [~] **P2 — Dipendenze indietro — chiuso a metà, per scelta.**
-      **Fatto e verificato** (analyzer pulito, 741 test verdi):
-      86 pacchetti aggiornati dentro i vincoli esistenti; `drift` 2.32 → **2.35** con codegen
-      rigenerato; `sqlparser` → 0.45; **`sqlite3` 3.1.6 → 3.5.2** (e vincolo alzato a `^3.5.2`, così
-      non può risolvere più in basso); **`excel_community` 1.0.9 → 2.4.0** — il major che conta,
-      perché è il parser dei file non fidati, validato dai test con fixture `.xlsx` binarie reali;
-      rimosso `sqlite3_flutter_libs` dal pubspec: la `0.6.0+eol` è un pacchetto **vuoto** di
-      deprecazione (il nativo arriva da `sqlite3` 3.x), e resta comunque pinnata come transitiva da
-      `drift_flutter`, quindi i vecchi script di build restano esclusi.
-      **Lasciati aperti, con motivo:** `flutter_riverpod` 2.6 → 3.4, `go_router` 17 → 18,
-      `file_picker` 10 → 13, `share_plus` 11 → 13, `desktop_drop` 0.7 → 0.8 sono major che toccano
-      wiring, navigazione e canali di piattaforma: la suite non copre l'interazione reale e da qui non
-      posso provare l'app su Android/desktop. `sqlite3_web` 0.5 → 0.9.4 richiede anche di rigenerare
-      `web/drift_worker.js` e `web/sqlite3.wasm`, che sono asset committati e vanno scaricati dalla
-      release di drift/sqlite3 e provati sulla demo web.
+- [x] **P2 — Dipendenze indietro — chiuso il 2026-09-20.**
+      **Aggiornati e verificati** (analyzer pulito, 741 test verdi, build web e Linux):
+      86 pacchetti dentro i vincoli; `drift` 2.32 → **2.35** con codegen rigenerato; `sqlparser` → 0.45;
+      **`sqlite3` 3.1.6 → 3.5.2** con vincolo alzato; **`excel_community` 1.0.9 → 2.4.0** (il parser dei
+      file non fidati, validato dalle fixture `.xlsx` binarie); **`file_picker` 10 → 13**, che è una
+      riscrittura federata — `FilePicker.platform` e `FilePickerResult` non esistono più, e il picker
+      non pre-carica i byte: ora si preferisce il path (il parser lo legge nel suo isolate) e si
+      leggono i byte solo quando un path non c'è, cioè sul web e per un content URI Android;
+      **`share_plus` 11 → 13** (già sulla API nuova, nessuna modifica) e **`desktop_drop` 0.7 → 0.8**
+      (richiede KGP ≥ 2.0 sotto AGP 9: il progetto è su AGP 8.11 con Kotlin 2.2);
+      **`flutter_riverpod` 2.6 → 3.4**, dove `StateNotifier`, `StateNotifierProvider`, `StateProvider`
+      e `ChangeNotifierProvider` si spostano in `legacy.dart` e `Override` in `misc.dart`.
+      Rimosso `sqlite3_flutter_libs` (pacchetto vuoto di deprecazione) e **`sqlite3_web`**, che si è
+      rivelato un pin vestigiale: drift 2.35 prende il WASM da `package:sqlite3` 3.x, quindi l'item
+      "aggiornare sqlite3_web" si chiude togliendolo. Rigenerato `web/drift_worker.js` dal sorgente
+      `tool/drift_worker.dart`, così non può più divergere dalla versione di drift in lock.
+      **Resta indietro per un motivo esterno:** `go_router` si ferma a 17.5.0. La 18 tira
+      `material_ui` 1.3 e `cupertino_ui` 1.1, che annotano con `@awaitNotRequired` via
+      `flutter/foundation.dart`; Flutter 3.44.8 non lo riesporta ancora, quindi l'analyzer resta
+      pulito ma **ogni widget test non compila**. Si sblocca con una Flutter più recente, non da qui.
+      **Non migrati di proposito:** i quattro `StateNotifier` restano sulla API legacy; portarli a
+      `Notifier` riscrive controller vivi, non è un aggiornamento di dipendenza.
+
+---
 
 ## 3. Architettura e manutenibilità
 
@@ -227,7 +236,7 @@ aperto per scelta: vedi in fondo). Analyzer pulito, **741 test** verdi, i18n 393
 
 ---
 
-## 5. Verifiche eseguite il 2026-09-17
+## 5. Verifiche eseguite
 
 - `flutter analyze`: pulito
 - `flutter test`: **741 test** verdi (erano 687 all'apertura dell'audit)
@@ -237,6 +246,13 @@ aperto per scelta: vedi in fondo). Analyzer pulito, **741 test** verdi, i18n 393
 - `dart run build_runner build --delete-conflicting-outputs`: rigenerato dopo il bump di drift
 - `dart format`: solo sui file toccati, nessuna riscrittura collaterale
 
+Aggiunte il 2026-09-20, dopo i major di framework:
+
+- `flutter build web --profile` servita in locale e **aperta in un browser reale**: onboarding,
+  home e navigazione funzionano; è così che sono emerse le due voci di §6
+- build web ricostruita anche dal commit `304603e` per isolare cosa fosse regressione e cosa no
+- `flutter build linux --debug` di nuovo verde con file_picker 13, riverpod 3 e il resto
+
 Note per chi rilascia:
 - `path_provider_foundation` 2.6 è passata a Dart+FFI, quindi è correttamente **uscita** dal
   registrant dei plugin macOS/iOS: il diff su `GeneratedPluginRegistrant.swift` è atteso, non una
@@ -244,3 +260,32 @@ Note per chi rilascia:
 - `jni` compare nei plugin generati di Linux/Windows come plugin FFI transitivo delle dipendenze
   aggiornate.
 - Android e iOS non sono verificabili da questa sessione: vale una build per ciascuno prima del tag.
+
+---
+
+## 6. Scoperte durante l'implementazione di §2
+
+- [x] **P1 — Onboarding bloccato al primo avvio (trovato e chiuso il 2026-09-20).**
+      `OnboardingViewModel` teneva il `Ref` di un provider `autoDispose` che la view legge una sola
+      volta senza osservarlo: quel `Ref` era già smaltito quando l'onboarding finiva. Riverpod 2
+      tollerava la lettura tardiva, Riverpod 3 solleva `UnmountedRefException` — e l'eccezione
+      arrivava **dopo** la scrittura del flag "onboarding completato" e **prima** della notifica al
+      router, lasciando l'utente al primo avvio fermo sull'ultima pagina, con il flag già scritto.
+      Risolto iniettando il router alla costruzione. Verificato in browser su profilo pulito.
+      *(Nessun test l'avrebbe preso: la suite era verde a 741 anche col bug.)*
+
+- [ ] **P1 — La demo web non apre il database senza header di isolamento.**
+      Servendo la build web da un server statico, "Works" risponde subito **"Could not load datasets"**:
+      `drift_worker.js` viene richiesto ma `sqlite3.wasm` no, quindi si rompe prima del WASM.
+      Con `Cross-Origin-Opener-Policy: same-origin` e `Cross-Origin-Embedder-Policy` l'errore sparisce
+      (`crossOriginIsolated` diventa true e SharedArrayBuffer compare), ma nel browser di prova
+      l'apertura resta poi in caricamento: la causa dell'errore immediato è accertata, l'intero
+      percorso no.
+      **Non è una regressione di questo lavoro:** riprodotto identico ricostruendo la web dal commit
+      `304603e`, cioè prima di ogni aggiornamento di dipendenza.
+      `firebase.json` non imposta nessun header, quindi la demo pubblicata è nelle stesse condizioni.
+      *Da fare:* aggiungere gli header di isolamento all'hosting (valutare `credentialless` per non
+      bloccare CanvasKit da gstatic) e gestire esplicitamente il fallback di `WasmDatabase.open`
+      invece di lasciar propagare l'errore.
+
+---
