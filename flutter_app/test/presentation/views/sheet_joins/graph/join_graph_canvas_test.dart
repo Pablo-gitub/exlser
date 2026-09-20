@@ -299,6 +299,30 @@ void main() {
           find.byKey(const ValueKey('graph_reset_layout_btn')), findsNothing);
     });
 
+    testWidgets(
+        'dragging a table card upwards moves it freely without freezing at top limit',
+        (tester) async {
+      final s1 = _sheet(1, 'Customers', ['id', 'name']);
+      final s2 = _sheet(2, 'Orders', ['order_id', 'cust_id', 'total']);
+
+      final state = MultiSheetJoinState(
+        sheets: [s1, s2],
+        spec: const MultiSheetQuerySpec(
+          selectedTableIds: [1, 2],
+          baseTableId: 1,
+        ),
+      );
+
+      await pumpCanvas(tester, state);
+
+      // Drag Orders upwards and diagonally
+      await tester.drag(find.text('Orders'), const Offset(80, -30));
+      await tester.pumpAndSettle();
+
+      expect(
+          find.byKey(const ValueKey('graph_reset_layout_btn')), findsOneWidget);
+    });
+
     testWidgets('pointer scroll event over canvas zooms in/out via controller',
         (tester) async {
       final s1 = _sheet(1, 'Customers', ['id', 'name']);

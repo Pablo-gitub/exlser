@@ -87,6 +87,7 @@ class _DatasetTablesGraphOverviewState
     super.initState();
     _transformationController = TransformationController();
     _customPositions.addAll(widget.savedNodePositions);
+    _normalizePositions();
     _loadRelationships();
   }
 
@@ -100,6 +101,7 @@ class _DatasetTablesGraphOverviewState
       _customPositions
         ..clear()
         ..addAll(widget.savedNodePositions);
+      _normalizePositions();
       _positionsRevision++;
       _pendingAutoFit = true;
       _loadRelationships();
@@ -113,6 +115,7 @@ class _DatasetTablesGraphOverviewState
       _customPositions
         ..clear()
         ..addAll(widget.savedNodePositions);
+      _normalizePositions();
       _positionsRevision++;
     }
 
@@ -219,6 +222,50 @@ class _DatasetTablesGraphOverviewState
       _pendingAutoFit = true;
     });
     _persistPositions();
+  }
+
+  void _normalizePositions() {
+    if (_customPositions.isEmpty) return;
+
+    final displayed = _displayedTables;
+    final displayedSheets = _buildSheetInfos(displayed);
+    final graph = _graphFor(displayedSheets);
+    if (graph.tables.isEmpty) return;
+
+    double minX = double.infinity;
+    double minY = double.infinity;
+
+    for (final table in graph.tables) {
+      final pos = _customPositions[table.tableId] ?? table.position;
+      minX = math.min(minX, pos.dx);
+      minY = math.min(minY, pos.dy);
+    }
+
+    final shiftX = minX < JoinGraphLayoutBuilder.canvasPadding
+        ? JoinGraphLayoutBuilder.canvasPadding - minX
+        : 0.0;
+    final shiftY = minY < JoinGraphLayoutBuilder.canvasPadding
+        ? JoinGraphLayoutBuilder.canvasPadding - minY
+        : 0.0;
+
+    if (shiftX > 0 || shiftY > 0) {
+      for (final table in graph.tables) {
+        final currentPos = _customPositions[table.tableId] ?? table.position;
+        _customPositions[table.tableId] = Offset(
+          currentPos.dx + shiftX,
+          currentPos.dy + shiftY,
+        );
+      }
+      _positionsRevision++;
+
+      final matrix = _transformationController.value.clone();
+      final scale = matrix.getMaxScaleOnAxis();
+      matrix.storage[12] -= shiftX * scale;
+      matrix.storage[13] -= shiftY * scale;
+      _transformationController.value = matrix;
+
+      setState(() {});
+    }
   }
 
   void _persistPositions() {
@@ -625,12 +672,13 @@ class _DatasetTablesGraphOverviewState
                       trackpadScrollCausesScale: true,
                       minScale: DatasetTablesGraphOverview.minScale,
                       maxScale: DatasetTablesGraphOverview.maxScale,
-                      boundaryMargin: const EdgeInsets.all(250),
+                      boundaryMargin: const EdgeInsets.all(2000),
                       constrained: false,
                       child: SizedBox(
                         width: graphData.canvasSize.width,
                         height: graphData.canvasSize.height,
                         child: Stack(
+                          clipBehavior: Clip.none,
                           children: [
                             // Connectors Painter
                             Positioned.fill(
@@ -769,11 +817,9 @@ class _DatasetTablesGraphOverviewState
             if (_draggingTableId != table.tableId) return;
             final scenePoint = _toScene(details.globalPosition);
             final newPos = scenePoint - _dragOffset;
+            if (!newPos.dx.isFinite || !newPos.dy.isFinite) return;
             setState(() {
-              _customPositions[table.tableId] = Offset(
-                math.max(10.0, newPos.dx),
-                math.max(10.0, newPos.dy),
-              );
+              _customPositions[table.tableId] = newPos;
               _positionsRevision++;
             });
           },
@@ -782,6 +828,7 @@ class _DatasetTablesGraphOverviewState
               _draggingTableId = null;
               _pointerDownTableId = null;
             });
+            _normalizePositions();
             _persistPositions();
           },
           onPanCancel: () {

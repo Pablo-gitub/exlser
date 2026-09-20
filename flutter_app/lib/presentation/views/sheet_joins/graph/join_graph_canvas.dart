@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:exlser/application/services/multi_sheet_analysis_service.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/domain/value_objects/sheet_join_type.dart';
 import 'package:exlser/presentation/views/sheet_joins/graph/join_connection_details_sheet.dart';
@@ -112,6 +113,54 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
     _transformationController.value = Matrix4.identity();
   }
 
+  void _normalizePositions(List<MultiSheetSheetInfo> selectedSheets) {
+    if (_customPositions.isEmpty) return;
+
+    final currentLayout = JoinGraphLayoutBuilder.build(
+      selectedSheets: selectedSheets,
+      baseTableId: widget.state.spec.baseTableId,
+      joins: widget.state.spec.joins,
+      relationships: widget.state.relationshipsById,
+      suggestions: widget.state.suggestions,
+      customPositions: _customPositions,
+    );
+    if (currentLayout.tables.isEmpty) return;
+
+    double minX = double.infinity;
+    double minY = double.infinity;
+
+    for (final table in currentLayout.tables) {
+      final pos = _customPositions[table.tableId] ?? table.position;
+      minX = math.min(minX, pos.dx);
+      minY = math.min(minY, pos.dy);
+    }
+
+    final shiftX = minX < JoinGraphLayoutBuilder.canvasPadding
+        ? JoinGraphLayoutBuilder.canvasPadding - minX
+        : 0.0;
+    final shiftY = minY < JoinGraphLayoutBuilder.canvasPadding
+        ? JoinGraphLayoutBuilder.canvasPadding - minY
+        : 0.0;
+
+    if (shiftX > 0 || shiftY > 0) {
+      for (final table in currentLayout.tables) {
+        final currentPos = _customPositions[table.tableId] ?? table.position;
+        _customPositions[table.tableId] = Offset(
+          currentPos.dx + shiftX,
+          currentPos.dy + shiftY,
+        );
+      }
+
+      final matrix = _transformationController.value.clone();
+      final scale = matrix.getMaxScaleOnAxis();
+      matrix.storage[12] -= shiftX * scale;
+      matrix.storage[13] -= shiftY * scale;
+      _transformationController.value = matrix;
+
+      setState(() {});
+    }
+  }
+
   void _resetPositions() {
     setState(() {
       _customPositions.clear();
@@ -185,7 +234,7 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
                 trackpadScrollCausesScale: true,
                 minScale: 0.4,
                 maxScale: 2.2,
-                boundaryMargin: const EdgeInsets.all(300),
+                boundaryMargin: const EdgeInsets.all(2000),
                 constrained: false,
                 onInteractionStart: (details) {
                   if (_draggingTableId == null &&
@@ -202,6 +251,7 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
                   width: graphData.canvasSize.width,
                   height: graphData.canvasSize.height,
                   child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
                       // Connectors Layer
                       Positioned.fill(
@@ -279,11 +329,10 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
                                   final scenePoint =
                                       _toScene(details.globalPosition);
                                   final newPos = scenePoint - _dragOffset;
+                                  if (!newPos.dx.isFinite ||
+                                      !newPos.dy.isFinite) return;
                                   setState(() {
-                                    _customPositions[table.tableId] = Offset(
-                                      math.max(10.0, newPos.dx),
-                                      math.max(10.0, newPos.dy),
-                                    );
+                                    _customPositions[table.tableId] = newPos;
                                   });
                                 },
                                 onPanEnd: (_) {
@@ -291,6 +340,7 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
                                     _draggingTableId = null;
                                     _activePointerTableId = null;
                                   });
+                                  _normalizePositions(selectedSheets);
                                 },
                                 onPanCancel: () {
                                   setState(() {

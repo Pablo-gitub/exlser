@@ -16,6 +16,7 @@ import 'package:exlser/presentation/state/dataset_event.dart';
 import 'package:exlser/presentation/state/dataset_state.dart';
 import 'package:exlser/presentation/views/dataset/widgets/dataset_tables_graph_overview.dart';
 import 'package:exlser/presentation/views/sheet_joins/graph/join_connectors_painter.dart';
+import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_models.dart';
 import 'package:exlser/presentation/views/sheet_joins/graph/join_table_node_card.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -1097,5 +1098,32 @@ void main() {
       identical(connectorsPainter(tester).connections, connectionsBefore),
       isFalse,
     );
+  });
+
+  testWidgets(
+      'dragging a table node upwards moves it freely without freezing at top limit',
+      (tester) async {
+    final bloc = _FakeDatasetBloc();
+    await pumpOverview(tester, container: containerWithService(), bloc: bloc);
+
+    // Initial position of Details (table 2) is at canvasPadding (same row as Orders)
+    final initialDetailsPos = nodeCardFor(tester, 2).table.position;
+    expect(initialDetailsPos.dy, equals(JoinGraphLayoutBuilder.canvasPadding));
+
+    // Drag Details upwards (dx = 100, dy = -40)
+    await tester.drag(find.text('Details'), const Offset(100, -40));
+    await tester.pumpAndSettle();
+
+    final persisted = bloc.events.whereType<UpdateGraphNodePositionsEvent>();
+    expect(persisted, isNotEmpty);
+    final finalDetailsPos = persisted.last.positions[2];
+    expect(finalDetailsPos, isNotNull);
+
+    // With auto-normalization, all node positions are shifted so minimum remains
+    // >= canvasPadding (60.0). Details (dragged upwards) is now placed higher than Orders.
+    final ordersPos = persisted.last.positions[1];
+    expect(ordersPos, isNotNull);
+    expect(finalDetailsPos!.dy, lessThan(ordersPos!.dy));
+    expect(finalDetailsPos.dy, equals(JoinGraphLayoutBuilder.canvasPadding));
   });
 }
