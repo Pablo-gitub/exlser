@@ -2,8 +2,7 @@
 
 **Data:** 2026-09-17
 **Branch analizzato:** `feature/multi-table-detection` (15 commit sopra `main`, +8793 righe)
-**Stato:** §1 e §2 chiuse, §3 chiusa salvo un punto lasciato aperto con motivo (§5 le verifiche);
-§6 raccoglie due scoperte nuove, una chiusa e una aperta.
+**Stato:** §1, §2 e §6 chiuse; §3 chiusa salvo un punto lasciato aperto con motivo (§5 le verifiche).
 **Baseline all'apertura dell'audit:** `flutter analyze` pulito · 687 test verdi · i18n 386 chiavi × 9 locale, 0 mancanti ·
 delete chain completa (include `dataset_relationships`) · `schemaVersion 4` con migrazione corretta ·
 nessun permesso `INTERNET` nel manifest di release · `npm audit` landing page: 0 vulnerabilità
@@ -261,10 +260,9 @@ aperto di proposito, con il motivo. Analyzer pulito con le regole nuove, **742 t
 
 Rimane sul tavolo, in ordine di valore:
 
-1. Il database della demo web (§6): header di isolamento sull'hosting e gestione esplicita del
-   fallback di `WasmDatabase.open`.
-2. Una build Android e una iOS, mai verificate da questa sessione e toccate da file_picker 13 e
+1. Una build Android e una iOS, mai verificate da questa sessione e toccate da file_picker 13 e
    riverpod 3.
+2. La demo web su Chrome e Firefox veri: un import che sopravvive al reload (§6).
 3. Aggiornare ROADMAP.md e CHANGELOG.md: non menzionano la feature multi-tabella di questo branch.
 4. `dataset_bloc.dart` (§3), quando si sceglie come spezzarlo.
 5. `go_router` 18, quando Flutter riesporterà `@awaitNotRequired`.
@@ -298,7 +296,7 @@ Note per chi rilascia:
 
 ---
 
-## 6. Scoperte durante l'implementazione di §2
+## 6. Scoperte provando l'app davvero
 
 - [x] **P1 — Onboarding bloccato al primo avvio (trovato e chiuso il 2026-09-20).**
       `OnboardingViewModel` teneva il `Ref` di un provider `autoDispose` che la view legge una sola
@@ -309,18 +307,31 @@ Note per chi rilascia:
       Risolto iniettando il router alla costruzione. Verificato in browser su profilo pulito.
       *(Nessun test l'avrebbe preso: la suite era verde a 741 anche col bug.)*
 
-- [ ] **P1 — La demo web non apre il database senza header di isolamento.**
-      Servendo la build web da un server statico, "Works" risponde subito **"Could not load datasets"**:
-      `drift_worker.js` viene richiesto ma `sqlite3.wasm` no, quindi si rompe prima del WASM.
-      Con `Cross-Origin-Opener-Policy: same-origin` e `Cross-Origin-Embedder-Policy` l'errore sparisce
-      (`crossOriginIsolated` diventa true e SharedArrayBuffer compare), ma nel browser di prova
-      l'apertura resta poi in caricamento: la causa dell'errore immediato è accertata, l'intero
-      percorso no.
-      **Non è una regressione di questo lavoro:** riprodotto identico ricostruendo la web dal commit
-      `304603e`, cioè prima di ogni aggiornamento di dipendenza.
-      `firebase.json` non imposta nessun header, quindi la demo pubblicata è nelle stesse condizioni.
-      *Da fare:* aggiungere gli header di isolamento all'hosting (valutare `credentialless` per non
-      bloccare CanvasKit da gstatic) e gestire esplicitamente il fallback di `WasmDatabase.open`
-      invece di lasciar propagare l'errore.
+- [x] **P1 — La demo web non apriva il database — chiuso il 2026-09-20, ma la causa era un'altra.**
+      Gli header di isolamento non erano il problema: lo erano gli **URI relativi**. `sqlite3.wasm` e
+      `drift_worker.js` venivano passati a drift come path relativi, e drift li consegna a un worker
+      che risolve nel *proprio* contesto — così il fetch non arrivava mai agli asset dell'app e ogni
+      query moriva con un `TypeError: Failed to fetch` nudo, che è esattamente quello che la lista
+      mostrava come "Could not load datasets".
+      Ora sono risolti sulla **base del documento**, non su `Uri.base`: la demo sta sotto `/demo/` con
+      un `<base href>`, mentre `Uri.base` è la rotta corrente, quindi da `/demo/datasets/3` avrebbe
+      cercato il binario in `/demo/datasets/`.
+      *Verificato in browser su una copia del layout di produzione* (`/demo/` con deep link): la
+      lista dataset si apre. Prima falliva in ogni configurazione provata.
 
----
+      **Gestione del fallback, ora esplicita:** un'apertura fallita diventa
+      `WebDatabaseUnavailableException` invece dell'errore grezzo del browser, e lo storage scelto da
+      drift viene pubblicato come `WebDatabaseStatus` — stesso tipo su ogni piattaforma, null fuori
+      dal web. La lista Works legge quello stato e **avvisa** quando il browser non può conservare i
+      dati (due messaggi distinti: storage perso alla chiusura, oppure corrompibile da una seconda
+      scheda), in tutte e 9 le lingue.
+
+      **Header aggiunti comunque**, come miglioria: con COOP/COEP drift passa da `sharedIndexedDb` a
+      `opfsLocks` — durevole, più veloce, sicuro con più schede. In `firebase.json` per `/demo/**`,
+      con `credentialless` invece di `require-corp` così CanvasKit da gstatic continua a caricare;
+      verificato in browser che la demo renderizza e che drift riporta `opfsLocks`.
+
+      *Resta da verificare dal proprietario:* un import reale che sopravvive al reload, su Chrome e
+      Firefox veri. Nel browser di prova (che non ha né SharedArrayBuffer né i dedicated worker dentro
+      gli shared worker) resta un `Failed to fetch` transitorio dopo l'apertura, da cui l'app si
+      riprende: è una limitazione di quell'ambiente, non riproducibile altrove da qui.
