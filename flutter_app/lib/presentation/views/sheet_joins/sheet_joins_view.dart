@@ -1,18 +1,11 @@
 //lib/presentation/views/sheet_joins/sheet_joins_view.dart
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exlser/application/services/multi_sheet_analysis_service.dart';
 import 'package:exlser/core/constants/app_strings.dart';
-import 'package:exlser/domain/usecases/multisheet/multi_sheet_graph_validator.dart';
 import 'package:exlser/domain/usecases/multisheet/multi_sheet_join_risk_analyzer.dart';
-import 'package:exlser/domain/usecases/multisheet/multi_sheet_sql_builder.dart';
-import 'package:exlser/domain/entities/dataset_relationship.dart';
-import 'package:exlser/domain/value_objects/multi_sheet_join.dart';
-import 'package:exlser/domain/value_objects/sheet_join_relationship.dart';
-import 'package:exlser/domain/value_objects/sheet_join_type.dart';
-import 'package:exlser/domain/value_objects/sheet_relationship_suggestion.dart';
-import 'package:exlser/presentation/views/sheet_joins/manual_relationship_dialog.dart';
-import 'package:exlser/presentation/views/sheet_joins/graph/join_graph_canvas.dart';
+import 'package:exlser/presentation/views/sheet_joins/join_labels.dart';
+import 'package:exlser/presentation/views/sheet_joins/join_section_card.dart';
+import 'package:exlser/presentation/views/sheet_joins/join_suggestions_section.dart';
 import 'package:exlser/presentation/views/sheet_joins/join_risk_confirmation_dialog.dart';
 import 'package:exlser/presentation/views/sheet_joins/multi_sheet_join_controller.dart';
 import 'package:exlser/presentation/views/sheet_joins/saved_join_configurations_panel.dart';
@@ -97,7 +90,7 @@ class _SheetJoinsViewState extends ConsumerState<SheetJoinsView> {
             ),
           ),
           Expanded(
-            child: _Message(
+            child: JoinMessage(
               icon: Icons.grid_view_outlined,
               text: AppStrings.datasetJoinsErrorNotEnoughTables.tr(),
             ),
@@ -156,9 +149,9 @@ class _SheetJoinsViewState extends ConsumerState<SheetJoinsView> {
                 if (state.hasEnoughSheets) ...[
                   _BaseSheetPicker(state: state, controller: controller),
                   const SizedBox(height: 16),
-                  _SuggestionsSection(state: state, controller: controller),
+                  JoinSuggestionsSection(state: state, controller: controller),
                   const SizedBox(height: 16),
-                  _RelationshipsSection(
+                  JoinRelationshipsSection(
                     state: state,
                     controller: controller,
                     viewMode: _viewMode,
@@ -186,109 +179,6 @@ class _SheetJoinsViewState extends ConsumerState<SheetJoinsView> {
   }
 }
 
-class _SectionCard extends StatelessWidget {
-  final String title;
-  final String? hint;
-  final Widget child;
-  final Widget? trailing;
-  final bool isCollapsed;
-
-  const _SectionCard({
-    required this.title,
-    required this.child,
-    this.hint,
-    this.trailing,
-    this.isCollapsed = false,
-  });
-
-  Widget _buildHeader(BuildContext context) {
-    final titleText = Text(
-      title,
-      style: Theme.of(context).textTheme.titleMedium,
-    );
-    if (trailing == null) return titleText;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // On roomy rows keep the action right-aligned; on narrow widths let it
-        // wrap below the title instead of overflowing.
-        if (constraints.maxWidth >= 420) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(child: titleText),
-              const SizedBox(width: 8),
-              trailing!,
-            ],
-          );
-        }
-        return Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 4,
-          children: [titleText, trailing!],
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            if (hint != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                hint!,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-            if (!isCollapsed) ...[
-              const SizedBox(height: 12),
-              child,
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Message extends StatelessWidget {
-  final String text;
-  final IconData? icon;
-
-  const _Message({required this.text, this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 48,
-                color: Theme.of(context).colorScheme.outline,
-              ),
-              const SizedBox(height: 12),
-            ],
-            Text(text, textAlign: TextAlign.center),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _SheetPicker extends StatelessWidget {
   final MultiSheetJoinState state;
   final MultiSheetJoinController controller;
@@ -297,7 +187,7 @@ class _SheetPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SectionCard(
+    return JoinSectionCard(
       title: AppStrings.datasetJoinsSelectSheets.tr(),
       child: Wrap(
         spacing: 8,
@@ -329,7 +219,7 @@ class _BaseSheetPicker extends StatelessWidget {
         .where((s) => state.spec.selectedTableIds.contains(s.tableId))
         .toList();
 
-    return _SectionCard(
+    return JoinSectionCard(
       title: AppStrings.datasetJoinsBaseSheet.tr(),
       hint: AppStrings.datasetJoinsBaseSheetHint.tr(),
       child: DropdownButtonFormField<int>(
@@ -351,337 +241,6 @@ class _BaseSheetPicker extends StatelessWidget {
   }
 }
 
-class _SuggestionsSection extends StatefulWidget {
-  final MultiSheetJoinState state;
-  final MultiSheetJoinController controller;
-
-  const _SuggestionsSection({required this.state, required this.controller});
-
-  @override
-  State<_SuggestionsSection> createState() => _SuggestionsSectionState();
-}
-
-class _SuggestionsSectionState extends State<_SuggestionsSection> {
-  bool _isCollapsed = true;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.state.suggestions.isNotEmpty) {
-      _isCollapsed = false;
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _SuggestionsSection oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.state.status == MultiSheetJoinStatus.generatingSuggestions ||
-        (widget.state.suggestions.isNotEmpty &&
-            oldWidget.state.suggestions.isEmpty)) {
-      _isCollapsed = false;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = widget.state;
-    final controller = widget.controller;
-    final busy = state.status == MultiSheetJoinStatus.generatingSuggestions;
-
-    return _SectionCard(
-      title: AppStrings.datasetJoinsSuggestions.tr(),
-      isCollapsed: _isCollapsed && !busy,
-      trailing: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 4,
-        children: [
-          TextButton.icon(
-            key: const ValueKey('join_suggest_button'),
-            onPressed: busy
-                ? null
-                : () {
-                    setState(() => _isCollapsed = false);
-                    controller.generateSuggestions();
-                  },
-            icon: const Icon(Icons.auto_awesome_outlined),
-            label: Text(AppStrings.datasetJoinsSuggest.tr()),
-          ),
-          if (!_isCollapsed || busy)
-            IconButton(
-              key: const ValueKey('join_suggestions_close_button'),
-              icon: const Icon(Icons.close, size: 20),
-              tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-              onPressed: () {
-                setState(() => _isCollapsed = true);
-              },
-            ),
-        ],
-      ),
-      child: busy
-          ? const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: LinearProgressIndicator(),
-            )
-          : state.suggestions.isEmpty
-              ? Text(AppStrings.datasetJoinsNoSuggestions.tr())
-              : Column(
-                  children: [
-                    for (final suggestion in state.suggestions)
-                      _SuggestionTile(
-                        suggestion: suggestion,
-                        state: state,
-                        controller: controller,
-                      ),
-                  ],
-                ),
-    );
-  }
-}
-
-class _SuggestionTile extends StatelessWidget {
-  final SheetRelationshipSuggestion suggestion;
-  final MultiSheetJoinState state;
-  final MultiSheetJoinController controller;
-
-  const _SuggestionTile({
-    required this.suggestion,
-    required this.state,
-    required this.controller,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final key = _suggestionEndpointKey(suggestion.relationship);
-    final already = state.spec.joins.any(
-      (join) => state.relationshipFor(join)?.endpointKey == key,
-    );
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(_describeRelationship(state, suggestion.relationship)),
-      subtitle: Wrap(
-        spacing: 6,
-        runSpacing: 4,
-        children: [
-          _ConfidenceChip(confidence: suggestion.confidence),
-          for (final reason in suggestion.reasons)
-            Chip(
-              label: Text(_reasonLabel(reason)),
-              visualDensity: VisualDensity.compact,
-            ),
-        ],
-      ),
-      trailing: already
-          // The tooltip is the single semantic source; the icon itself is
-          // decorative and stays out of the semantics tree.
-          ? Tooltip(
-              message: AppStrings.datasetJoinsRelationshipAlreadyAdded.tr(),
-              child: const ExcludeSemantics(
-                child: Icon(Icons.check_circle_outline),
-              ),
-            )
-          : FilledButton.tonal(
-              onPressed: () => controller.confirmSuggestion(suggestion),
-              child: Text(AppStrings.datasetJoinsConfirm.tr()),
-            ),
-    );
-  }
-}
-
-/// Confidence indicator that does not rely on color alone: each level carries a
-/// distinct icon shape and a text label, with color as reinforcement only.
-class _ConfidenceChip extends StatelessWidget {
-  final SuggestionConfidence confidence;
-
-  const _ConfidenceChip({required this.confidence});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final (icon, color) = switch (confidence) {
-      SuggestionConfidence.high => (Icons.signal_cellular_alt, scheme.primary),
-      SuggestionConfidence.medium => (
-          Icons.signal_cellular_alt_2_bar,
-          scheme.tertiary,
-        ),
-      SuggestionConfidence.low => (
-          Icons.signal_cellular_alt_1_bar,
-          scheme.outline,
-        ),
-    };
-    return Chip(
-      avatar: Icon(icon, size: 16, color: color),
-      label: Text(_confidenceLabel(confidence)),
-      visualDensity: VisualDensity.compact,
-    );
-  }
-}
-
-class _RelationshipsSection extends StatelessWidget {
-  final MultiSheetJoinState state;
-  final MultiSheetJoinController controller;
-  final JoinViewMode viewMode;
-  final ValueChanged<JoinViewMode> onViewModeChanged;
-
-  const _RelationshipsSection({
-    required this.state,
-    required this.controller,
-    required this.viewMode,
-    required this.onViewModeChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final joins = state.spec.joins;
-    return _SectionCard(
-      title: AppStrings.datasetJoinsRelationships.tr(),
-      trailing: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 8,
-        runSpacing: 4,
-        children: [
-          SegmentedButton<JoinViewMode>(
-            key: const ValueKey('join_view_mode_segmented_button'),
-            showSelectedIcon: false,
-            segments: [
-              ButtonSegment(
-                value: JoinViewMode.list,
-                icon: const Icon(Icons.view_list_outlined, size: 16),
-                label: Text(
-                  AppStrings.datasetJoinsViewModeList.tr(),
-                  key: const ValueKey('join_view_mode_list'),
-                ),
-              ),
-              ButtonSegment(
-                value: JoinViewMode.graph,
-                icon: const Icon(Icons.account_tree_outlined, size: 16),
-                label: Text(
-                  AppStrings.datasetJoinsViewModeGraph.tr(),
-                  key: const ValueKey('join_view_mode_graph'),
-                ),
-              ),
-            ],
-            selected: {viewMode},
-            onSelectionChanged: (set) => onViewModeChanged(set.first),
-          ),
-          TextButton.icon(
-            key: const ValueKey('manual_relationship_open'),
-            onPressed: () => showManualRelationshipDialog(
-              context: context,
-              state: state,
-              controller: controller,
-            ),
-            icon: const Icon(Icons.add_link),
-            label: Text(AppStrings.datasetJoinsAddRelationship.tr()),
-          ),
-        ],
-      ),
-      child: viewMode == JoinViewMode.graph
-          ? JoinGraphCanvas(state: state, controller: controller)
-          : (joins.isEmpty
-              ? Text(AppStrings.datasetJoinsNoRelationships.tr())
-              : Column(
-                  children: [
-                    for (final join in joins)
-                      if (state.relationshipFor(join) case final relationship?)
-                        _RelationshipTile(
-                          join: join,
-                          relationship: relationship,
-                          state: state,
-                          controller: controller,
-                        ),
-                  ],
-                )),
-    );
-  }
-}
-
-class _RelationshipTile extends StatelessWidget {
-  final MultiSheetJoin join;
-  final DatasetRelationship relationship;
-  final MultiSheetJoinState state;
-  final MultiSheetJoinController controller;
-
-  const _RelationshipTile({
-    required this.join,
-    required this.relationship,
-    required this.state,
-    required this.controller,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(child: Text(_describeEndpoints(state, relationship))),
-              IconButton(
-                tooltip: AppStrings.datasetJoinsRemove.tr(),
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => controller.removeJoin(join.relationshipId),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: SegmentedButton<SheetJoinType>(
-              showSelectedIcon: false,
-              segments: [
-                ButtonSegment(
-                  value: SheetJoinType.inner,
-                  label: Text(AppStrings.datasetJoinsJoinInner.tr()),
-                ),
-                ButtonSegment(
-                  value: SheetJoinType.left,
-                  label: Text(AppStrings.datasetJoinsJoinLeft.tr()),
-                ),
-              ],
-              selected: {join.joinType},
-              onSelectionChanged: (values) => controller.setJoinType(
-                join.relationshipId,
-                values.first,
-              ),
-            ),
-          ),
-          // The preserved side of a LEFT join is derived (SQL accumulates from
-          // the base), so it is shown read-only. To preserve the other side the
-          // user changes the base table rather than picking an invalid side.
-          if (join.isLeft) ...[
-            const SizedBox(height: 6),
-            if (controller.preservedSideFor(join.relationshipId)
-                case final preservedTableId?)
-              Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      AppStrings.datasetJoinsLeftKeeps.tr(
-                        namedArgs: {
-                          'sheet': _sheetLabel(state, preservedTableId),
-                        },
-                      ),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
 class _OutputColumnsSection extends StatelessWidget {
   final MultiSheetJoinState state;
   final MultiSheetJoinController controller;
@@ -694,7 +253,7 @@ class _OutputColumnsSection extends StatelessWidget {
         .where((s) => state.spec.selectedTableIds.contains(s.tableId))
         .toList();
 
-    return _SectionCard(
+    return JoinSectionCard(
       title: AppStrings.datasetJoinsOutputColumns.tr(),
       hint: AppStrings.datasetJoinsOutputColumnsHint.tr(),
       child: Column(
@@ -754,7 +313,7 @@ class _ErrorBanner extends StatelessWidget {
 
     final isStale = state.status == MultiSheetJoinStatus.staleSpec;
     final scheme = Theme.of(context).colorScheme;
-    final solution = isStale ? null : _errorSolution(code);
+    final solution = isStale ? null : joinErrorSolution(code);
 
     return Card(
       key: const ValueKey('join_error_banner'),
@@ -773,7 +332,7 @@ class _ErrorBanner extends StatelessWidget {
                   child: Text(
                     isStale
                         ? AppStrings.datasetJoinsStaleSpec.tr()
-                        : _errorMessage(code),
+                        : joinErrorMessage(code),
                     style: TextStyle(
                       color: scheme.onErrorContainer,
                       fontWeight: FontWeight.w600,
@@ -916,7 +475,7 @@ class _PreviewSection extends StatelessWidget {
     final preview = state.preview;
     if (preview == null) return const SizedBox.shrink();
 
-    return _SectionCard(
+    return JoinSectionCard(
       title: AppStrings.datasetJoinsPreview.tr(),
       hint: AppStrings.datasetJoinsPreviewLimited.tr(
         namedArgs: {'limit': '${preview.limit}'},
@@ -992,113 +551,4 @@ class _GeneratedSqlSection extends StatelessWidget {
       ),
     );
   }
-}
-
-String _side(MultiSheetJoinState state, int tableId, String dbName) {
-  final sheet = _sheetFor(state, tableId);
-  final column = sheet?.columns
-      .where((c) => c.dbName == dbName)
-      .map((c) => c.originalName)
-      .firstOrNull;
-  return '${sheet?.label ?? tableId}.${column ?? dbName}';
-}
-
-String _describeRelationship(
-  MultiSheetJoinState state,
-  SheetJoinRelationship relationship,
-) {
-  return '${_side(state, relationship.leftTableId, relationship.leftColumnDbName)}'
-      '  ↔  '
-      '${_side(state, relationship.rightTableId, relationship.rightColumnDbName)}';
-}
-
-String _describeEndpoints(
-  MultiSheetJoinState state,
-  DatasetRelationship relationship,
-) {
-  return '${_side(state, relationship.endpointATableId, relationship.endpointAColumnDbName)}'
-      '  ↔  '
-      '${_side(state, relationship.endpointBTableId, relationship.endpointBColumnDbName)}';
-}
-
-String _suggestionEndpointKey(SheetJoinRelationship relationship) {
-  final a =
-      '${relationship.leftTableId}.${relationship.leftColumnDbName.trim()}';
-  final b =
-      '${relationship.rightTableId}.${relationship.rightColumnDbName.trim()}';
-  final ends = [a, b]..sort();
-  return ends.join('=');
-}
-
-String _sheetLabel(MultiSheetJoinState state, int tableId) {
-  return _sheetFor(state, tableId)?.label ?? '$tableId';
-}
-
-MultiSheetSheetInfo? _sheetFor(MultiSheetJoinState state, int tableId) {
-  return state.sheets.where((s) => s.tableId == tableId).firstOrNull;
-}
-
-String _confidenceLabel(SuggestionConfidence confidence) {
-  return switch (confidence) {
-    SuggestionConfidence.high => AppStrings.datasetJoinsConfidenceHigh.tr(),
-    SuggestionConfidence.medium => AppStrings.datasetJoinsConfidenceMedium.tr(),
-    SuggestionConfidence.low => AppStrings.datasetJoinsConfidenceLow.tr(),
-  };
-}
-
-String _reasonLabel(RelationshipReason reason) {
-  return switch (reason) {
-    RelationshipReason.nameMatch => AppStrings.datasetJoinsReasonNameMatch.tr(),
-    RelationshipReason.commonIdentifier =>
-      AppStrings.datasetJoinsReasonCommonIdentifier.tr(),
-    RelationshipReason.valueOverlap =>
-      AppStrings.datasetJoinsReasonValueOverlap.tr(),
-    RelationshipReason.typeMatch => AppStrings.datasetJoinsReasonTypeMatch.tr(),
-  };
-}
-
-String _errorMessage(String code) {
-  return switch (code) {
-    MultiSheetGraphValidator.notEnoughTablesCode =>
-      AppStrings.datasetJoinsErrorNotEnoughTables.tr(),
-    MultiSheetGraphValidator.unavailableTableOrColumnCode =>
-      AppStrings.datasetJoinsErrorUnavailableTableOrColumn.tr(),
-    MultiSheetGraphValidator.incompleteRelationshipCode =>
-      AppStrings.datasetJoinsErrorIncompleteRelationship.tr(),
-    MultiSheetGraphValidator.duplicateRelationshipCode =>
-      AppStrings.datasetJoinsErrorDuplicateRelationship.tr(),
-    MultiSheetGraphValidator.disconnectedGraphCode =>
-      AppStrings.datasetJoinsErrorDisconnectedGraph.tr(),
-    MultiSheetGraphValidator.cycleDetectedCode =>
-      AppStrings.datasetJoinsErrorCycleDetected.tr(),
-    MultiSheetSqlBuilder.noOutputColumnsCode =>
-      AppStrings.datasetJoinsErrorNoOutputColumns.tr(),
-    'save_name_required' => AppStrings.datasetJoinsSaveNameRequired.tr(),
-    'save_failed' => AppStrings.datasetJoinsSaveFailed.tr(),
-    'load_saved_failed' => AppStrings.datasetJoinsLoadSavedFailed.tr(),
-    'delete_saved_failed' => AppStrings.datasetJoinsDeleteSavedFailed.tr(),
-    _ => AppStrings.datasetJoinsErrorGeneric.tr(),
-  };
-}
-
-String? _errorSolution(String code) {
-  return switch (code) {
-    MultiSheetGraphValidator.cycleDetectedCode =>
-      AppStrings.datasetJoinsErrorSolutionCycleDetected.tr(),
-    MultiSheetGraphValidator.disconnectedGraphCode =>
-      AppStrings.datasetJoinsErrorSolutionDisconnectedGraph.tr(),
-    MultiSheetGraphValidator.notEnoughTablesCode =>
-      AppStrings.datasetJoinsErrorSolutionNotEnoughTables.tr(),
-    MultiSheetGraphValidator.incompleteRelationshipCode =>
-      AppStrings.datasetJoinsErrorSolutionIncompleteRelationship.tr(),
-    MultiSheetGraphValidator.duplicateRelationshipCode =>
-      AppStrings.datasetJoinsErrorSolutionDuplicateRelationship.tr(),
-    'invalid_left_join_direction' =>
-      AppStrings.datasetJoinsErrorSolutionInvalidLeftJoinDirection.tr(),
-    MultiSheetSqlBuilder.noOutputColumnsCode =>
-      AppStrings.datasetJoinsErrorSolutionNoOutputColumns.tr(),
-    MultiSheetGraphValidator.unavailableTableOrColumnCode =>
-      AppStrings.datasetJoinsErrorSolutionUnavailableTableOrColumn.tr(),
-    _ => null,
-  };
 }
