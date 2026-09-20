@@ -1,8 +1,11 @@
 // lib/core/database/connection/connection.dart
 
 import 'package:drift/drift.dart';
+import 'package:exlser/core/database/connection/web_database_status.dart';
+import 'package:flutter/foundation.dart';
 
-import 'connection_native.dart' if (dart.library.html) 'connection_web.dart';
+import 'connection_native.dart'
+    if (dart.library.js_interop) 'connection_web.dart' as impl;
 
 /// Opens the database connection.
 ///
@@ -12,5 +15,10 @@ import 'connection_native.dart' if (dart.library.html) 'connection_web.dart';
 /// - Mobile/Desktop → SQLite file
 /// - Web → WASM SQLite
 QueryExecutor openConnection() {
-  return openConnectionImpl();
+  return impl.openConnectionImpl();
 }
+
+/// How the database was opened in a browser, or null on every other platform
+/// and before the first query opens it.
+ValueListenable<WebDatabaseStatus?> get webDatabaseStatus =>
+    impl.webDatabaseStatus;
