@@ -190,7 +190,10 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         dataset: currentState.dataset,
         tables: currentState.tables,
         activeTable: currentState.activeTable,
-        columnsByTableId: currentState.columnsByTableId,
+        // Deliberately not reusing the cached columns: refresh is the one place
+        // where the user asks for the data to be read again, so it is also the
+        // only way this cache is ever invalidated.
+        columnsByTableId: null,
         viewMode: currentState.viewMode,
         rowLimit: currentState.rowLimit,
         pageIndex: currentState.pageIndex,

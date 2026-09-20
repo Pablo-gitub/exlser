@@ -1543,6 +1543,34 @@ void main() {
 
       expect(moved.graphNodePositions, {11: const Offset(10, 20)});
     });
+
+    test('RefreshResultsEvent reads the schema again for every table',
+        () async {
+      _mockWorkspaceLoad(
+        openDataset: openDataset,
+        schemaRepository: schemaRepository,
+        fetchRows: fetchRows,
+        dataset: _dataset(),
+        tables: [_table(id: 10), _table(id: 11)],
+        columns: [_column()],
+        rows: const [],
+      );
+
+      bloc.add(const LoadDatasetEvent(1));
+      await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
+
+      // The initial load reads both tables once.
+      verify(() => schemaRepository.getColumnsForTable(10)).called(1);
+      verify(() => schemaRepository.getColumnsForTable(11)).called(1);
+
+      bloc.add(const RefreshResultsEvent());
+      await bloc.stream.firstWhere((s) => s is DatasetLoadedState);
+
+      // Refresh is the one place the cached columns are dropped, so a schema
+      // that changed underneath is picked up instead of staying stale forever.
+      verify(() => schemaRepository.getColumnsForTable(10)).called(1);
+      verify(() => schemaRepository.getColumnsForTable(11)).called(1);
+    });
   });
 }
 
