@@ -1,5 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:exlser/core/constants/app_strings.dart';
+import 'package:exlser/core/database/connection/connection.dart';
+import 'package:exlser/core/database/connection/web_database_status.dart';
 import 'package:exlser/domain/entities/dataset.dart';
 import 'package:exlser/presentation/router/routes.dart';
 import 'package:exlser/presentation/widgets/layout/scroll_bottom_spacer.dart';
@@ -116,6 +118,7 @@ class _DatasetsListViewState extends ConsumerState<DatasetsListView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const _WebStorageNotice(),
                   _WorksFilterBar(
                     searchController: _searchController,
                     dateFrom: _dateFrom,
@@ -587,5 +590,64 @@ String _datasetListErrorMessage(String code) {
       return AppStrings.worksDeleteFailed;
     default:
       return AppStrings.worksLoadFailed;
+  }
+}
+
+/// Warns when the browser could not give the app durable storage.
+///
+/// Drift degrades quietly when a browser refuses OPFS and a safe IndexedDB
+/// mode, which on the web demo would mean an imported dataset disappearing
+/// without a word. Nothing is shown on any other platform, or while the
+/// database is still opening.
+class _WebStorageNotice extends StatelessWidget {
+  const _WebStorageNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<WebDatabaseStatus?>(
+      valueListenable: webDatabaseStatus,
+      builder: (context, status, _) {
+        if (status == null || status.isPersistent) {
+          return const SizedBox.shrink();
+        }
+
+        final theme = Theme.of(context);
+        final message = switch (status.durability) {
+          WebDatabaseDurability.inMemory =>
+            AppStrings.worksWebStorageInMemory.tr(),
+          _ => AppStrings.worksWebStorageUnreliable.tr(),
+        };
+
+        return Padding(
+          key: const ValueKey('works_web_storage_notice'),
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: 20,
+                  color: theme.colorScheme.onErrorContainer,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

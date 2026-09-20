@@ -66,6 +66,10 @@
             "load_failed": "datasets を読み込めませんでした。",
             "open_failed": "選択した dataset を開けませんでした。",
             "delete_failed": "選択した dataset を削除できませんでした。"
+        },
+        "web_storage": {
+            "in_memory": "このブラウザーではデータセットが保存されません。インポートした内容はタブを閉じると失われます。",
+            "unreliable": "このブラウザーは、2つ目のタブで壊れる可能性のある方式でデータを保存します。Exlser は1つのタブだけで開いてください。"
         }
     },
     "dataset": {

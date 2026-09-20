@@ -49,6 +49,9 @@ class AppStrings {
   static const String worksDeleteMessage = 'works.delete_message';
   static const String worksSearchHint = 'works.search_hint';
   static const String worksNoResults = 'works.no_results';
+  static const String worksWebStorageInMemory = 'works.web_storage.in_memory';
+  static const String worksWebStorageUnreliable =
+      'works.web_storage.unreliable';
   static const String worksLoadFailed = 'works.error.load_failed';
   static const String worksOpenFailed = 'works.error.open_failed';
   static const String worksDeleteFailed = 'works.error.delete_failed';

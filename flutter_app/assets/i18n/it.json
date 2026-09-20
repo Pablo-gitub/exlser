@@ -66,6 +66,10 @@
             "load_failed": "Impossibile caricare i dataset.",
             "open_failed": "Impossibile aprire il dataset selezionato.",
             "delete_failed": "Impossibile eliminare il dataset selezionato."
+        },
+        "web_storage": {
+            "in_memory": "Questo browser non sta salvando i dataset: tutto quello che importi si perde chiudendo la scheda.",
+            "unreliable": "Questo browser salva i dataset in una modalità che una seconda scheda aperta può corrompere. Tieni Exlser aperto in una sola scheda."
         }
     },
     "dataset": {

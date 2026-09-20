@@ -66,6 +66,10 @@
             "load_failed": "Não foi possível carregar os datasets.",
             "open_failed": "Não foi possível abrir o dataset selecionado.",
             "delete_failed": "Não foi possível excluir o dataset selecionado."
+        },
+        "web_storage": {
+            "in_memory": "Este navegador não está salvando seus conjuntos de dados: tudo o que você importar se perde ao fechar a aba.",
+            "unreliable": "Este navegador salva os dados em um modo que uma segunda aba aberta pode corromper. Mantenha o Exlser em uma única aba."
         }
     },
     "dataset": {

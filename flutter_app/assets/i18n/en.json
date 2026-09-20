@@ -66,6 +66,10 @@
             "load_failed": "Could not load datasets.",
             "open_failed": "Could not open the selected dataset.",
             "delete_failed": "Could not delete the selected dataset."
+        },
+        "web_storage": {
+            "in_memory": "This browser is not storing your datasets: everything you import is lost when the tab closes.",
+            "unreliable": "This browser stores your datasets in a mode that a second open tab can corrupt. Keep Exlser open in one tab only."
         }
     },
     "dataset": {

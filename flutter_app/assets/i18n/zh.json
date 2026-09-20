@@ -66,6 +66,10 @@
             "load_failed": "无法加载 datasets。",
             "open_failed": "无法打开所选 dataset。",
             "delete_failed": "无法删除所选 dataset。"
+        },
+        "web_storage": {
+            "in_memory": "此浏览器不会保存你的数据集：关闭标签页后导入的内容都会丢失。",
+            "unreliable": "此浏览器以一种可能被第二个标签页破坏的方式保存数据。请只在一个标签页中打开 Exlser。"
         }
     },
     "dataset": {

@@ -66,6 +66,10 @@
             "load_failed": "Impossible de charger les datasets.",
             "open_failed": "Impossible d’ouvrir le dataset sélectionné.",
             "delete_failed": "Impossible de supprimer le dataset sélectionné."
+        },
+        "web_storage": {
+            "in_memory": "Ce navigateur n'enregistre pas vos jeux de données : tout ce que vous importez est perdu à la fermeture de l'onglet.",
+            "unreliable": "Ce navigateur enregistre vos données dans un mode qu'un second onglet ouvert peut corrompre. Gardez Exlser dans un seul onglet."
         }
     },
     "dataset": {
