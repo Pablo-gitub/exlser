@@ -1,4 +1,4 @@
-import 'package:exlser/application/dto/chart_data.dart';
+import 'package:exlser/domain/value_objects/chart_data.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/exceptions/invalid_chart_config_exception.dart';
 import 'package:exlser/domain/repositories/query_repository.dart';

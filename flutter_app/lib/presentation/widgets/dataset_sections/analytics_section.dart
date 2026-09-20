@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:exlser/application/dto/chart_data.dart';
+import 'package:exlser/application/dto/chart_load_result.dart';
+import 'package:exlser/domain/value_objects/chart_data.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/domain/entities/chart_config_validator.dart';
 import 'package:exlser/domain/entities/chart_suggestion.dart';

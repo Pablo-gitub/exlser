@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:exlser/data/adapters/normalizers/date_normalizer.dart';
+import 'package:exlser/core/normalizers/date_normalizer.dart';
 
 void main() {
   group('DateNormalizer', () {

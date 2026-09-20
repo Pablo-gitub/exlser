@@ -1,9 +1,9 @@
-import 'package:exlser/data/adapters/normalizers/boolean_normalizer.dart';
+import 'package:exlser/core/normalizers/boolean_normalizer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:exlser/domain/usecases/schema/infer_schema_usecase.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
-import 'package:exlser/data/adapters/normalizers/number_normalizer.dart';
-import 'package:exlser/data/adapters/normalizers/date_normalizer.dart';
+import 'package:exlser/core/normalizers/number_normalizer.dart';
+import 'package:exlser/core/normalizers/date_normalizer.dart';
 
 void main() {
   late InferSchemaUseCase useCase;

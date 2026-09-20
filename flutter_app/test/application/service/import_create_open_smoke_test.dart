@@ -9,9 +9,9 @@ import 'package:exlser/core/database/app_database.dart'
     hide DatasetColumn, DatasetTable;
 import 'package:exlser/core/database/daos/dataset_files_dao.dart';
 import 'package:exlser/core/database/daos/datasets_dao.dart';
-import 'package:exlser/data/adapters/normalizers/boolean_normalizer.dart';
-import 'package:exlser/data/adapters/normalizers/date_normalizer.dart';
-import 'package:exlser/data/adapters/normalizers/number_normalizer.dart';
+import 'package:exlser/core/normalizers/boolean_normalizer.dart';
+import 'package:exlser/core/normalizers/date_normalizer.dart';
+import 'package:exlser/core/normalizers/number_normalizer.dart';
 import 'package:exlser/data/adapters/parsers/parser_factory.dart';
 import 'package:exlser/data/datasources/drift_datasource.dart';
 import 'package:exlser/data/repositories/dataset_file_repository_impl.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:exlser/data/adapters/normalizers/number_normalizer.dart';
+import 'package:exlser/core/normalizers/number_normalizer.dart';
 
 void main() {
   group('NumberNormalizer', () {

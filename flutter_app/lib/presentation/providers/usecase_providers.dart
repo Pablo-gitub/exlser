@@ -1,8 +1,8 @@
 import 'package:exlser/application/services/analysis_service.dart';
 import 'package:exlser/application/usecases/file/save_uploaded_file_usecase.dart';
-import 'package:exlser/data/adapters/normalizers/boolean_normalizer.dart';
-import 'package:exlser/data/adapters/normalizers/date_normalizer.dart';
-import 'package:exlser/data/adapters/normalizers/number_normalizer.dart';
+import 'package:exlser/core/normalizers/boolean_normalizer.dart';
+import 'package:exlser/core/normalizers/date_normalizer.dart';
+import 'package:exlser/core/normalizers/number_normalizer.dart';
 import 'package:exlser/domain/usecases/analytics/get_category_distribution_usecase.dart';
 import 'package:exlser/domain/usecases/analytics/get_column_statistics_usecase.dart';
 import 'package:exlser/domain/usecases/analytics/get_time_series_usecase.dart';

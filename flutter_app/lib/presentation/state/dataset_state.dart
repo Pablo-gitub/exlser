@@ -1,6 +1,7 @@
 import 'dart:ui' show Offset;
 
-import 'package:exlser/application/dto/chart_data.dart';
+import 'package:exlser/domain/value_objects/chart_data.dart';
+import 'package:exlser/application/dto/chart_load_result.dart';
 import 'package:exlser/domain/entities/chart_suggestion.dart';
 import 'package:exlser/domain/entities/dataset.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
@@ -13,14 +14,6 @@ import 'package:exlser/domain/value_objects/dataset_sort.dart';
 enum DatasetViewMode {
   table,
   cards,
-}
-
-enum ChartLoadError {
-  noNumericColumn,
-  invalidAggregation,
-  noRowsAfterFilter,
-  chartTypeNotSupported,
-  internalFailure,
 }
 
 class AnalyticsChart {

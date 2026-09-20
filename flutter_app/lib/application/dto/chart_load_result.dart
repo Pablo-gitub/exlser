@@ -1,5 +1,16 @@
-import 'package:exlser/application/dto/chart_data.dart';
-import 'package:exlser/presentation/state/dataset_state.dart';
+import 'package:exlser/domain/value_objects/chart_data.dart';
+
+/// Why a chart could not be built from the data it was asked for.
+///
+/// Lives with the result that carries it: the analysis layer decides these
+/// cases, the presentation layer only renders them.
+enum ChartLoadError {
+  noNumericColumn,
+  invalidAggregation,
+  noRowsAfterFilter,
+  chartTypeNotSupported,
+  internalFailure,
+}
 
 /// Result of loading chart data, containing both data and optional error.
 class ChartLoadResult {

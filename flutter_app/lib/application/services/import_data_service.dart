@@ -2,7 +2,7 @@ import 'package:exlser/application/dto/import_file.dart';
 import 'package:exlser/application/dto/prepared_import_result.dart';
 import 'package:exlser/application/dto/prepared_sheet.dart';
 import 'package:exlser/application/exceptions/import_exceptions.dart';
-import 'package:exlser/data/adapters/normalizers/number_normalizer.dart';
+import 'package:exlser/core/normalizers/number_normalizer.dart';
 import 'package:exlser/data/adapters/parsers/spreadsheet_parser.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';

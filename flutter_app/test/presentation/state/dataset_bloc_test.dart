@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:exlser/application/dto/chart_data.dart';
+import 'package:exlser/domain/value_objects/chart_data.dart';
 import 'package:exlser/application/dto/chart_load_result.dart';
 import 'package:exlser/application/services/analysis_service.dart';
 import 'package:exlser/domain/entities/chart_suggestion.dart';

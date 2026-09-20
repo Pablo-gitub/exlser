@@ -1,4 +1,4 @@
-import 'package:exlser/application/dto/chart_data.dart';
+import 'package:exlser/domain/value_objects/chart_data.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/repositories/query_repository.dart';
 import 'package:exlser/domain/usecases/analytics/get_time_series_usecase.dart';

@@ -1,6 +1,6 @@
-import 'package:exlser/data/adapters/normalizers/boolean_normalizer.dart';
-import 'package:exlser/data/adapters/normalizers/date_normalizer.dart';
-import 'package:exlser/data/adapters/normalizers/number_normalizer.dart';
+import 'package:exlser/core/normalizers/boolean_normalizer.dart';
+import 'package:exlser/core/normalizers/date_normalizer.dart';
+import 'package:exlser/core/normalizers/number_normalizer.dart';
 import 'package:exlser/core/normalizers/sql_name_sanitizer.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/value_objects/column_type.dart';
