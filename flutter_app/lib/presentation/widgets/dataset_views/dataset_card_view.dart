@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/core/serializers/dataset_json_serializer.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
@@ -205,7 +206,8 @@ class DatasetRowQrCode extends StatelessWidget {
         errorCorrectLevel: QrErrorCorrectLevel.L,
       );
       return QrImage(code);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetCardView');
       return null;
     }
   }
@@ -254,10 +256,12 @@ String _formatCellValue(dynamic value, {String? currencySymbol}) {
   if (currencySymbol != null && text.isNotEmpty) {
     // Strip any existing currency symbol from the stored value so we can
     // append the canonical one from the workspace state (avoids "3.3$ $").
-    text = text.replaceAll(
-      RegExp(r'[$€£¥₹₽¢₩₪₫]'),
-      '',
-    ).trim();
+    text = text
+        .replaceAll(
+          RegExp(r'[$€£¥₹₽¢₩₪₫]'),
+          '',
+        )
+        .trim();
     if (text.isNotEmpty) return '$text $currencySymbol';
   }
 

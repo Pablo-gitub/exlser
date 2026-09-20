@@ -1,4 +1,5 @@
 import 'package:exlser/domain/entities/dataset.dart';
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 import 'package:exlser/domain/usecases/dataset/delete_dataset_usecase.dart';
 import 'package:exlser/domain/usecases/dataset/get_datasets_usecase.dart';
 import 'package:exlser/domain/usecases/dataset/open_dataset_usecase.dart';
@@ -56,7 +57,8 @@ class DatasetsListViewModel extends ChangeNotifier {
 
     try {
       _datasets = await _getDatasets.call();
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetsListViewModel');
       _errorCode = 'load_failed';
     } finally {
       _isLoading = false;
@@ -76,7 +78,8 @@ class DatasetsListViewModel extends ChangeNotifier {
       final dataset = await _openDataset.call(datasetId);
       _replaceDataset(dataset);
       return dataset.id;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetsListViewModel');
       _errorCode = 'open_failed';
       return null;
     } finally {
@@ -99,7 +102,8 @@ class DatasetsListViewModel extends ChangeNotifier {
         for (final dataset in _datasets)
           if (dataset.id != datasetId) dataset,
       ];
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetsListViewModel');
       _errorCode = 'delete_failed';
     } finally {
       _deletingDatasetId = null;

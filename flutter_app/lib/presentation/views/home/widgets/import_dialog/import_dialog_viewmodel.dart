@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 
 import 'package:exlser/application/dto/import_file.dart';
 import 'package:exlser/application/dto/confirmed_import.dart';
@@ -553,7 +554,8 @@ class ImportDialogViewModel extends ChangeNotifier {
       _unpivotValueNames.clear();
       _unpivotedSheets.clear();
       _importErrorCode = e.code;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'ImportDialogViewModel');
       _preparedImportResult = null;
       _selectedColumnTypes.clear();
       _matrixCandidates.clear();
@@ -629,7 +631,8 @@ class ImportDialogViewModel extends ChangeNotifier {
         inferredColumns: columns,
         columnCurrencySymbols: const {},
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'ImportDialogViewModel');
       _unpivotedSheets.remove(sheetIndex);
       _matrixUnpivotEnabled[sheetIndex] = false;
     }

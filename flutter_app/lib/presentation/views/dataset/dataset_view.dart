@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 import 'package:exlser/application/services/export_data_service.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/domain/entities/dataset.dart';
@@ -286,7 +287,8 @@ class _DatasetExportActionState extends State<_DatasetExportAction> {
           ),
         ),
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetView');
       messenger.showSnackBar(
         SnackBar(
           content: Text(AppStrings.datasetWorkspaceExportFailed.tr()),

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:exlser/application/services/multi_sheet_analysis_service.dart';
 import 'package:exlser/core/constants/app_strings.dart';
@@ -151,7 +152,9 @@ class _DatasetTablesGraphOverviewState
         _relationships = relationships;
         _pendingAutoFit = true;
       });
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'DatasetTablesGraphOverview');
       // Connectors are an overlay on a graph that is still usable without them,
       // so a failed read stays quiet instead of interrupting the workspace.
     }
@@ -336,7 +339,9 @@ class _DatasetTablesGraphOverviewState
       if (suggestions.isEmpty) {
         _showMessage(AppStrings.datasetWorkspaceGraphNoConnectionsFound.tr());
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'DatasetTablesGraphOverview');
       if (!mounted) return;
       setState(() {
         _isGenerating = false;
@@ -399,7 +404,9 @@ class _DatasetTablesGraphOverviewState
       } else {
         _showMessage(AppStrings.datasetWorkspaceGraphSavedSuccess.tr());
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'DatasetTablesGraphOverview');
       if (!mounted) return;
       setState(() {
         _isSaving = false;

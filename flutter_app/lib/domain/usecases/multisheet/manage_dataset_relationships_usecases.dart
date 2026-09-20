@@ -1,6 +1,7 @@
 //lib/domain/usecases/multisheet/manage_dataset_relationships_usecases.dart
 
 import 'package:exlser/domain/entities/dataset_relationship.dart';
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 import 'package:exlser/domain/repositories/dataset_relationship_repository.dart';
 
 /// Raised when a relationship duplicates an existing one (same endpoints, any order).
@@ -105,7 +106,9 @@ class CreateDatasetRelationshipsUseCase {
 
       try {
         created.add(await repository.create(relationship));
-      } catch (_) {
+      } catch (error, stackTrace) {
+        recordRecoveredError(error, stackTrace,
+            context: 'CreateDatasetRelationshipsUseCase');
         knownKeys.remove(relationship.endpointKey);
         failed.add(relationship);
       }

@@ -1,6 +1,7 @@
 //lib/presentation/views/sheet_joins/manual_relationship_dialog.dart
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 import 'package:exlser/application/services/multi_sheet_analysis_service.dart';
 import 'package:exlser/core/constants/app_strings.dart';
 import 'package:exlser/presentation/views/sheet_joins/multi_sheet_join_controller.dart';
@@ -117,7 +118,9 @@ class _ManualRelationshipDialogState extends State<_ManualRelationshipDialog> {
       } else {
         setState(() => _saving = false);
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'ManualRelationshipDialog');
       if (!mounted) return;
       setState(() {
         _saving = false;

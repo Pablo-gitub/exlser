@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 
 import 'package:exlser/core/serializers/dataset_json_serializer.dart';
 import 'package:exlser/domain/entities/dataset_column.dart';
@@ -179,7 +180,8 @@ class ExportPdfUseCase {
         height: 86,
         drawText: false,
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'ExportPdfUseCase');
       return pw.SizedBox(
         width: 86,
         child: pw.Text(

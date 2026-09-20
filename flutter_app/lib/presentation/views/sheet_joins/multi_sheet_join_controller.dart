@@ -1,6 +1,7 @@
 //lib/presentation/views/sheet_joins/multi_sheet_join_controller.dart
 
 import 'package:exlser/application/services/multi_sheet_analysis_service.dart';
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 import 'package:exlser/domain/entities/dataset_relationship.dart';
 import 'package:exlser/domain/entities/saved_multi_sheet_query.dart';
 import 'package:exlser/domain/usecases/multisheet/execute_multi_sheet_preview_usecase.dart';
@@ -153,7 +154,9 @@ class MultiSheetJoinController extends StateNotifier<MultiSheetJoinState> {
             if (r.id != null) r.id!: r,
         },
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'MultiSheetJoinController');
       if (!mounted) return;
       state = state.copyWith(
         status: MultiSheetJoinStatus.executionError,
@@ -229,7 +232,9 @@ class MultiSheetJoinController extends StateNotifier<MultiSheetJoinState> {
         status: MultiSheetJoinStatus.editing,
         suggestions: suggestions,
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'MultiSheetJoinController');
       if (!mounted || token != _suggestionToken) return;
       state = state.copyWith(
         status: MultiSheetJoinStatus.editing,
@@ -387,7 +392,9 @@ class MultiSheetJoinController extends StateNotifier<MultiSheetJoinState> {
           .where((step) => step.relationshipId == relationshipId)
           .map((step) => step.existingTableId)
           .firstOrNull;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'MultiSheetJoinController');
       return null;
     }
   }
@@ -489,7 +496,9 @@ class MultiSheetJoinController extends StateNotifier<MultiSheetJoinState> {
         status: MultiSheetJoinStatus.editing,
       );
       return true;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'MultiSheetJoinController');
       if (!mounted) return false;
       state = state.copyWith(errorCode: 'save_failed');
       return false;
@@ -573,11 +582,15 @@ class MultiSheetJoinController extends StateNotifier<MultiSheetJoinState> {
             errorCode: error.code,
           );
         }
-      } catch (_) {
+      } catch (error, stackTrace) {
+        recordRecoveredError(error, stackTrace,
+            context: 'MultiSheetJoinController');
         // Other issues (e.g. no output columns) surface when the user runs it.
       }
       return true;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'MultiSheetJoinController');
       if (!mounted || token != _savedLoadToken) return false;
       state = state.copyWith(errorCode: 'load_saved_failed');
       return false;
@@ -600,7 +613,9 @@ class MultiSheetJoinController extends StateNotifier<MultiSheetJoinState> {
         clearError: true,
       );
       return true;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'MultiSheetJoinController');
       if (!mounted) return false;
       state = state.copyWith(errorCode: 'delete_saved_failed');
       return false;

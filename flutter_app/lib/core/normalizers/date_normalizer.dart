@@ -42,7 +42,9 @@ class DateNormalizer {
     /// ISO 8601: 2024-01-14, 2024-01-14T10:30:00, 2024-01-14 10:30:00
     try {
       return DateTime.parse(trimmed);
-    } catch (_) {}
+    } catch (_) {
+      // Not ISO 8601; the other formats below get their turn.
+    }
 
     /// Slash-separated: DD/MM/YYYY or YYYY/MM/DD
     if (trimmed.contains('/')) {

@@ -1,4 +1,5 @@
 import 'package:exlser/domain/value_objects/chart_data.dart';
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 import 'package:exlser/application/dto/chart_load_result.dart';
 import 'package:exlser/domain/entities/chart_suggestion.dart';
 import 'package:exlser/domain/entities/column_statistics.dart';
@@ -187,7 +188,8 @@ class AnalysisService {
       }
 
       return ChartLoadResult.error(ChartLoadError.chartTypeNotSupported);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'AnalysisService');
       return ChartLoadResult.error(ChartLoadError.internalFailure);
     }
   }
@@ -255,7 +257,9 @@ DateTime? _dateValue(Object? value) {
       if (d != null && m != null && y != null) {
         try {
           return DateTime(y, m, d);
-        } catch (_) {}
+        } catch (_) {
+          // An impossible day/month combination is simply not a date here.
+        }
       }
     }
   }

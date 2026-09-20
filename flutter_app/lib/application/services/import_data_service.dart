@@ -1,4 +1,5 @@
 import 'package:exlser/application/dto/import_file.dart';
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 import 'package:exlser/application/dto/prepared_import_result.dart';
 import 'package:exlser/application/dto/prepared_sheet.dart';
 import 'package:exlser/application/exceptions/import_exceptions.dart';
@@ -86,7 +87,8 @@ class ImportDataService {
     } else if (file.hasPath) {
       try {
         size = await File(file.path!).length();
-      } catch (_) {
+      } catch (error, stackTrace) {
+        recordRecoveredError(error, stackTrace, context: 'ImportDataService');
         // An unreadable file is reported by the parser with a clearer code.
         return;
       }
@@ -115,7 +117,8 @@ class ImportDataService {
   SpreadsheetParser _resolveParser(String extension) {
     try {
       return parserFactory.createParser(extension);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'ImportDataService');
       throw UnsupportedFormatException(
         extension: extension,
       );

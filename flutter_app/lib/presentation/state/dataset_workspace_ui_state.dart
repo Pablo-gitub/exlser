@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:ui' show Offset;
 
+import 'package:exlser/core/diagnostics/recovered_error.dart';
+
 import 'package:exlser/domain/entities/dataset_column.dart';
 import 'package:exlser/domain/entities/chart_suggestion.dart';
 import 'package:exlser/domain/value_objects/aggregation_type.dart';
@@ -87,7 +89,9 @@ class DatasetWorkspaceUiState {
       }
 
       return DatasetWorkspaceUiState.fromJson(decoded);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace,
+          context: 'DatasetWorkspaceUiState');
       return const DatasetWorkspaceUiState();
     }
   }

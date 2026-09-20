@@ -1,4 +1,5 @@
 import 'dart:ui' show Offset;
+import 'package:exlser/core/diagnostics/recovered_error.dart';
 
 import 'package:exlser/application/dto/chart_load_result.dart';
 import 'package:exlser/application/services/analysis_service.dart';
@@ -117,7 +118,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       if (emit.isDone) return;
 
       emit(loadedState);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
       if (emit.isDone) return;
       emit(const DatasetErrorState('load_failed'));
     }
@@ -164,7 +166,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final persistedState = _attachWorkspaceStateJson(nextState);
       emit(persistedState);
       await _persistWorkspaceState(persistedState);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
       if (emit.isDone) return;
       emit(const DatasetErrorState('sheet_failed'));
     }
@@ -198,7 +201,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       if (emit.isDone) return;
 
       emit(loadedState);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
       if (emit.isDone) return;
       emit(const DatasetErrorState('refresh_failed'));
     }
@@ -512,7 +516,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
         readOnlyQueryTotalRowCount: 0,
         analyticsState: const DatasetAnalyticsIdleState(),
       ));
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
       if (emit.isDone) return;
 
       final latestState = state;
@@ -641,7 +646,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final persistedState = _attachWorkspaceStateJson(reloadedState);
       emit(persistedState);
       await _persistWorkspaceState(persistedState);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
       if (emit.isDone) return;
       emit(DatasetErrorState(errorCode));
     }
@@ -752,7 +758,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       try {
         columnsByTableId[table.id] =
             await _schemaRepository.getColumnsForTable(table.id);
-      } catch (_) {
+      } catch (error, stackTrace) {
+        recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
         columnsByTableId[table.id] = const [];
       }
     }
@@ -965,7 +972,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
           state,
         ).toJsonString(),
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
       // Workspace state persistence should never block row browsing.
     }
   }
@@ -1061,7 +1069,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       return currentState.copyWith(
         analyticsState: DatasetAnalyticsLoadedState(charts: loadedCharts),
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
       return currentState.copyWith(
         analyticsState: const DatasetAnalyticsErrorState('analytics_failed'),
       );
@@ -1092,7 +1101,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       if (nextState.analyticsState is DatasetAnalyticsLoadedState) {
         await _persistWorkspaceState(nextState);
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
       if (emit.isDone) return;
       emit(loadedState.copyWith(
         analyticsState: const DatasetAnalyticsErrorState('analytics_failed'),
@@ -1162,7 +1172,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final persistedState = _attachWorkspaceStateJson(nextState);
       emit(persistedState);
       await _persistWorkspaceState(persistedState);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
       if (emit.isDone) return;
 
       final latest = state;
@@ -1266,7 +1277,8 @@ class DatasetBloc extends Bloc<DatasetEvent, DatasetState> {
       final persistedState = _attachWorkspaceStateJson(nextState);
       emit(persistedState);
       await _persistWorkspaceState(persistedState);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      recordRecoveredError(error, stackTrace, context: 'DatasetBloc');
       if (emit.isDone) return;
 
       final latest = state;

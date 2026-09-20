@@ -74,7 +74,9 @@ class GetTimeSeriesUseCase {
         if (d != null && m != null && y != null) {
           try {
             return DateTime(y, m, d);
-          } catch (_) {}
+          } catch (_) {
+            // Not a real calendar date (31/02, say): treated as "not a date".
+          }
         }
       }
     }
