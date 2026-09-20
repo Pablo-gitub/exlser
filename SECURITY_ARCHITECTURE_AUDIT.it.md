@@ -2,7 +2,8 @@
 
 **Data:** 2026-09-17
 **Branch analizzato:** `feature/multi-table-detection` (15 commit sopra `main`, +8793 righe)
-**Stato:** §1 e §2 chiuse (§5 le verifiche); §3 aperta; §6 due scoperte nuove, una chiusa e una aperta.
+**Stato:** §1 e §2 chiuse, §3 chiusa salvo un punto lasciato aperto con motivo (§5 le verifiche);
+§6 raccoglie due scoperte nuove, una chiusa e una aperta.
 **Baseline all'apertura dell'audit:** `flutter analyze` pulito · 687 test verdi · i18n 386 chiavi × 9 locale, 0 mancanti ·
 delete chain completa (include `dataset_relationships`) · `schemaVersion 4` con migrazione corretta ·
 nessun permesso `INTERNET` nel manifest di release · `npm audit` landing page: 0 vulnerabilità
@@ -193,33 +194,59 @@ Analyzer pulito, **741 test** verdi, i18n 393 chiavi × 9 locale, build web e Li
 
 ## 3. Architettura e manutenibilità
 
-- [ ] **P1 — Violazioni della direzione delle dipendenze.**
-      `domain → data`: `create_dataset_table_usecase.dart`, `infer_schema_usecase.dart`,
-      `detect_matrix_table_usecase.dart`. `domain → application`: i due use case analytics che
-      importano `application/dto/chart_data.dart`. `application → presentation` (la peggiore):
-      `analysis_service.dart:13` e `chart_load_result.dart:2` importano `presentation/state/dataset_state.dart`.
+**Sei punti su sette chiusi il 2026-09-20**; il settimo (spezzare `dataset_bloc`) è lasciato
+aperto di proposito, con il motivo. Analyzer pulito con le regole nuove, **742 test** verdi.
 
-- [ ] **P1 — 37 `catch (_)` che inghiottono l'errore** in `lib/`, con la UI che riceve codici generici
-      (`refresh_failed`, `sheet_failed`). È il motivo per cui i bug della overview restano invisibili.
+- [x] **P1 — Direzione delle dipendenze ripristinata.**
+      Ogni inversione risolta spostando il tipo nel layer che lo possiede, non aggiungendo
+      indirezioni: i normalizzatori di valore (boolean, date, number e il loro contratto) da
+      `data/adapters` a `core/normalizers`, dove già stava il sanitizer; `ChartData` e i suoi punti da
+      `application/dto` a `domain/value_objects`, visto che li producono gli use case; `ChartLoadError`
+      da `presentation/state` accanto al risultato che lo trasporta.
+      `lib/domain`, `lib/application` e `lib/core` non importano più nulla da un layer superiore.
 
-- [ ] **P2 — File oltre soglia:** `dataset_view.dart` 1948 righe, `dataset_bloc.dart` 1289,
-      `sheet_joins_view.dart` 1104. Questo branch ha aggiunto altre 250 righe a `dataset_view`,
-      contro la regola in AGENTS.md (nuova superficie → controller Riverpod dedicato).
+- [x] **P1 — I `catch (_)` non buttano più via la causa.**
+      Nuovo `core/diagnostics/recovered_error.dart`: il chiamante continua a recuperare, ma in debug
+      l'errore viene stampato con il punto da cui arriva, e in release la chiamata si compila via —
+      un'app local-first non deve scrivere log sui dati dell'utente. Applicato a **36 punti** su 13 file.
+      I 6 `catch (_)` rimasti sono fallback di parsing dove l'eccezione *è* la risposta
+      ("questa stringa non è una data") e ognuno ora lo dice.
 
-- [ ] **P2 — `_loadColumnsByTableId`:** N+1 sequenziale su tutte le tabelle all'apertura del dataset,
-      cache mai invalidata (`dataset_bloc.dart:729`).
+- [~] **P2 — File oltre soglia — due su tre spezzati.**
+      `dataset_view.dart` **1939 → 834**: fuori l'azione di export con il suo dialog (406),
+      il pannello query mode con l'editor SQL e lo schema helper (581), il selettore fogli (148).
+      `sheet_joins_view.dart` **1104 → 554**: fuori le label condivise, i primitivi card/message e le
+      sezioni suggerimenti e relazioni. Nessun comportamento toccato, solo nomi diventati pubblici.
+      **Resta `dataset_bloc.dart` (1343).** Non l'ho spezzato: è una sola macchina a stati, e i suoi
+      handler usano campi privati del bloc, quindi un mixin in un altro file richiederebbe getter
+      astratti o dipendenze passate — cioè una scelta di design (mixin, sub-bloc, o un controller
+      analytics separato) che va presa, non improvvisata. La regola di AGENTS.md punta comunque
+      nell'altra direzione: non farlo crescere, mettere la superficie nuova in un controller dedicato.
 
-- [ ] **P2 — Lint minimale:** solo `flutter_lints`, nessuna regola aggiuntiva, no `strict-casts` /
-      `strict-raw-types`.
+- [x] **P2 — N+1 sulle colonne.**
+      Le colonne di tutte le tabelle ora si caricano in parallelo invece che una dopo l'altra: un
+      workbook con dodici tabelle pagava dodici round trip sequenziali prima della prima riga (sul web,
+      dodici messaggi al worker). E la mappa ora si invalida: il refresh — l'unico punto in cui
+      l'utente chiede di rileggere — non riusa più la cache. *Test:* un caso nuovo sul bloc.
 
-- [ ] **P3 — ~15 file con `/// TODO` segnaposto** (`multi_dataset_analytics`, `settings_viewmodel`,
-      i widget dei filtri): scheletri mai completati.
+- [x] **P2 — Lint.**
+      Attivati `strict-casts`, `strict-inference`, `strict-raw-types` più nove regole di sostanza
+      (future non attese, sink e subscription non chiusi, `print`, `throw` in `finally`).
+      Escluse di proposito le regole di stile (virgole finali, apici, ordine degli import): 809
+      segnalazioni di cui 788 cosmetiche, che avrebbero riscritto mezzo repository senza trovare nulla.
+      **Prima cattura immediata:** `DriftDatasource` teneva il database come `dynamic`, quindi nessuna
+      chiamata al database in tutta l'app era mai stata controllata. Ora è un `AppDatabase`.
 
-- [ ] **P3 — Fixture binarie duplicate:** `test_fixtures/*.xlsx` in root sono byte-identiche a
-      `flutter_app/test/fixtures/excel/` (le scrive il generatore in entrambi i posti,
-      `tool/generate_multi_table_fixtures.py:113`).
+- [x] **P3 — Scheletri mai completati: rimossi.**
+      Dodici file descrivevano funzionalità in TODO e restituivano `Placeholder()` — widget dei filtri,
+      sezioni del workspace, dialog di conferma schema, un servizio di orchestrazione query, un
+      view model delle impostazioni che lanciava `UnimplementedError`. Nessuno era referenziato e ogni
+      funzionalità descritta esiste altrove. Con loro è andata via la schermata multi-dataset analytics
+      **e la sua rotta**: nessuno ci navigava, ma il path era raggiungibile a mano, il che sulla demo
+      web significava un `Placeholder` nudo. La feature resta pianificata in ROADMAP.md.
 
----
+- [x] **P3 — Fixture duplicate: rimosse.**
+      `test_fixtures/` in root non esiste più e il generatore scrive solo dove i test leggono.
 
 ## 4. Ordine di lavoro suggerito
 
@@ -229,10 +256,18 @@ Analyzer pulito, **741 test** verdi, i18n 393 chiavi × 9 locale, build web e Li
 - [x] **Ondata 4 — import fuori dall'UI thread** (isolate nei parser), worklist nel detector, limite
       di dimensione file — fatta; resta da spostare l'inferenza di schema (vedi §2).
 - [x] **Ondata 5 — CI su push/PR** — fatta (`.github/workflows/ci.yml`).
-- [ ] **Ondata 6 — manutenzione rimasta:** i major di framework (`flutter_riverpod` 3, `go_router` 18,
-      `file_picker` 13, `share_plus` 13, `desktop_drop` 0.8) e lo stack web (`sqlite3_web` 0.9 +
-      asset `drift_worker.js`/`sqlite3.wasm`), che richiedono prove manuali su device; spezzare
-      `dataset_view`; ridurre i 37 `catch (_)`.
+- [x] **Ondata 6 — manutenzione** — fatta il 2026-09-20: major di framework, stack web,
+      `dataset_view` e `sheet_joins_view` spezzati, `catch (_)` che non perdono più la causa.
+
+Rimane sul tavolo, in ordine di valore:
+
+1. Il database della demo web (§6): header di isolamento sull'hosting e gestione esplicita del
+   fallback di `WasmDatabase.open`.
+2. Una build Android e una iOS, mai verificate da questa sessione e toccate da file_picker 13 e
+   riverpod 3.
+3. Aggiornare ROADMAP.md e CHANGELOG.md: non menzionano la feature multi-tabella di questo branch.
+4. `dataset_bloc.dart` (§3), quando si sceglie come spezzarlo.
+5. `go_router` 18, quando Flutter riesporterà `@awaitNotRequired`.
 
 ---
 
