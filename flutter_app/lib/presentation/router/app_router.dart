@@ -7,7 +7,6 @@ import '../widgets/layout/app_shell.dart';
 import '../views/dataset/dataset_view.dart';
 import '../views/dataset_list/datasets_list_view.dart';
 import '../views/home/home_view.dart';
-import '../views/multi_dataset_analytics/multi_dataset_analytics_view.dart';
 import '../views/sheet_joins/sheet_joins_view.dart';
 import '../views/onboarding/onboarding_view.dart';
 import '../views/settings/settings_view.dart';
@@ -96,17 +95,6 @@ class AppRouter {
                     key: ValueKey('dataset_$datasetId'),
                     datasetId: datasetId,
                   ),
-                );
-              },
-            ),
-            GoRoute(
-              name: AppRoutes.multiDatasetAnalyticsName,
-              path: AppRoutes.multiDatasetAnalyticsPath,
-              pageBuilder: (BuildContext context, GoRouterState state) {
-                final int datasetId = _getDatasetId(state);
-                return NoTransitionPage(
-                  key: state.pageKey,
-                  child: MultiDatasetAnalyticsView(datasetId: datasetId),
                 );
               },
             ),
