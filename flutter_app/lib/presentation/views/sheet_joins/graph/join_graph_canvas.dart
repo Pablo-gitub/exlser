@@ -330,7 +330,9 @@ class _JoinGraphCanvasState extends State<JoinGraphCanvas> {
                                       _toScene(details.globalPosition);
                                   final newPos = scenePoint - _dragOffset;
                                   if (!newPos.dx.isFinite ||
-                                      !newPos.dy.isFinite) return;
+                                      !newPos.dy.isFinite) {
+                                    return;
+                                  }
                                   setState(() {
                                     _customPositions[table.tableId] = newPos;
                                   });
