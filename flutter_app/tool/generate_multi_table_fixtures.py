@@ -109,12 +109,13 @@ def create_multi_sheet_multi_table(filepath):
     print(f"Created {filepath}")
 
 if __name__ == "__main__":
+    # Only the fixtures the tests read are written. An extra copy used to be
+    # generated in a test_fixtures/ folder at the repository root, byte for byte
+    # the same and referenced by nothing; for manual drag-and-drop testing, copy
+    # one of these out instead of committing a second binary.
     fixtures_dir = os.path.join(os.path.dirname(__file__), "..", "test", "fixtures", "excel")
-    root_fixtures_dir = os.path.join(os.path.dirname(__file__), "..", "..", "test_fixtures")
 
     create_single_sheet_multi_table(os.path.join(fixtures_dir, "multi_table_same_sheet.xlsx"))
     create_single_sheet_multi_table(os.path.join(fixtures_dir, "single_sheet_multi_table.xlsx"))
-    create_single_sheet_multi_table(os.path.join(root_fixtures_dir, "single_sheet_multi_table.xlsx"))
 
     create_multi_sheet_multi_table(os.path.join(fixtures_dir, "multi_sheet_multi_table.xlsx"))
-    create_multi_sheet_multi_table(os.path.join(root_fixtures_dir, "multi_sheet_multi_table.xlsx"))
