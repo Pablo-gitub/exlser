@@ -59,7 +59,7 @@ void main() {
           ),
         ),
       );
-      await Future.delayed(const Duration(milliseconds: 150));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
     });
     await tester.pumpAndSettle();
   }

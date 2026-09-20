@@ -40,7 +40,7 @@ Future<void> _pumpSettings(
         ),
       ),
     );
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
   });
   await tester.pumpAndSettle();
 }

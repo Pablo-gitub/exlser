@@ -206,7 +206,7 @@ Future<void> _pumpApp(
 }) async {
   await tester.runAsync(() async {
     await tester.pumpWidget(_localizedApp(child: child, overrides: overrides));
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
   });
   await tester.pumpAndSettle();
 }

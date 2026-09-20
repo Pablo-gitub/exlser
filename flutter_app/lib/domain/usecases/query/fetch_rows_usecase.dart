@@ -29,7 +29,7 @@ class FetchRowsUseCase {
     int? limit,
     int? offset,
   }) async {
-    return await repository.fetchRows(
+    return repository.fetchRows(
         tableName: tableName, limit: limit, offset: offset);
   }
 }

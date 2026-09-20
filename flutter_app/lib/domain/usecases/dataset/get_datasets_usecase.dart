@@ -23,6 +23,6 @@ class GetDatasetsUseCase {
   });
 
   Future<List<Dataset>> call() async {
-    return await repository.getAllDatasets();
+    return repository.getAllDatasets();
   }
 }

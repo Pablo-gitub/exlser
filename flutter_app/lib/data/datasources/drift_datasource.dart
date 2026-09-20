@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:exlser/core/database/app_database.dart';
 
 /// Data source responsible for interacting with the Drift database.
 ///
@@ -11,7 +12,11 @@ import 'package:drift/drift.dart';
 /// - Execute updates
 /// - Execute dynamic schema operations
 class DriftDatasource {
-  final dynamic db; // Your Drift database instance
+  /// The Drift database every call goes through.
+  ///
+  /// This used to be `dynamic`, which meant no method name, argument or result
+  /// of any database call in the app was ever checked.
+  final AppDatabase db;
 
   DriftDatasource(this.db);
 

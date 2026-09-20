@@ -80,7 +80,7 @@ Future<void> _pumpApp(
       ),
     );
     // Allow the asset load future to actually complete.
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
   });
   await tester.pumpAndSettle();
 }

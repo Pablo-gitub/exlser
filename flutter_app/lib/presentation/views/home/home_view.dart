@@ -91,7 +91,7 @@ class HomeView extends ConsumerWidget {
 
     if (file == null) return;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => ImportDialog(
         file: file,

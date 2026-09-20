@@ -276,7 +276,8 @@ class TableBoundaryDetector {
       final subMatrix = <List<dynamic>>[];
       for (var r = startR; r <= endR; r++) {
         final row = <dynamic>[];
-        final sourceRow = r < rawGrid.length ? rawGrid[r] : const [];
+        final sourceRow =
+            r < rawGrid.length ? rawGrid[r] : const <dynamic>[];
         for (var c = startC; c <= endC; c++) {
           if (c < sourceRow.length && sourceRow[c] != null) {
             row.add(sourceRow[c]);

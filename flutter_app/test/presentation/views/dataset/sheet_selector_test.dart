@@ -89,7 +89,7 @@ Future<void> _pumpSheetSelector(
         ),
       ),
     );
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
   });
   await tester.pumpAndSettle();
 }

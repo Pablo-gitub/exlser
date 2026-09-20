@@ -33,7 +33,7 @@ class SplashViewModel {
   /// - load theme / locale settings
   Future<void> initialize() async {
     final prefsResult = await Future.wait([
-      Future.delayed(const Duration(milliseconds: 500)),
+      Future<void>.delayed(const Duration(milliseconds: 500)),
       SharedPreferences.getInstance(),
     ]);
 

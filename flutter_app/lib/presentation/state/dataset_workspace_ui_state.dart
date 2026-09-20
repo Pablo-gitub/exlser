@@ -420,7 +420,7 @@ class StoredTableWorkspaceState {
           : const [],
       columnCurrencySymbols: currencyJson is Map
           ? {
-              for (final e in (currencyJson).entries)
+              for (final e in currencyJson.entries)
                 e.key.toString(): e.value.toString(),
             }
           : const {},
