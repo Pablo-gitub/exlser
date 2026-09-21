@@ -19,6 +19,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.44.8
       - name: Install Linux Dependencies
         run: |
           sudo apt-get update -y
@@ -48,6 +49,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.44.8
       - name: Install project dependencies
         run: flutter pub get
         working-directory: flutter_app
@@ -73,6 +75,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.44.8
       - name: Install project dependencies
         run: flutter pub get
         working-directory: flutter_app
