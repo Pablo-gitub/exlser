@@ -779,14 +779,15 @@ Publish criteria:
 
 Goal: analyze relationships across sheets and datasets.
 
-- [ ] Define cross-sheet operation models.
-- [ ] Load metadata for multiple sheets.
-- [ ] Detect compatible columns.
+- [x] Define cross-sheet operation models.
+- [x] Load metadata for multiple sheets.
+- [x] Detect compatible columns.
 - [ ] Implement simple merge/union.
-- [ ] Evaluate join support.
+- [x] Evaluate join support — guided INNER/LEFT joins shipped.
 - [ ] Implement `MultiDatasetAnalyticsViewModel`.
-- [ ] Implement UI for selecting sheets/datasets.
-- [ ] Add tests for cross-sheet operations.
+- [ ] Implement UI for selecting sheets/datasets — sheet selection ships in
+      the joins view, multi-dataset selection does not exist yet.
+- [x] Add tests for cross-sheet operations.
 
 ### Milestone Reached: v0.5.0 - Cross-Sheet and Multi-Dataset Analysis
 
@@ -1101,58 +1102,70 @@ Goal: make cross-sheet analysis approachable without forcing users to write SQL
 by hand. This feature acts as a guided query builder for comparing multiple
 sheets.
 
+Status: shipped, in `presentation/views/sheet_joins/` plus
+`domain/usecases/multisheet/`, covered by 18 test files. Persistence landed in
+dedicated tables instead of `uiStateJson`, because confirmed relationships and
+saved queries outlive the opened-dataset UI state. What is still missing is the
+unchecked part below: per-column filters, the shared result workspace and its
+analytics, a human-readable explanation of the query, and a handoff to raw SQL.
+
 Entry point:
 
-- [ ] Add a Multi-sheet Analysis action beside the sheet selector in
-      `DatasetView`.
-- [ ] Open a dedicated view or panel for choosing the sheets to compare.
+- [x] Add a Multi-sheet Analysis action in `DatasetView` — it sits in the table
+      overview rather than beside the sheet selector.
+- [x] Open a dedicated view or panel for choosing the sheets to compare.
 
 Guided analysis flow:
 
-- [ ] Let the user select one or more sheets.
-- [ ] For each selected sheet, let the user choose the columns to include.
+- [x] Let the user select one or more sheets.
+- [x] For each selected sheet, let the user choose the columns to include.
 - [ ] Reuse the existing filter controls for selected columns.
-- [ ] Ask how selected sheets are connected before building queries that use
+- [x] Ask how selected sheets are connected before building queries that use
       more than one sheet.
-- [ ] Build a safe read-only SQL query from the selected sheets, columns, and
-      filters.
-- [ ] Show the generated result in the existing table/card result workspace.
+- [x] Build a safe read-only SQL query from the selected sheets, columns, and
+      joins.
+- [ ] Show the generated result in the existing table/card result workspace —
+      the preview renders its own table inside the joins view.
 - [ ] Reuse query analytics on top of the generated multi-sheet result.
-- [ ] Persist the selected sheets, columns, filters, generated query, and chart
-      configuration in `uiStateJson`.
+- [x] Persist the selected sheets, columns, joins, and generated query — in the
+      `saved_multi_sheet_queries` table rather than `uiStateJson`.
 
 Relationship assistance:
 
-- [ ] Detect candidate relationship columns by comparing normalized column
+- [x] Detect candidate relationship columns by comparing normalized column
       names, compatible data types, overlapping values, uniqueness, and common
       business identifiers such as `id`, `code`, `sku`, `email`, or
       `product_id`.
-- [ ] Show relationship suggestions in user-facing language, for example
+- [x] Show relationship suggestions in user-facing language, for example
       `Products.product` connected to `Sales.product`.
-- [ ] Let the user confirm, change, or reject each suggested relationship.
-- [ ] Support initial `INNER JOIN` and `LEFT JOIN` choices with clear labels.
-- [ ] Use generated row IDs only as internal row references or as an explicit
-      row-order matching option, not as automatic cross-sheet relationships.
-- [ ] Persist confirmed relationships in `uiStateJson` for the opened dataset.
-- [ ] Later promote stable relationships into a domain entity such as
+- [x] Let the user confirm, change, or reject each suggested relationship.
+- [x] Support initial `INNER JOIN` and `LEFT JOIN` choices with clear labels.
+- [x] Use generated row IDs only as internal row references or as an explicit
+      row-order matching option, not as automatic cross-sheet relationships —
+      the suggestion engine only ever sees declared `DatasetColumn`s.
+- [x] Persist confirmed relationships for the opened dataset, in the
+      `dataset_relationships` table rather than `uiStateJson`.
+- [x] Later promote stable relationships into a domain entity such as
       `DatasetRelationship` if they become part of the dataset model.
 
 Future refinement:
 
-- [ ] Add relationship confidence labels such as high, medium, or low.
+- [x] Add relationship confidence labels such as high, medium, or low.
 - [ ] Detect row-order matches when sheets have the same length and the user
       explicitly confirms that rows correspond by position.
 - [ ] Add fuzzy matching for messy text values that refer to the same business
       object with slightly different spelling.
-- [ ] Explain the generated query in human-readable form before execution.
+- [ ] Explain the generated query in human-readable form before execution — the
+      risk confirmation dialog warns, it does not explain.
 - [ ] Allow advanced users to switch from guided mode to raw SQL while keeping
       the generated query as a starting point.
 
 Definition of done:
 
-- [ ] Users can compare multiple sheets without manually writing SQL.
-- [ ] The generated query remains read-only and limited to the opened dataset.
-- [ ] Multi-sheet result state is restored when reopening the dataset.
+- [x] Users can compare multiple sheets without manually writing SQL.
+- [x] The generated query remains read-only and limited to the opened dataset.
+- [ ] Multi-sheet result state is restored when reopening the dataset — saved
+      configurations are reopened on demand, not restored automatically.
 
 ## Path to Dataset Portability
 
