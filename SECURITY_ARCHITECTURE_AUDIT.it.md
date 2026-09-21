@@ -286,6 +286,22 @@ Aggiunte il 2026-09-20, dopo i major di framework:
 - build web ricostruita anche dal commit `304603e` per isolare cosa fosse regressione e cosa no
 - `flutter build linux --debug` di nuovo verde con file_picker 13, riverpod 3 e il resto
 
+Aggiunte il 2026-09-21, dopo l'allineamento dei workflow:
+
+- prima CI su push (run `35545611082`): entrambi i job verdi su runner pulito; l'unico
+  `exit code 1` fra le annotazioni è il controllo di formato, volutamente `continue-on-error`
+- action portate alle major correnti (`checkout@v7`, `setup-node@v7`, `setup-java@v6`,
+  `upload-artifact@v7`, `download-artifact@v8`): nessun breaking change ci riguarda — il direct
+  upload di v7 è opt-in, il caching di `setup-node` è già dichiarato esplicito, e i fork PR
+  bloccati da `checkout@v7` valgono per trigger che non usiamo
+- Node allineato a **24** in CI e nel deploy: erano 20 e 22, quindi la CI validava la landing su
+  una versione diversa da quella con cui il tag `landing-v*` la pubblica
+- `npm ci` + `npm run build` + `npm audit --omit=dev --audit-level=high` su Node 24 locale: build
+  verde, 0 vulnerabilità
+- `java-version: 17` lasciata invariata: è la versione attesa dal toolchain Android, non debito
+- i workflow su tag (`desktop-v*`, `android-v*`, `landing-v*`) restano non esercitati dalla CI:
+  le loro major aggiornate si vedranno solo al prossimo rilascio
+
 Note per chi rilascia:
 - `path_provider_foundation` 2.6 è passata a Dart+FFI, quindi è correttamente **uscita** dal
   registrant dei plugin macOS/iOS: il diff su `GeneratedPluginRegistrant.swift` è atteso, non una
