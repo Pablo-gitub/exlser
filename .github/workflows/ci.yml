@@ -32,9 +32,6 @@ jobs:
         working-directory: flutter_app
 
       - name: Verify formatting of tracked Dart sources
-        # Informational: the repository is not fully formatted with the current
-        # dart format, so this reports rather than fails.
-        continue-on-error: true
         run: dart format --output=none --set-exit-if-changed lib test
         working-directory: flutter_app
 
