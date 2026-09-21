@@ -516,8 +516,7 @@ void main() {
   });
 
   group('currency symbols in initial uiStateJson', () {
-    test(
-        'writes uiStateJson with detected currencies after table creation',
+    test('writes uiStateJson with detected currencies after table creation',
         () async {
       final dataset = _dataset();
       final table = _table(); // id = 10
@@ -549,13 +548,16 @@ void main() {
 
       final decoded = jsonDecode(captured) as Map<String, dynamic>;
       final tableStates = decoded['tableStates'] as Map<String, dynamic>;
-      final tableState = tableStates[table.id.toString()] as Map<String, dynamic>;
-      final currencies = tableState['columnCurrencySymbols'] as Map<String, dynamic>;
+      final tableState =
+          tableStates[table.id.toString()] as Map<String, dynamic>;
+      final currencies =
+          tableState['columnCurrencySymbols'] as Map<String, dynamic>;
 
       expect(currencies, {r'price': r'$'});
     });
 
-    test('does not call updateDatasetUiStateUseCase when no currencies detected',
+    test(
+        'does not call updateDatasetUiStateUseCase when no currencies detected',
         () async {
       mockDatasetCreation(_dataset());
       mockTableCreation(_table());

@@ -151,7 +151,8 @@ void main() {
       expect(captured[1], ['active']);
     });
 
-    test('throws InvalidChartConfigException when SUM without yColumn', () async {
+    test('throws InvalidChartConfigException when SUM without yColumn',
+        () async {
       final column = _col('category', ColumnType.text);
 
       expect(
@@ -164,8 +165,7 @@ void main() {
       );
     });
 
-    test(
-        'throws InvalidChartConfigException for AVG/MIN/MAX without yColumn',
+    test('throws InvalidChartConfigException for AVG/MIN/MAX without yColumn',
         () async {
       final column = _col('category', ColumnType.text);
 

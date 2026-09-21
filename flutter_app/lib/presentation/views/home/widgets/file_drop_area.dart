@@ -143,7 +143,6 @@ class _WebFileDropAreaState extends ConsumerState<_WebFileDropArea> {
                   vm.selectedFileName ?? AppStrings.homeDropFile.tr(),
               isHovering: isHovering,
             ),
-
             if (!vm.hasFile)
               Positioned.fill(
                 child: DropzoneView(
@@ -167,7 +166,6 @@ class _WebFileDropAreaState extends ConsumerState<_WebFileDropArea> {
               ),
           ],
         ),
-
         if (!vm.hasFile) ...[
           const SizedBox(height: 12),
           TextButton(

@@ -121,8 +121,8 @@ class _DatasetTableViewState extends State<DatasetTableView> {
                                           value: _formatCellValue(
                                             row[column.dbName],
                                             columnType: column.declaredType,
-                                            currencySymbol: widget
-                                                .columnCurrencySymbols[
+                                            currencySymbol:
+                                                widget.columnCurrencySymbols[
                                                     column.dbName],
                                           ),
                                         ),
@@ -179,8 +179,7 @@ class _HeaderCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final display =
-        currencySymbol != null ? '$label ($currencySymbol)' : label;
+    final display = currencySymbol != null ? '$label ($currencySymbol)' : label;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 220),
       child: Text(
@@ -228,10 +227,8 @@ String _formatCellValue(
   }
 
   if (currencySymbol != null) {
-    final stripped = value
-        .toString()
-        .replaceAll(RegExp(r'[$€£¥₹₽¢₩₪₫]'), '')
-        .trim();
+    final stripped =
+        value.toString().replaceAll(RegExp(r'[$€£¥₹₽¢₩₪₫]'), '').trim();
     if (stripped.isNotEmpty) return '$stripped $currencySymbol';
   }
 
