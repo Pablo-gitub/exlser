@@ -302,6 +302,15 @@ Aggiunte il 2026-09-21, dopo l'allineamento dei workflow:
 - i workflow su tag (`desktop-v*`, `android-v*`, `landing-v*`) restano non esercitati dalla CI:
   le loro major aggiornate si vedranno solo al prossimo rilascio
 
+Aggiunte il 2026-09-22, sul formato:
+
+- la deriva reale era di **5 file su 320** (36 righe): allineati, e il passo della CI non è più
+  `continue-on-error` ma un gate vero
+- il motivo delle poche righe: `sdk: ^3.5.3` tiene `dart format` sullo **short style**. Alzare
+  quel vincolo sopra 3.7 porta al *tall style*, che riscriverebbe **224 file su 320** — è il
+  debito di formato vero, da fare come commit isolato con `.git-blame-ignore-revs` e a branch
+  fermi, non come effetto collaterale di un bump
+
 Note per chi rilascia:
 - `path_provider_foundation` 2.6 è passata a Dart+FFI, quindi è correttamente **uscita** dal
   registrant dei plugin macOS/iOS: il diff su `GeneratedPluginRegistrant.swift` è atteso, non una

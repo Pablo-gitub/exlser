@@ -99,9 +99,14 @@ query.
 the filter UI. Don't "fix" it; if you need a bounded sample, issue a dedicated raw query with
 `LIMIT` and `IS NOT NULL` (see `MultiSheetAnalysisService`).
 
-**Formatting churn.** The repo is not fully formatted with the current `dart format`, so
-`dart format lib test` rewrites unrelated files. Format only the files you touched, or revert
-the collateral before committing.
+**Formatting is a gate.** `dart format lib test` leaves the repo unchanged, and CI fails if it
+would not. Run it on what you touched before committing.
+
+**The formatter's style follows `pubspec.yaml`, not the SDK you have installed.** The
+`sdk: ^3.5.3` constraint keeps `dart format` on the old short style. Raising that floor above
+3.7 switches it to *tall style*, which rewrites ~224 of the 320 tracked Dart files. That is a
+real migration, not a side effect: do it as its own commit, add it to
+`.git-blame-ignore-revs`, and do it when no other branch is in flight.
 
 ## i18n
 
